@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -52,7 +53,6 @@ namespace LinkUs
             for (int i = 0; i < 10; i++) {
                 var args = new SocketAsyncEventArgs();
                 args.Completed += SendEventCompleted;
-                args.SetBuffer(new byte[10000], 0, 10000);
                 args.UserToken = new Metadata();
                 _sendSocketOperations.Enqueue(args);
             }
@@ -73,8 +73,14 @@ namespace LinkUs
             var data = package.ToByteArray();
             var socket = _connectedSockets[package.Destination];
             var sendSocketEventArgs = _sendSocketOperations.Dequeue();
+            var metadata = (Metadata) sendSocketEventArgs.UserToken;
+            var fullData = new byte[metadata.PackageLengthBytes.Length + data.Length];
+            metadata.PackageLengthBytes = BitConverter.GetBytes(data.Length);
+            Buffer.BlockCopy(metadata.PackageLengthBytes, 0, fullData, 0, metadata.PackageLengthBytes.Length);
+            Buffer.BlockCopy(data, 0, fullData, metadata.PackageLengthBytes.Length, data.Length);
+
             sendSocketEventArgs.AcceptSocket = socket;
-            sendSocketEventArgs.SetBuffer(data, 0, data.Length);
+            sendSocketEventArgs.SetBuffer(fullData, 0, fullData.Length);
             StartSendData(sendSocketEventArgs);
         }
         public void Close()
@@ -159,12 +165,24 @@ namespace LinkUs
                 throw new Exception("unsuccessed read");
             }
 
+            var metadata = (Metadata) receiveSocketEventArgs.UserToken;
+
             var bytesTransferredCount = receiveSocketEventArgs.BytesTransferred;
             var bytesTransferred = receiveSocketEventArgs.Buffer.Take(bytesTransferredCount).ToArray();
-            var package = Package.Parse(bytesTransferred);
-            package.ChangeSource(((Metadata)receiveSocketEventArgs.UserToken).ClientId);
-            OnPackageReceived(package);
+            if (metadata.PackageLength == 0) {
+                Buffer.BlockCopy(bytesTransferred, 0, metadata.PackageLengthBytes, 0, metadata.PackageLengthBytes.Length);
+                metadata.PackageLength = BitConverter.ToInt32(metadata.PackageLengthBytes, 0);
+            }
+            if (bytesTransferredCount - metadata.PackageLengthBytes.Length == metadata.PackageLength) {
+                var package = Package.Parse(bytesTransferred.Skip(metadata.PackageLengthBytes.Length).ToArray());
+                package.ChangeSource(metadata.ClientId);
+                OnPackageReceived(package);
+            }
+            else {
+                throw new NotImplementedException();
+            }
 
+            metadata.PackageLength = 0;
             StartReceiveData(receiveSocketEventArgs);
         }
 
@@ -213,12 +231,15 @@ namespace LinkUs
     public class Metadata
     {
         public ClientId ClientId;
-        public byte[] Buffer;
+        public List<byte[]> Buffers;
+        public byte[] PackageLengthBytes = new byte[4];
+        public int PackageLength = 0;
 
         public void Reset()
         {
             ClientId = null;
-            Buffer = null;
+            Buffers.Clear();
+            PackageLength = 0;
         }
     }
 }
