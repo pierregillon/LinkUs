@@ -41,14 +41,14 @@ namespace LinkUs
                 _acceptSocketOperations.Enqueue(args);
             }
 
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 10; i++) {
                 var args = new SocketAsyncEventArgs();
                 args.Completed += ReceiveEventCompleted;
                 args.SetBuffer(new byte[10000], 0, 10000);
                 _receiveSocketOperations.Enqueue(args);
             }
 
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 10; i++) {
                 var args = new SocketAsyncEventArgs();
                 args.Completed += SendEventCompleted;
                 args.SetBuffer(new byte[10000], 0, 10000);
@@ -114,8 +114,11 @@ namespace LinkUs
             var clientId = ClientId.New();
             _connectedSockets.Add(clientId, acceptSocketEventArgs.AcceptSocket);
             OnClientConnected(clientId);
+
             StartAcceptNextConnection();
             StartReceiveData(acceptSocketEventArgs.AcceptSocket);
+
+            acceptSocketEventArgs.AcceptSocket = null;
             _acceptSocketOperations.Enqueue(acceptSocketEventArgs);
         }
 
