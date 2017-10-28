@@ -63,7 +63,7 @@ namespace LinkUs
         }
         public void SendDataAsync(Package package)
         {
-            var socket = _connectedSockets[package.Source];
+            var socket = _connectedSockets[package.Destination];
             StartSendData(socket, package.ToByteArray());
         }
         public IEnumerable<ClientId> GetClients()

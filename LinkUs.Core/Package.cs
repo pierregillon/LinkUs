@@ -29,7 +29,7 @@ namespace LinkUs.Core
         {
             var transactionIdBytes = TransactionId.ToByteArray();
             var sourceBytes = Source.ToByteArray();
-            var destinationBytes = Source.ToByteArray();
+            var destinationBytes = Destination.ToByteArray();
 
             var fullBytes = new byte[transactionIdBytes.Length + sourceBytes.Length + destinationBytes.Length + Content.Length];
 

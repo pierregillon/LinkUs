@@ -24,15 +24,14 @@ namespace LinkUs.CommandLine
             while (commandLine != "exit") {
                 Console.Write("Command: ");
                 commandLine = Console.ReadLine();
-                var package = new Package(clientId, ClientId.Server, Encoding.GetBytes("victims"));
+                var package = new Package(clientId, ClientId.Server, Encoding.GetBytes(commandLine));
                 var bytes = package.ToByteArray();
                 tcpClient.GetStream().Write(bytes, 0, bytes.Length);
 
                 var buffer = new byte[1024];
                 var count = tcpClient.GetStream().Read(buffer, 0, buffer.Length);
                 var packageResponse = Package.Parse(buffer.Take(count).ToArray());
-                var test = packageResponse.ToByteArray();
-                Console.WriteLine(Encoding.GetString(test));
+                Console.WriteLine(Encoding.GetString(packageResponse.Content));
             }
         }
     }
