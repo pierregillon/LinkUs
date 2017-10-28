@@ -15,6 +15,7 @@ namespace LinkUs
         {
             _connector.PackageReceived += ConnectorOnPackageReceived;
             _connector.ClientConnected+=ConnectorOnClientConnected;
+            _connector.ClientDisconnected+=ConnectorOnClientDisconnected;
             _connector.Listen(new IPEndPoint(IPAddress.Any, 9000));
             Console.WriteLine("* Listening for clients...");
             while (Console.ReadLine() != "exit") ;
@@ -26,8 +27,13 @@ namespace LinkUs
         // ----- Event callbacks
         private static void ConnectorOnClientConnected(ClientId clientId)
         {
+            Console.WriteLine($"* {clientId} connected.");
             var package = new Package(ClientId.Server, clientId, Encoding.GetBytes("identification"));
             _connector.SendDataAsync(package);
+        }
+        private static void ConnectorOnClientDisconnected(ClientId clientId)
+        {
+            Console.WriteLine($"* {clientId} disconnected.");
         }
         private static void ConnectorOnPackageReceived(Package package)
         {

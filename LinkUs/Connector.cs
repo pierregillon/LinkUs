@@ -20,6 +20,11 @@ namespace LinkUs
         {
             ClientConnected?.Invoke(clientId);
         }
+        public event Action<ClientId> ClientDisconnected;
+        protected virtual void OnClientDisconnected(ClientId clientId)
+        {
+            ClientDisconnected?.Invoke(clientId);
+        }
         public event Action<Package> PackageReceived;
         protected virtual void OnPackageReceived(Package obj)
         {
@@ -76,7 +81,7 @@ namespace LinkUs
                 _listenSocket.Shutdown(SocketShutdown.Both);
             }
             // Stopping asynchrone operation can throw exception.
-            catch (SocketException) {}
+            catch (SocketException) { }
 
             _listenSocket.Close();
 
@@ -132,6 +137,12 @@ namespace LinkUs
             if (receiveSocketEventArgs.LastOperation != SocketAsyncOperation.Receive) {
                 throw new Exception("bad operation");
             }
+            if (receiveSocketEventArgs.SocketError == SocketError.ConnectionReset) {
+                CleanSocket(receiveSocketEventArgs.AcceptSocket);
+                receiveSocketEventArgs.AcceptSocket = null;
+                _receiveSocketOperations.Enqueue(receiveSocketEventArgs);
+                return;
+            }
             if (receiveSocketEventArgs.SocketError != SocketError.Success) {
                 throw new Exception("unsuccessed read");
             }
@@ -172,6 +183,17 @@ namespace LinkUs
 
             socketAsyncEventArgs.AcceptSocket = null;
             _sendSocketOperations.Enqueue(socketAsyncEventArgs);
+        }
+
+        private void CleanSocket(Socket socket)
+        {
+            socket.Shutdown(SocketShutdown.Both);
+            socket.Close();
+            socket.Dispose();
+
+            var entry = _connectedSockets.Single(x => x.Value == socket);
+            _connectedSockets.Remove(entry.Key);
+            OnClientDisconnected(entry.Key);
         }
     }
 }
