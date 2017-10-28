@@ -42,7 +42,7 @@ namespace LinkUs.Core
         }
         public override string ToString()
         {
-            return TransactionId + "|" + Encoding.GetString(Content);
+            return TransactionId + "|" + Source + "|" + Destination + "|" + Encoding.GetString(Content);
         }
 
         // ----- Utils

@@ -21,6 +21,7 @@ namespace LinkUs
 
         private static void ConnectorOnPackageReceived(Package package)
         {
+            Console.WriteLine(package);
             _connector.SendDataAsync(package);
         }
     }
