@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -16,24 +17,44 @@ namespace LinkUs.CommandLine
             var tcpClient = new TcpClient();
             tcpClient.Connect("127.0.0.1", 9000);
 
-            var clientIdBuffer = new byte[200];
-            var bytesReceivedCount = tcpClient.GetStream().Read(clientIdBuffer, 0, clientIdBuffer.Length);
-            var identificationPackage = Package.Parse(clientIdBuffer.Take(bytesReceivedCount).ToArray());
+            var identificationPackage = ReadPackage(tcpClient);
             var clientId = identificationPackage.Destination;
-            
+
             var commandLine = "";
             while (commandLine != "exit") {
                 Console.Write("Command: ");
                 commandLine = Console.ReadLine();
-                var package = new Package(clientId, ClientId.Server, Encoding.GetBytes(commandLine));
-                var bytes = package.ToByteArray();
-                tcpClient.GetStream().Write(bytes, 0, bytes.Length);
-
-                var buffer = new byte[1024];
-                var count = tcpClient.GetStream().Read(buffer, 0, buffer.Length);
-                var packageResponse = Package.Parse(buffer.Take(count).ToArray());
-                Console.WriteLine(Encoding.GetString(packageResponse.Content));
+                var result = ExecuteCommandLine(tcpClient, commandLine, clientId);
+                Console.WriteLine(result);
             }
+
+            tcpClient.Close();
+        }
+        private static string ExecuteCommandLine(TcpClient tcpClient, string commandLine, ClientId clientId)
+        {
+            var package = new Package(clientId, ClientId.Server, Encoding.GetBytes(commandLine));
+            SendPackage(tcpClient, package);
+
+            var packageResponse = ReadPackage(tcpClient);
+            return Encoding.GetString(packageResponse.Content);
+        }
+        private static void SendPackage(TcpClient tcpClient, Package package)
+        {
+            var bytes = package.ToByteArray();
+            var networkStream = tcpClient.GetStream();
+            networkStream.Write(bytes, 0, bytes.Length);
+        }
+
+        private static Package ReadPackage(TcpClient tcpClient)
+        {
+            var buffer = new byte[200];
+            var network = tcpClient.GetStream();
+            var buffers = new List<byte[]>();
+            do {
+                var bytesReceivedCount = network.Read(buffer, 0, buffer.Length);
+                buffers.Add(buffer.Take(bytesReceivedCount).ToArray());
+            } while (network.DataAvailable);
+            return Package.Parse(buffers.SelectMany(x => x).ToArray());
         }
     }
 }
