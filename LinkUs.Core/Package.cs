@@ -55,8 +55,8 @@ namespace LinkUs.Core
             var content = new byte[buffer.Length - transactionIdBytes.Length - sourceBytes.Length - destinationBytes.Length];
 
             Buffer.BlockCopy(buffer, 0, transactionIdBytes, 0, transactionIdBytes.Length);
-            Buffer.BlockCopy(buffer, transactionIdBytes.Length, content, 0, sourceBytes.Length);
-            Buffer.BlockCopy(buffer, transactionIdBytes.Length + sourceBytes.Length, content, 0, destinationBytes.Length);
+            Buffer.BlockCopy(buffer, transactionIdBytes.Length, sourceBytes, 0, sourceBytes.Length);
+            Buffer.BlockCopy(buffer, transactionIdBytes.Length + sourceBytes.Length, destinationBytes, 0, destinationBytes.Length);
             Buffer.BlockCopy(buffer, transactionIdBytes.Length + sourceBytes.Length + destinationBytes.Length, content, 0, content.Length);
 
             return new Package(ClientId.FromBytes(sourceBytes), ClientId.FromBytes(destinationBytes), content) {

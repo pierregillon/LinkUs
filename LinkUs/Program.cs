@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
+using System.Text;
 using LinkUs.Core;
 
 namespace LinkUs
 {
     class Program
     {
+        static readonly UTF8Encoding Encoding = new UTF8Encoding();
         private static readonly Connector _connector = new Connector();
 
         static void Main(string[] args)
@@ -22,7 +25,15 @@ namespace LinkUs
         private static void ConnectorOnPackageReceived(Package package)
         {
             Console.WriteLine(package);
-            _connector.SendDataAsync(package);
+            if (Equals(package.Destination, ClientId.Server)) {
+                var clients = _connector.GetClients();
+                var value = string.Join(Environment.NewLine, clients.Select(x => x.ToString()));
+                var packageResponse = package.CreateResponsePackage(Encoding.GetBytes(value));
+                _connector.SendDataAsync(packageResponse);
+            }
+            else {
+                _connector.SendDataAsync(package);
+            }
         }
     }
 }

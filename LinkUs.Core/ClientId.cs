@@ -1,34 +1,44 @@
 using System;
-using System.Text;
 
 namespace LinkUs.Core
 {
     public class ClientId
     {
-        private static readonly UTF8Encoding Encoding = new UTF8Encoding();
-        private static string _internalId;
+        public static ClientId Server = new ClientId(new Guid());
+        private readonly Guid _internalId;
 
-        private ClientId(string internalId)
+        private ClientId(Guid internalId)
         {
             _internalId = internalId;
         }
 
         public byte[] ToByteArray()
         {
-            return Encoding.GetBytes(_internalId);
+            return _internalId.ToByteArray();
         }
         public override string ToString()
         {
-            return _internalId;
+            return _internalId.ToString().Substring(30);
+        }
+        public override bool Equals(object obj)
+        {
+            if (obj is ClientId) {
+                return ((ClientId) obj)._internalId == _internalId;
+            }
+            return base.Equals(obj);
+        }
+        public override int GetHashCode()
+        {
+            return _internalId.GetHashCode();
         }
 
         public static ClientId New()
         {
-            return new ClientId(Guid.NewGuid().ToString().Substring(12 + 4));
+            return new ClientId(Guid.NewGuid());
         }
         public static ClientId FromBytes(byte[] bytes)
         {
-            return new ClientId(Encoding.GetString(bytes));
+            return new ClientId(new Guid(bytes));
         }
     }
 }

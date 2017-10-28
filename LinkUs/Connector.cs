@@ -39,14 +39,14 @@ namespace LinkUs
             for (int i = 0; i < 2; i++) {
                 var args = new SocketAsyncEventArgs();
                 args.Completed += ReceiveEventCompleted;
-                args.SetBuffer(new byte[100], 0, 100);
+                args.SetBuffer(new byte[10000], 0, 10000);
                 _receiveSocketOperations.Enqueue(args);
             }
 
             for (int i = 0; i < 2; i++) {
                 var args = new SocketAsyncEventArgs();
                 args.Completed += SendEventCompleted;
-                args.SetBuffer(new byte[100], 0, 100);
+                args.SetBuffer(new byte[10000], 0, 10000);
                 _sendSocketOperations.Enqueue(args);
             }
         }
@@ -63,8 +63,12 @@ namespace LinkUs
         }
         public void SendDataAsync(Package package)
         {
-            var socket = _connectedSockets[package.Destination];
+            var socket = _connectedSockets[package.Source];
             StartSendData(socket, package.ToByteArray());
+        }
+        public IEnumerable<ClientId> GetClients()
+        {
+            return _connectedSockets.Keys.ToArray();
         }
         public void Close()
         {
@@ -105,6 +109,7 @@ namespace LinkUs
             var clientId = ClientId.New();
             _connectedSockets.Add(clientId, acceptSocketEventArgs.AcceptSocket);
             OnClientConnected(clientId);
+            StartSendData(acceptSocketEventArgs.AcceptSocket, clientId.ToByteArray());
             StartAcceptNextConnection();
             StartReceiveData(acceptSocketEventArgs.AcceptSocket);
             _acceptSocketOperations.Enqueue(acceptSocketEventArgs);

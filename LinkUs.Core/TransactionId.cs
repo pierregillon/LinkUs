@@ -1,33 +1,43 @@
 using System;
-using System.Text;
 
-namespace LinkUs.Core {
+namespace LinkUs.Core
+{
     public class TransactionId
     {
-        private static readonly UTF8Encoding Encoding = new UTF8Encoding();
-        private static string _internalId;
+        private readonly Guid _internalId;
 
-        private TransactionId(string internalId)
+        private TransactionId(Guid internalId)
         {
             _internalId = internalId;
         }
 
         public byte[] ToByteArray()
         {
-            return Encoding.GetBytes(_internalId);
+            return _internalId.ToByteArray();
         }
         public override string ToString()
         {
-            return _internalId;
+            return _internalId.ToString().Substring(30);
+        }
+        public override bool Equals(object obj)
+        {
+            if (obj is TransactionId) {
+                return ((TransactionId) obj)._internalId == _internalId;
+            }
+            return base.Equals(obj);
+        }
+        public override int GetHashCode()
+        {
+            return _internalId.GetHashCode();
         }
 
         public static TransactionId New()
         {
-            return new TransactionId(Guid.NewGuid().ToString().Substring(12 + 4));
+            return new TransactionId(Guid.NewGuid());
         }
         public static TransactionId FromBytes(byte[] bytes)
         {
-            return new TransactionId(Encoding.GetString(bytes));
+            return new TransactionId(new Guid(bytes));
         }
     }
 }
