@@ -55,6 +55,10 @@ namespace LinkUs.Victim
                 var packageResponse = package.CreateResponsePackage(Encoding.GetBytes(DateTime.Now.ToShortDateString()));
                 _connection.SendAsync(packageResponse.ToByteArray());
             }
+            else if (command == "ping") {
+                var packageResponse = package.CreateResponsePackage(Encoding.GetBytes("ok"));
+                _connection.SendAsync(packageResponse.ToByteArray());
+            }
         }
     }
 }

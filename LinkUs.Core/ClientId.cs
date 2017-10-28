@@ -18,7 +18,7 @@ namespace LinkUs.Core
         }
         public override string ToString()
         {
-            return _internalId.ToString().Substring(30);
+            return _internalId.ToString();
         }
         public override bool Equals(object obj)
         {
@@ -39,6 +39,10 @@ namespace LinkUs.Core
         public static ClientId FromBytes(byte[] bytes)
         {
             return new ClientId(new Guid(bytes));
+        }
+        public static ClientId Parse(string value)
+        {
+            return new ClientId(Guid.Parse(value));
         }
     }
 }

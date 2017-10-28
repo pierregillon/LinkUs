@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -24,8 +25,29 @@ namespace LinkUs.CommandLine
             while (commandLine != "exit") {
                 Console.Write("Command: ");
                 commandLine = Console.ReadLine();
-                var result = ExecuteCommandLine(tcpClient, commandLine, clientId);
-                Console.WriteLine(result);
+                var arguments = commandLine.Split(' ');
+                var command = arguments.First();
+                string result = "";
+                switch (command) {
+                    case "ping":
+                        var stopWatch = new Stopwatch();
+                        var target = arguments[1];
+                        var targetId = ClientId.Parse(target);
+                        var package = new Package(clientId, targetId, Encoding.GetBytes("ping"));
+                        stopWatch.Start();
+                        SendPackage(tcpClient, package);
+                        var packageResponse = ReadPackage(tcpClient);
+                        stopWatch.Stop();
+                        result = Encoding.GetString(packageResponse.Content);
+                        if (result == "ok") {
+                            Console.WriteLine($"Ok. {stopWatch.ElapsedMilliseconds} ms.");
+                        }
+                        break;
+                    default:
+                        result = ExecuteCommandLine(tcpClient, commandLine, clientId);
+                        Console.WriteLine(result);
+                        break;
+                }
             }
 
             tcpClient.Close();
