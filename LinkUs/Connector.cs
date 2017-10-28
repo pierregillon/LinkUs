@@ -71,10 +71,6 @@ namespace LinkUs
             var socket = _connectedSockets[package.Destination];
             StartSendData(socket, package.ToByteArray());
         }
-        public IEnumerable<ClientId> GetClients()
-        {
-            return _connectedSockets.Keys.ToArray();
-        }
         public void Close()
         {
             try {
