@@ -10,20 +10,16 @@ namespace LinkUs.CommandLine
     public class CommandDispatcher
     {
         private readonly TcpClient _tcpClient;
-        private readonly ClientId _currentClientId;
 
         public CommandDispatcher(TcpClient tcpClient)
         {
             _tcpClient = tcpClient;
-
-            var identificationPackage = ReadPackage();
-            _currentClientId = identificationPackage.Destination;
         }
 
         public TResult Dispatch<TCommand, TResult>(TCommand command, ClientId clientId = null)
         {
             clientId = clientId ?? ClientId.Server;
-            var commandPackage = new Package(_currentClientId, clientId, Serialize(command));
+            var commandPackage = new Package(ClientId.Unknown, clientId, Serialize(command));
             SendPackage(commandPackage);
             var resultPackage = ReadPackage();
             return Deserialize<TResult>(resultPackage.Content);

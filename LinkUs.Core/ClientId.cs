@@ -5,6 +5,7 @@ namespace LinkUs.Core
     public class ClientId
     {
         public static ClientId Server = new ClientId(new Guid());
+        public static ClientId Unknown = new ClientId(new Guid("11111111-1111-1111-1111-111111111111"));
         private readonly Guid _internalId;
 
         private ClientId(Guid internalId)

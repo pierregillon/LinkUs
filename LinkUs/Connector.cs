@@ -126,6 +126,7 @@ namespace LinkUs
         {
             var receiveSocketEventArgs = _receiveSocketOperations.Dequeue();
             receiveSocketEventArgs.AcceptSocket = socket;
+            receiveSocketEventArgs.UserToken = _connectedSockets.Single(x => x.Value == socket).Key;
             var isPending = receiveSocketEventArgs.AcceptSocket.ReceiveAsync(receiveSocketEventArgs);
             if (!isPending) {
                 ProcessReceiveData(receiveSocketEventArgs);
@@ -151,10 +152,13 @@ namespace LinkUs
             }
             var bytesTransferredCount = receiveSocketEventArgs.BytesTransferred;
             var bytesTransferred = receiveSocketEventArgs.Buffer.Take(bytesTransferredCount).ToArray();
-            OnPackageReceived(Package.Parse(bytesTransferred));
+            var package = Package.Parse(bytesTransferred);
+            package.ChangeSource((ClientId)receiveSocketEventArgs.UserToken);
+            OnPackageReceived(package);
 
             StartReceiveData(receiveSocketEventArgs.AcceptSocket);
             receiveSocketEventArgs.AcceptSocket = null;
+            receiveSocketEventArgs.UserToken = null;
             _receiveSocketOperations.Enqueue(receiveSocketEventArgs);
         }
 

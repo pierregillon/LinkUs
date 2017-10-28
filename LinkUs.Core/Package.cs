@@ -8,7 +8,7 @@ namespace LinkUs.Core
         private static readonly UTF8Encoding Encoding = new UTF8Encoding();
 
         public TransactionId TransactionId { get; private set; } = TransactionId.New();
-        public ClientId Source { get; }
+        public ClientId Source { get; private set; }
         public ClientId Destination { get; }
         public byte[] Content { get; }
 
@@ -62,6 +62,11 @@ namespace LinkUs.Core
             return new Package(ClientId.FromBytes(sourceBytes), ClientId.FromBytes(destinationBytes), content) {
                 TransactionId = TransactionId.FromBytes(transactionIdBytes)
             };
+        }
+        public void ChangeSource(ClientId source)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            Source = source;
         }
     }
 }
