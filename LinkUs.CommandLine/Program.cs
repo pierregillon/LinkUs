@@ -16,9 +16,10 @@ namespace LinkUs.CommandLine
             var tcpClient = new TcpClient();
             tcpClient.Connect("127.0.0.1", 9000);
 
-            var clientIdBuffer = new byte[16];
-            tcpClient.GetStream().Read(clientIdBuffer, 0, clientIdBuffer.Length);
-            var clientId = ClientId.FromBytes(clientIdBuffer);
+            var clientIdBuffer = new byte[200];
+            var bytesReceivedCount = tcpClient.GetStream().Read(clientIdBuffer, 0, clientIdBuffer.Length);
+            var identificationPackage = Package.Parse(clientIdBuffer.Take(bytesReceivedCount).ToArray());
+            var clientId = identificationPackage.Destination;
             
             var commandLine = "";
             while (commandLine != "exit") {

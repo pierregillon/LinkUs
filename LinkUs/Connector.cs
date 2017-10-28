@@ -109,7 +109,6 @@ namespace LinkUs
             var clientId = ClientId.New();
             _connectedSockets.Add(clientId, acceptSocketEventArgs.AcceptSocket);
             OnClientConnected(clientId);
-            StartSendData(acceptSocketEventArgs.AcceptSocket, clientId.ToByteArray());
             StartAcceptNextConnection();
             StartReceiveData(acceptSocketEventArgs.AcceptSocket);
             _acceptSocketOperations.Enqueue(acceptSocketEventArgs);

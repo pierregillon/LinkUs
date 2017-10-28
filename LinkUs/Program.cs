@@ -14,6 +14,7 @@ namespace LinkUs
         static void Main(string[] args)
         {
             _connector.PackageReceived += ConnectorOnPackageReceived;
+            _connector.ClientConnected+=ConnectorOnClientConnected;
             _connector.Listen(new IPEndPoint(IPAddress.Any, 9000));
             Console.WriteLine("* Listening for clients...");
             while (Console.ReadLine() != "exit") ;
@@ -22,6 +23,12 @@ namespace LinkUs
             Console.WriteLine("* Closed.");
         }
 
+        // ----- Event callbacks
+        private static void ConnectorOnClientConnected(ClientId clientId)
+        {
+            var package = new Package(ClientId.Server, clientId, Encoding.GetBytes("identification"));
+            _connector.SendDataAsync(package);
+        }
         private static void ConnectorOnPackageReceived(Package package)
         {
             Console.WriteLine(package);
