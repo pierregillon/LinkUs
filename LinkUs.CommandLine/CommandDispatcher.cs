@@ -7,11 +7,11 @@ namespace LinkUs.CommandLine
 {
     public class CommandDispatcher
     {
-        private readonly PackageConnector _packageConnector;
+        private readonly PackageTransmitter _packageTransmitter;
 
-        public CommandDispatcher(PackageConnector packageConnector)
+        public CommandDispatcher(PackageTransmitter packageTransmitter)
         {
-            _packageConnector = packageConnector;
+            _packageTransmitter = packageTransmitter;
         }
 
         public Task<TResponse> ExecuteAsync<TCommand, TResponse>(TCommand command, ClientId clientId = null)
@@ -25,18 +25,18 @@ namespace LinkUs.CommandLine
                     completionSource.SetResult(Deserialize<TResponse>(responsePackage.Content));
                 }
             };
-            _packageConnector.PackageReceived += action;
-            _packageConnector.Send(commandPackage);
+            _packageTransmitter.PackageReceived += action;
+            _packageTransmitter.Send(commandPackage);
 
             return completionSource.Task.ContinueWith(task => {
-                _packageConnector.PackageReceived -= action;
+                _packageTransmitter.PackageReceived -= action;
                 return task.Result;
             });
         }
         //private void SendPackage(Package package)
         //{
         //    var bytes = package.ToByteArray();
-        //    var networkStream = _packageConnector.GetStream();
+        //    var networkStream = _packageTransmitter.GetStream();
         //    var lengthBytes = BitConverter.GetBytes(bytes.Length);
         //    var allBytes = new byte[bytes.Length + lengthBytes.Length];
         //    Buffer.BlockCopy(lengthBytes, 0, allBytes, 0, lengthBytes.Length);
@@ -45,7 +45,7 @@ namespace LinkUs.CommandLine
         //}
         //private Package ReadPackage()
         //{
-        //    var network = _packageConnector.GetStream();
+        //    var network = _packageTransmitter.GetStream();
         //    var lengthBytes = new byte[4];
         //    network.Read(lengthBytes, 0, lengthBytes.Length);
         //    var length = BitConverter.ToInt32(lengthBytes, 0);

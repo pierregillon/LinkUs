@@ -17,17 +17,17 @@ namespace LinkUs.Victim
             socket.Connect("127.0.0.1", 9000);
 
             var connection = new SocketConnection(socket);
-            var connector = new PackageConnector(connection);
-            connector.PackageReceived += (sender, package) => {
-                ProcessCommand(connector, package);
+            var packageTransmitter = new PackageTransmitter(connection);
+            packageTransmitter.PackageReceived += (sender, package) => {
+                ProcessCommand(packageTransmitter, package);
             };
 
             Console.WriteLine("* Connected to client.");
             while (Console.ReadLine() != "exit") { }
-            connector.Close();
+            packageTransmitter.Close();
         }
 
-        private static void ProcessCommand(PackageConnector connector, Package package)
+        private static void ProcessCommand(PackageTransmitter transmitter, Package package)
         {
             Console.WriteLine(package);
 
@@ -35,15 +35,15 @@ namespace LinkUs.Victim
             if (command == "dir") {
                 Thread.Sleep(1000);
                 var packageResponse = package.CreateResponsePackage(Encoding.GetBytes(Directory.GetCurrentDirectory()));
-                connector.Send(packageResponse);
+                transmitter.Send(packageResponse);
             }
             else if (command == "date") {
                 var packageResponse = package.CreateResponsePackage(Encoding.GetBytes(DateTime.Now.ToShortDateString()));
-                connector.Send(packageResponse);
+                transmitter.Send(packageResponse);
             }
             else if (command == "ping") {
                 var packageResponse = package.CreateResponsePackage(Encoding.GetBytes("ok"));
-                connector.Send(packageResponse);
+                transmitter.Send(packageResponse);
             }
         }
     }

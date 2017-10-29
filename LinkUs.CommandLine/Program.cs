@@ -14,8 +14,8 @@ namespace LinkUs.CommandLine
             socket.Connect("127.0.0.1", 9000);
 
             var connection = new SocketConnection(socket);
-            var connector = new PackageConnector(connection);
-            var commandDispatcher = new CommandDispatcher(connector);
+            var packageTransmitter = new PackageTransmitter(connection);
+            var commandDispatcher = new CommandDispatcher(packageTransmitter);
 
             var commandLine = "";
             while (commandLine != "exit") {
@@ -39,7 +39,7 @@ namespace LinkUs.CommandLine
                 }
             }
 
-            connector.Close();
+            packageTransmitter.Close();
         }
     }
 }

