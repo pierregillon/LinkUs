@@ -7,24 +7,19 @@ namespace LinkUs
     {
         static void Main(string[] args)
         {
-            var connector = new Connector();
-            connector.PackageReceived += package => {
-                WriteLine($"{package}");
+            var packageRouter = new PackageRouter();
+            var connectionListener = new SocketConnectionListener(new IPEndPoint(IPAddress.Any, 9000));
+            connectionListener.ConnectionEstablished += connection => {
+                connection.StartContinuousReceive();
+                packageRouter.Add(connection);
             };
-            connector.ClientConnected += clientId => {
-                WriteLine($"Client '{clientId}' connected.");
-            };
-            connector.ClientDisconnected += clientId => {
-                WriteLine($"Client '{clientId}' disconnected.");
-            };
+            connectionListener.StartListening();
 
-            var server = new Server(connector);
-
-            server.Start(new IPEndPoint(IPAddress.Any, 9000));
             WriteLine("* Server started. Waiting for incoming connections.");
             while (Console.ReadLine() != "exit") { }
             WriteLine("* Closing connections...");
-            server.Shutdown();
+            connectionListener.StopListening();
+            packageRouter.Close();
             WriteLine("* Server shutdown.");
         }
 
