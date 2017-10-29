@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using LinkUs.Core;
 
 namespace LinkUs.CommandLine
@@ -10,9 +11,24 @@ namespace LinkUs.CommandLine
     {
         static void Main(string[] args)
         {
-            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            socket.Connect("127.0.0.1", 9000);
+            string host = "127.0.0.1";
+            int port = 9000;
 
+            Console.WriteLine($"* Searching for host {host} on port {port}.");
+            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            try {
+                socket.Connect(host, port);
+                ExecuteCommands(socket);
+            }
+            catch (Exception ex) {
+                WriteInnerException(ex);
+            }
+            Console.Write("* Press any key to finish :");
+            Console.ReadKey();
+        }
+
+        private static void ExecuteCommands(Socket socket)
+        {
             var connection = new SocketConnection(socket);
             var packageTransmitter = new PackageTransmitter(connection);
             var commandDispatcher = new CommandDispatcher(packageTransmitter);
@@ -38,8 +54,16 @@ namespace LinkUs.CommandLine
                         break;
                 }
             }
+        }
 
-            packageTransmitter.Close();
+        private static void WriteInnerException(Exception exception)
+        {
+            if (exception is AggregateException) {
+                WriteInnerException(((AggregateException) exception).InnerException);
+            }
+            else {
+                Console.WriteLine(exception);
+            }
         }
     }
 }

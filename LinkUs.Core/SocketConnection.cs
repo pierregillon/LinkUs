@@ -109,32 +109,47 @@ namespace LinkUs.Core
 
         private void StartSendData(SocketAsyncEventArgs args)
         {
-            var isPending = args.AcceptSocket.SendAsync(args);
-            if (isPending == false) {
-                ProcessSendData(args);
+            try {
+                var isPending = args.AcceptSocket.SendAsync(args);
+                if (isPending == false) {
+                    ProcessSendData(args);
+                }
+            }
+            catch (ObjectDisposedException ex) {
+                if (ex.ObjectName == "System.Net.Sockets.Socket") {
+                    CleanSocket(args.AcceptSocket);
+                    RecycleSendSocket(args);
+                    return;
+                }
+                throw;
             }
         }
         private void SendEventCompleted(object sender, SocketAsyncEventArgs asyncEventArgs)
         {
             ProcessSendData(asyncEventArgs);
         }
-        private void ProcessSendData(SocketAsyncEventArgs socketAsyncEventArgs)
+        private void ProcessSendData(SocketAsyncEventArgs args)
         {
-            if (socketAsyncEventArgs.LastOperation != SocketAsyncOperation.Send) {
+            if (args.LastOperation != SocketAsyncOperation.Send) {
+                CleanSocket(args.AcceptSocket);
+                RecycleSendSocket(args);
                 throw new Exception("bad operation");
             }
-            if (socketAsyncEventArgs.SocketError != SocketError.Success) {
-                CleanSocket(socketAsyncEventArgs.AcceptSocket);
-                socketAsyncEventArgs.AcceptSocket = null;
-                ((Metadata) socketAsyncEventArgs.UserToken).Reset();
-                _sendSocketOperations.Enqueue(socketAsyncEventArgs);
+            if (args.SocketError != SocketError.Success) {
+                CleanSocket(args.AcceptSocket);
+                RecycleSendSocket(args);
                 throw new Exception("unsuccessed send");
             }
 
-            var bytesTransferred = socketAsyncEventArgs.BytesTransferred;
+            var bytesTransferred = args.BytesTransferred;
 
-            socketAsyncEventArgs.AcceptSocket = null;
-            _sendSocketOperations.Enqueue(socketAsyncEventArgs);
+            RecycleSendSocket(args);
+        }
+        private void RecycleSendSocket(SocketAsyncEventArgs args)
+        {
+            args.AcceptSocket = null;
+            ((Metadata) args.UserToken).Reset();
+            _sendSocketOperations.Enqueue(args);
         }
 
         private void StartContinuousReceive()
@@ -145,9 +160,13 @@ namespace LinkUs.Core
         }
         private void CleanSocket(Socket socket)
         {
-            socket.Shutdown(SocketShutdown.Both);
+            try {
+                socket.Shutdown(SocketShutdown.Both);
+            }
+            catch (ObjectDisposedException) {}
             socket.Close();
             socket.Dispose();
+            Closed?.Invoke();
         }
     }
 }

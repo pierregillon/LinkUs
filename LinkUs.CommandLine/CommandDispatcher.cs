@@ -20,16 +20,21 @@ namespace LinkUs.CommandLine
             var commandPackage = new Package(ClientId.Unknown, clientId, Serialize(command));
 
             var completionSource = new TaskCompletionSource<TResponse>();
-            EventHandler<Package> action = (sender, responsePackage) => {
+            EventHandler<Package> packageReceivedAction = (sender, responsePackage) => {
                 if (Equals(responsePackage.TransactionId, commandPackage.TransactionId)) {
                     completionSource.SetResult(Deserialize<TResponse>(responsePackage.Content));
                 }
             };
-            _packageTransmitter.PackageReceived += action;
+            EventHandler closedAction = (sender, args) => {
+                completionSource.SetException(new Exception("Connection Closed"));
+            };
+            _packageTransmitter.PackageReceived += packageReceivedAction;
+            _packageTransmitter.Closed += closedAction;
             _packageTransmitter.Send(commandPackage);
 
             return completionSource.Task.ContinueWith(task => {
-                _packageTransmitter.PackageReceived -= action;
+                _packageTransmitter.PackageReceived -= packageReceivedAction;
+                _packageTransmitter.Closed -= closedAction;
                 return task.Result;
             });
         }
