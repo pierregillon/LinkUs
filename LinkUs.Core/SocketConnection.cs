@@ -15,31 +15,22 @@ namespace LinkUs.Core
         public event Action<int> DataSent;
         public event Action Closed;
 
+        public SocketConnection()
+        {
+            _socket = BuildDefaultSocket();
+            BuildSocketAsyncEventArgs();
+        }
         public SocketConnection(Socket socket)
         {
             _socket = socket;
-
-            for (int i = 0; i < 10; i++) {
-                var args = new SocketAsyncEventArgs();
-                args.Completed += ReceiveEventCompleted;
-                args.SetBuffer(new byte[10000], 0, 10000);
-                args.UserToken = new Metadata();
-                _receiveSocketOperations.Enqueue(args);
-            }
-
-            for (int i = 0; i < 10; i++) {
-                var args = new SocketAsyncEventArgs();
-                args.Completed += SendEventCompleted;
-                args.UserToken = new Metadata();
-                _sendSocketOperations.Enqueue(args);
-            }
-
+            BuildSocketAsyncEventArgs();
             StartContinuousReceive();
         }
 
-        public void Close()
+        public void Connect(string host, int port)
         {
-            CleanSocket(_socket);
+            _socket.Connect(host, port);
+            StartContinuousReceive();
         }
         public void SendAsync(byte[] data)
         {
@@ -53,6 +44,10 @@ namespace LinkUs.Core
             sendSocketEventArgs.AcceptSocket = _socket;
             sendSocketEventArgs.SetBuffer(fullData, 0, fullData.Length);
             StartSendData(sendSocketEventArgs);
+        }
+        public void Close()
+        {
+            CloseSocket(_socket);
         }
 
         private void StartReceiveData(SocketAsyncEventArgs args)
@@ -69,19 +64,13 @@ namespace LinkUs.Core
         private void ProcessReceiveData(SocketAsyncEventArgs receiveSocketEventArgs)
         {
             if (receiveSocketEventArgs.LastOperation != SocketAsyncOperation.Receive) {
-                CleanSocket(receiveSocketEventArgs.AcceptSocket);
-                receiveSocketEventArgs.AcceptSocket = null;
-                ((Metadata) receiveSocketEventArgs.UserToken).Reset();
-                _receiveSocketOperations.Enqueue(receiveSocketEventArgs);
-                Closed?.Invoke();
+                CloseSocket(receiveSocketEventArgs.AcceptSocket);
+                RecycleReceiveArgs(receiveSocketEventArgs);
                 throw new Exception("bad operation");
             }
             if (receiveSocketEventArgs.SocketError == SocketError.ConnectionReset) {
-                CleanSocket(receiveSocketEventArgs.AcceptSocket);
-                receiveSocketEventArgs.AcceptSocket = null;
-                ((Metadata) receiveSocketEventArgs.UserToken).Reset();
-                _receiveSocketOperations.Enqueue(receiveSocketEventArgs);
-                Closed?.Invoke();
+                CloseSocket(receiveSocketEventArgs.AcceptSocket);
+                RecycleReceiveArgs(receiveSocketEventArgs);
                 return;
             }
             if (receiveSocketEventArgs.SocketError != SocketError.Success) {
@@ -106,6 +95,12 @@ namespace LinkUs.Core
             metadata.PackageLength = 0;
             StartReceiveData(receiveSocketEventArgs);
         }
+        private void RecycleReceiveArgs(SocketAsyncEventArgs receiveSocketEventArgs)
+        {
+            receiveSocketEventArgs.AcceptSocket = null;
+            ((Metadata) receiveSocketEventArgs.UserToken).Reset();
+            _receiveSocketOperations.Enqueue(receiveSocketEventArgs);
+        }
 
         private void StartSendData(SocketAsyncEventArgs args)
         {
@@ -117,7 +112,7 @@ namespace LinkUs.Core
             }
             catch (ObjectDisposedException ex) {
                 if (ex.ObjectName == "System.Net.Sockets.Socket") {
-                    CleanSocket(args.AcceptSocket);
+                    CloseSocket(args.AcceptSocket);
                     RecycleSendSocket(args);
                     return;
                 }
@@ -131,12 +126,12 @@ namespace LinkUs.Core
         private void ProcessSendData(SocketAsyncEventArgs args)
         {
             if (args.LastOperation != SocketAsyncOperation.Send) {
-                CleanSocket(args.AcceptSocket);
+                CloseSocket(args.AcceptSocket);
                 RecycleSendSocket(args);
                 throw new Exception("bad operation");
             }
             if (args.SocketError != SocketError.Success) {
-                CleanSocket(args.AcceptSocket);
+                CloseSocket(args.AcceptSocket);
                 RecycleSendSocket(args);
                 throw new Exception("unsuccessed send");
             }
@@ -158,15 +153,37 @@ namespace LinkUs.Core
             receiveSocketEventArgs.AcceptSocket = _socket;
             StartReceiveData(receiveSocketEventArgs);
         }
-        private void CleanSocket(Socket socket)
+        private void CloseSocket(Socket socket)
         {
             try {
                 socket.Shutdown(SocketShutdown.Both);
             }
-            catch (ObjectDisposedException) {}
+            catch (ObjectDisposedException) { }
             socket.Close();
             socket.Dispose();
             Closed?.Invoke();
+        }
+
+        private void BuildSocketAsyncEventArgs()
+        {
+            for (int i = 0; i < 10; i++) {
+                var args = new SocketAsyncEventArgs();
+                args.Completed += ReceiveEventCompleted;
+                args.SetBuffer(new byte[10000], 0, 10000);
+                args.UserToken = new Metadata();
+                _receiveSocketOperations.Enqueue(args);
+            }
+
+            for (int i = 0; i < 10; i++) {
+                var args = new SocketAsyncEventArgs();
+                args.Completed += SendEventCompleted;
+                args.UserToken = new Metadata();
+                _sendSocketOperations.Enqueue(args);
+            }
+        }
+        private static Socket BuildDefaultSocket()
+        {
+            return new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         }
     }
 }

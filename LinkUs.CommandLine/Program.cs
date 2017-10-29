@@ -15,10 +15,10 @@ namespace LinkUs.CommandLine
             int port = 9000;
 
             Console.WriteLine($"* Searching for host {host} on port {port}.");
-            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            var connection = new SocketConnection();
             try {
-                socket.Connect(host, port);
-                ExecuteCommands(socket);
+                connection.Connect(host, port);
+                ExecuteCommands(connection);
             }
             catch (Exception ex) {
                 WriteInnerException(ex);
@@ -27,9 +27,8 @@ namespace LinkUs.CommandLine
             Console.ReadKey();
         }
 
-        private static void ExecuteCommands(Socket socket)
+        private static void ExecuteCommands(SocketConnection connection)
         {
-            var connection = new SocketConnection(socket);
             var packageTransmitter = new PackageTransmitter(connection);
             var commandDispatcher = new CommandDispatcher(packageTransmitter);
 
