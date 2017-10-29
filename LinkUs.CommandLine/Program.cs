@@ -10,10 +10,12 @@ namespace LinkUs.CommandLine
     {
         static void Main(string[] args)
         {
-            var tcpClient = new TcpClient();
-            tcpClient.Connect("127.0.0.1", 9000);
+            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            socket.Connect("127.0.0.1", 9000);
 
-            var commandDispatcher = new CommandDispatcher(tcpClient);
+            var connection = new SocketConnection(socket);
+            var connector = new PackageConnector(connection);
+            var commandDispatcher = new CommandDispatcher(connector);
 
             var commandLine = "";
             while (commandLine != "exit") {
@@ -26,18 +28,18 @@ namespace LinkUs.CommandLine
                         var targetId = ClientId.Parse(arguments[1]);
                         var stopWatch = new Stopwatch();
                         stopWatch.Start();
-                        var pingResponse = commandDispatcher.Dispatch<string, string>("ping", targetId);
+                        var pingResponse = commandDispatcher.ExecuteAsync<string, string>("ping", targetId).Result;
                         stopWatch.Stop();
                         Console.WriteLine($"Ok. {stopWatch.ElapsedMilliseconds} ms.");
                         break;
                     default:
-                        var result = commandDispatcher.Dispatch<string, string>(command);
+                        var result = commandDispatcher.ExecuteAsync<string, string>(command).Result;
                         Console.WriteLine(result);
                         break;
                 }
             }
 
-            tcpClient.Close();
+            connector.Close();
         }
     }
 }

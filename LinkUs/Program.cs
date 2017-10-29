@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using LinkUs.Core;
 
 namespace LinkUs
 {
@@ -10,7 +11,6 @@ namespace LinkUs
             var packageRouter = new PackageRouter();
             var connectionListener = new SocketConnectionListener(new IPEndPoint(IPAddress.Any, 9000));
             connectionListener.ConnectionEstablished += connection => {
-                connection.StartContinuousReceive();
                 packageRouter.Add(connection);
             };
             connectionListener.StartListening();

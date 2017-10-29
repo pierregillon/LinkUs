@@ -22,7 +22,7 @@ namespace LinkUs.Core
         public override bool Equals(object obj)
         {
             if (obj is TransactionId) {
-                return ((TransactionId) obj)._internalId == _internalId;
+                return Equals(((TransactionId) obj)._internalId, _internalId);
             }
             return base.Equals(obj);
         }

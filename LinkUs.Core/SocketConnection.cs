@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 
-namespace LinkUs
+namespace LinkUs.Core
 {
     public class SocketConnection : IConnection
     {
@@ -33,14 +33,10 @@ namespace LinkUs
                 args.UserToken = new Metadata();
                 _sendSocketOperations.Enqueue(args);
             }
+
+            StartContinuousReceive();
         }
 
-        public void StartContinuousReceive()
-        {
-            var receiveSocketEventArgs = _receiveSocketOperations.Dequeue();
-            receiveSocketEventArgs.AcceptSocket = _socket;
-            StartReceiveData(receiveSocketEventArgs);
-        }
         public void Close()
         {
             CleanSocket(_socket);
@@ -140,6 +136,12 @@ namespace LinkUs
             _sendSocketOperations.Enqueue(socketAsyncEventArgs);
         }
 
+        private void StartContinuousReceive()
+        {
+            var receiveSocketEventArgs = _receiveSocketOperations.Dequeue();
+            receiveSocketEventArgs.AcceptSocket = _socket;
+            StartReceiveData(receiveSocketEventArgs);
+        }
         private void CleanSocket(Socket socket)
         {
             socket.Shutdown(SocketShutdown.Both);

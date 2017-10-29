@@ -1,6 +1,6 @@
 using System;
 
-namespace LinkUs
+namespace LinkUs.Core
 {
     public interface IConnection
     {
@@ -9,7 +9,6 @@ namespace LinkUs
         event Action Closed;
 
         void SendAsync(byte[] data);
-        void StartContinuousReceive();
         void Close();
     }
 }

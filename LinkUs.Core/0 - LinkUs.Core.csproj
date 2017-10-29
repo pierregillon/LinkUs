@@ -47,8 +47,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientId.cs" />
+    <Compile Include="IConnection.cs" />
+    <Compile Include="IConnectionListener.cs" />
+    <Compile Include="Metadata.cs" />
     <Compile Include="Package.cs" />
+    <Compile Include="PackageConnector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SocketConnection.cs" />
+    <Compile Include="SocketConnectionListener.cs" />
     <Compile Include="TransactionId.cs" />
   </ItemGroup>
   <ItemGroup>

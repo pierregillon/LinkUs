@@ -1,7 +1,6 @@
 using System;
-using LinkUs.Core;
 
-namespace LinkUs
+namespace LinkUs.Core
 {
     public class PackageConnector
     {
