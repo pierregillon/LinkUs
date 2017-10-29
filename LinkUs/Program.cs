@@ -9,9 +9,15 @@ namespace LinkUs
         static void Main(string[] args)
         {
             var packageRouter = new PackageRouter();
+            packageRouter.ClientConnected += clientId => {
+                WriteLine($"* Client '{clientId}' connected.");
+            };
+            packageRouter.ClientDisconnected += clientId => {
+                WriteLine($"* Client '{clientId}' disconnected.");
+            };
             var connectionListener = new SocketConnectionListener(new IPEndPoint(IPAddress.Any, 9000));
             connectionListener.ConnectionEstablished += connection => {
-                packageRouter.Add(connection);
+                packageRouter.Connect(connection);
             };
             connectionListener.StartListening();
 

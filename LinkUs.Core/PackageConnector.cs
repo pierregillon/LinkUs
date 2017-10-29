@@ -6,11 +6,13 @@ namespace LinkUs.Core
     {
         private readonly IConnection _connection;
         public event EventHandler<Package> PackageReceived;
+        public event EventHandler Closed;
 
         public PackageConnector(IConnection connection)
         {
             _connection = connection;
             _connection.DataReceived += ConnectionOnDataReceived;
+            _connection.Closed += () => Closed?.Invoke(this, EventArgs.Empty);
         }
 
         public void Send(Package package)

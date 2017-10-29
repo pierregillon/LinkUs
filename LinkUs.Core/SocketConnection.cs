@@ -81,6 +81,7 @@ namespace LinkUs.Core
                 receiveSocketEventArgs.AcceptSocket = null;
                 ((Metadata) receiveSocketEventArgs.UserToken).Reset();
                 _receiveSocketOperations.Enqueue(receiveSocketEventArgs);
+                Closed?.Invoke();
                 return;
             }
             if (receiveSocketEventArgs.SocketError != SocketError.Success) {

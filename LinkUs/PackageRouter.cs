@@ -10,22 +10,18 @@ namespace LinkUs
     public class PackageRouter
     {
         private readonly IDictionary<ClientId, PackageConnector> _activeConnectors = new ConcurrentDictionary<ClientId, PackageConnector>();
+        public event Action<ClientId> ClientConnected;
+        public event Action<ClientId> ClientDisconnected;
 
         // ----- Public methods
-        public void Add(IConnection connection)
+        public void Connect(IConnection connection)
         {
             var packageConnector = new PackageConnector(connection);
-            var newClientId = ClientId.New();
+            packageConnector.Closed += PackageConnectorOnClosed;
             packageConnector.PackageReceived += PackageConnectorOnPackageReceived;
+            var newClientId = ClientId.New();
             _activeConnectors.Add(newClientId, packageConnector);
-            Console.WriteLine($"* client '{newClientId}' connected.");
-        }
-        public void Remove(IConnection connection)
-        {
-            //packageConnector.PackageReceived -= PackageConnectorOnPackageReceived;
-            //var entry = _activeConnectors.Single(x => Equals(x.Value, packageConnector));
-            //_activeConnectors.Remove(entry.Key);
-            throw new NotImplementedException();
+            ClientConnected?.Invoke(newClientId);
         }
         public void Close()
         {
@@ -41,6 +37,13 @@ namespace LinkUs
             var clientId = _activeConnectors.Single(x => x.Value == packageConnector).Key;
             package.ChangeSource(clientId);
             ProcessPackage(package);
+        }
+        private void PackageConnectorOnClosed(object sender, EventArgs eventArgs)
+        {
+            var packageConnector = (PackageConnector) sender;
+            var entry = _activeConnectors.Single(x => x.Value == packageConnector);
+            _activeConnectors.Remove(entry);
+            ClientDisconnected?.Invoke(entry.Key);
         }
 
         // ----- Internal logics
