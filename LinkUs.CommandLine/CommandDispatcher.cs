@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using System.Threading.Tasks;
 using LinkUs.Core;
 
@@ -8,21 +7,23 @@ namespace LinkUs.CommandLine
     public class CommandDispatcher
     {
         private readonly PackageTransmitter _packageTransmitter;
+        private readonly ISerializer _serializer;
 
-        public CommandDispatcher(PackageTransmitter packageTransmitter)
+        public CommandDispatcher(PackageTransmitter packageTransmitter, ISerializer serializer)
         {
             _packageTransmitter = packageTransmitter;
+            _serializer = serializer;
         }
 
         public Task<TResponse> ExecuteAsync<TCommand, TResponse>(TCommand command, ClientId clientId = null)
         {
             clientId = clientId ?? ClientId.Server;
-            var commandPackage = new Package(ClientId.Unknown, clientId, Serialize(command));
+            var commandPackage = new Package(ClientId.Unknown, clientId, _serializer.Serialize(command));
 
             var completionSource = new TaskCompletionSource<TResponse>();
             EventHandler<Package> packageReceivedAction = (sender, responsePackage) => {
                 if (Equals(responsePackage.TransactionId, commandPackage.TransactionId)) {
-                    completionSource.SetResult(Deserialize<TResponse>(responsePackage.Content));
+                    completionSource.SetResult(_serializer.Deserialize<TResponse>(responsePackage.Content));
                 }
             };
             EventHandler closedAction = (sender, args) => {
@@ -67,16 +68,5 @@ namespace LinkUs.CommandLine
         //    } while (readCount < length);
         //    return Package.Parse(finalBuffer);
         //}
-        private static byte[] Serialize<T>(T command)
-        {
-            if (command is string) {
-                return Encoding.UTF8.GetBytes((string) (object) command);
-            }
-            throw new NotImplementedException();
-        }
-        private static T Deserialize<T>(byte[] result)
-        {
-            return (T) (object) Encoding.UTF8.GetString(result);
-        }
     }
 }

@@ -30,7 +30,7 @@ namespace LinkUs.CommandLine
         private static void ExecuteCommands(SocketConnection connection)
         {
             var packageTransmitter = new PackageTransmitter(connection);
-            var commandDispatcher = new CommandDispatcher(packageTransmitter);
+            var commandDispatcher = new CommandDispatcher(packageTransmitter, new JsonSerializer());
 
             var commandLine = "";
             while (commandLine != "exit") {

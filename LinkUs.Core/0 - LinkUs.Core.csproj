@@ -49,6 +49,9 @@
     <Compile Include="ClientId.cs" />
     <Compile Include="IConnection.cs" />
     <Compile Include="IConnectionListener.cs" />
+    <Compile Include="ISerializer.cs" />
+    <Compile Include="JsonSerializer.cs" />
+    <Compile Include="Json\Parser.cs" />
     <Compile Include="Metadata.cs" />
     <Compile Include="Package.cs" />
     <Compile Include="PackageTransmitter.cs" />

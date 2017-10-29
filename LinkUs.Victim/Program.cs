@@ -11,6 +11,7 @@ namespace LinkUs.Victim
     {
         private static readonly UTF8Encoding Encoding = new UTF8Encoding();
         private static readonly ManualResetEvent ManualResetEvent = new ManualResetEvent(false);
+        private static readonly ISerializer Serializer = new JsonSerializer();
 
         static void Main(string[] args)
         {
@@ -59,18 +60,18 @@ namespace LinkUs.Victim
         {
             Console.WriteLine(package);
 
-            var command = Encoding.GetString(package.Content);
+            var command = Serializer.Deserialize<string>(package.Content);
             if (command == "dir") {
                 Thread.Sleep(1000);
-                var packageResponse = package.CreateResponsePackage(Encoding.GetBytes(Directory.GetCurrentDirectory()));
+                var packageResponse = package.CreateResponsePackage(Serializer.Serialize(Directory.GetCurrentDirectory()));
                 transmitter.Send(packageResponse);
             }
             else if (command == "date") {
-                var packageResponse = package.CreateResponsePackage(Encoding.GetBytes(DateTime.Now.ToShortDateString()));
+                var packageResponse = package.CreateResponsePackage(Serializer.Serialize(DateTime.Now.ToShortDateString()));
                 transmitter.Send(packageResponse);
             }
             else if (command == "ping") {
-                var packageResponse = package.CreateResponsePackage(Encoding.GetBytes("ok"));
+                var packageResponse = package.CreateResponsePackage(Serializer.Serialize("ok"));
                 transmitter.Send(packageResponse);
             }
         }

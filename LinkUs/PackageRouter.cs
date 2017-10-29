@@ -58,15 +58,16 @@ namespace LinkUs
                 SendPackage(package);
             }
             else {
-                var commandLine = Encoding.UTF8.GetString(package.Content);
+                var jsonSerializer = new JsonSerializer();
+                var commandLine = jsonSerializer.Deserialize<string>(package.Content);
                 if (commandLine == "list-victims") {
                     var clients = _activeTransmitter.Keys;
                     var value = string.Join(Environment.NewLine, clients.Select(x => x.ToString()));
-                    var packageResponse = package.CreateResponsePackage(Encoding.UTF8.GetBytes(value));
+                    var packageResponse = package.CreateResponsePackage(jsonSerializer.Serialize(value));
                     SendPackage(packageResponse);
                 }
                 else {
-                    var responsePackage = package.CreateResponsePackage(Encoding.UTF8.GetBytes("Invalid command"));
+                    var responsePackage = package.CreateResponsePackage(jsonSerializer.Serialize("Invalid command"));
                     SendPackage(responsePackage);
                 }
             }

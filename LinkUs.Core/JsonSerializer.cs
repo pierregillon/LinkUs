@@ -1,0 +1,35 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace LinkUs.Core
+{
+    public class JsonSerializer : ISerializer
+    {
+        public byte[] Serialize<T>(T command)
+        {
+            var json = Json.Json.Stringify(command);
+            var bytes = Encoding.UTF8.GetBytes(json);
+            return bytes;
+        }
+        public T Deserialize<T>(byte[] result)
+        {
+            var json = Encoding.UTF8.GetString(result);
+            var obj = Json.Json.Parse(json);
+            var type = typeof(T);
+            var isPrimitiveType = type.IsPrimitive || type.IsValueType || (type == typeof(string));
+            if (isPrimitiveType) {
+                return (T)obj;
+            }
+            var properties = (IDictionary<string, object>) obj;
+            var instance = Activator.CreateInstance<T>();
+            foreach (var propertyInfo in typeof(T).GetProperties()) {
+                object value;
+                if (properties.TryGetValue(propertyInfo.Name, out value)) {
+                    propertyInfo.SetValue(instance, value);
+                }
+            }
+            return instance;
+        }
+    }
+}
