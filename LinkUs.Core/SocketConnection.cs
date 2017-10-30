@@ -84,19 +84,31 @@ namespace LinkUs.Core
 
             var bytesTransferredCount = receiveSocketEventArgs.BytesTransferred;
             var bytesTransferred = receiveSocketEventArgs.Buffer.Take(bytesTransferredCount).ToArray();
+
             if (metadata.PackageLength == 0) {
                 Buffer.BlockCopy(bytesTransferred, 0, metadata.PackageLengthBytes, 0, metadata.PackageLengthBytes.Length);
                 metadata.PackageLength = BitConverter.ToInt32(metadata.PackageLengthBytes, 0);
-            }
-            if (bytesTransferredCount - metadata.PackageLengthBytes.Length == metadata.PackageLength) {
-                DataReceived?.Invoke(bytesTransferred.Skip(metadata.PackageLengthBytes.Length).ToArray());
+                if (metadata.PackageLength <= 0) {
+                    throw new Exception("Invalid length");
+                }
+                metadata.Buffers.Add(bytesTransferred.Skip(metadata.PackageLengthBytes.Length).ToArray());
             }
             else {
-                throw new NotImplementedException();
+                metadata.Buffers.Add(bytesTransferred);
             }
 
-            metadata.PackageLength = 0;
-            StartReceiveData(receiveSocketEventArgs);
+            var allBytesReceivedCount = metadata.Buffers.Select(x => x.Length).Sum(x => x);
+            if (allBytesReceivedCount == metadata.PackageLength) {
+                DataReceived?.Invoke(metadata.Buffers.SelectMany(x=>x).ToArray());
+                metadata.Reset();
+                StartReceiveData(receiveSocketEventArgs);
+            }
+            else if (allBytesReceivedCount < metadata.PackageLength) {
+                StartReceiveData(receiveSocketEventArgs);
+            }
+            else {
+                throw new NotImplementedException("To much data received.");
+            }
         }
         private void RecycleReceiveArgs(SocketAsyncEventArgs receiveSocketEventArgs)
         {
@@ -171,7 +183,7 @@ namespace LinkUs.Core
             for (int i = 0; i < 10; i++) {
                 var args = new SocketAsyncEventArgs();
                 args.Completed += ReceiveEventCompleted;
-                args.SetBuffer(new byte[10000], 0, 10000);
+                args.SetBuffer(new byte[1024], 0, 1024);
                 args.UserToken = new Metadata();
                 _receiveSocketOperations.Enqueue(args);
             }
