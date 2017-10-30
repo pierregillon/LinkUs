@@ -15,6 +15,7 @@ namespace LinkUs.Core
         public event Action<int> DataSent;
         public event Action Closed;
 
+        // ----- Constructors
         public SocketConnection()
         {
             _socket = BuildDefaultSocket();
@@ -27,6 +28,7 @@ namespace LinkUs.Core
             StartContinuousReceive();
         }
 
+        // ----- Public methods
         public void Connect(string host, int port)
         {
             _socket.Connect(host, port);
@@ -50,6 +52,7 @@ namespace LinkUs.Core
             CloseSocket(_socket);
         }
 
+        // ----- Receive Operation
         private void StartReceiveData(SocketAsyncEventArgs args)
         {
             var isPending = args.AcceptSocket.ReceiveAsync(args);
@@ -102,6 +105,7 @@ namespace LinkUs.Core
             _receiveSocketOperations.Enqueue(receiveSocketEventArgs);
         }
 
+        // ----- Send Operation
         private void StartSendData(SocketAsyncEventArgs args)
         {
             try {
@@ -135,9 +139,7 @@ namespace LinkUs.Core
                 RecycleSendSocket(args);
                 throw new Exception("unsuccessed send");
             }
-
-            var bytesTransferred = args.BytesTransferred;
-
+            DataSent?.Invoke(args.BytesTransferred);
             RecycleSendSocket(args);
         }
         private void RecycleSendSocket(SocketAsyncEventArgs args)
@@ -147,6 +149,7 @@ namespace LinkUs.Core
             _sendSocketOperations.Enqueue(args);
         }
 
+        // ----- Interal logic
         private void StartContinuousReceive()
         {
             var receiveSocketEventArgs = _receiveSocketOperations.Dequeue();
@@ -163,7 +166,6 @@ namespace LinkUs.Core
             socket.Dispose();
             Closed?.Invoke();
         }
-
         private void BuildSocketAsyncEventArgs()
         {
             for (int i = 0; i < 10; i++) {

@@ -12,25 +12,25 @@ namespace LinkUs.CommandLine
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main(string[] arguments)
         {
-            if (args.Any() == false) {
+            if (arguments.Any() == false) {
                 Console.WriteLine("Nothing to do");
                 return;
             }
 
-            var command = args.First();
+            var command = arguments.First();
             string commandResult = "";
             try {
                 switch (command) {
                     case "ping":
-                        commandResult = Ping(args.Skip(1).ToArray());
+                        commandResult = Ping(arguments.Skip(1).ToArray());
                         break;
                     case "list-victims":
                         commandResult = ListVictims();
                         break;
                     case "shell":
-                        commandResult = Shell(args.Skip(1).ToArray());
+                        commandResult = Shell(arguments.Skip(1).ToArray());
                         break;
                     default:
                         commandResult = $"'{command}' is not recognized as a command.";

