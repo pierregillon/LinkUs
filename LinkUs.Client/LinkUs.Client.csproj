@@ -7,8 +7,8 @@
     <ProjectGuid>{FE5906F7-B211-43FF-802D-8E229B50E16B}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LinkUs.Victim</RootNamespace>
-    <AssemblyName>LinkUs.Victim</AssemblyName>
+    <RootNamespace>LinkUs.Client</RootNamespace>
+    <AssemblyName>LinkUs.Client</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

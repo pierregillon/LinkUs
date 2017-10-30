@@ -26,8 +26,8 @@ namespace LinkUs.CommandLine
                     case "ping":
                         commandResult = Ping(arguments.Skip(1).ToArray());
                         break;
-                    case "list-victims":
-                        commandResult = ListVictims();
+                    case "list-clients":
+                        commandResult = ListClients();
                         break;
                     case "shell":
                         commandResult = Shell(arguments.Skip(1).ToArray());
@@ -45,10 +45,10 @@ namespace LinkUs.CommandLine
         }
 
         // ----- Commands
-        private static string ListVictims()
+        private static string ListClients()
         {
             var commandDispatcher = GetCommandDispatcher();
-            var defaultCommand = new Command() {Name = "list-victims"};
+            var defaultCommand = new Command() {Name = "list-clients" };
             return commandDispatcher.ExecuteAsync<Command, string>(defaultCommand).Result;
         }
         private static string Ping(string[] arguments)

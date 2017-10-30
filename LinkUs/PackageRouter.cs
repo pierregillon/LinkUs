@@ -60,7 +60,7 @@ namespace LinkUs
             else {
                 var jsonSerializer = new JsonSerializer();
                 var commandLine = jsonSerializer.Deserialize<Command>(package.Content);
-                if (commandLine.Name == "list-victims") {
+                if (commandLine.Name == "list-clients") {
                     var clients = _activeTransmitter.Keys;
                     var value = string.Join(Environment.NewLine, clients.Select(x => x.ToString()));
                     var packageResponse = package.CreateResponsePackage(jsonSerializer.Serialize(value));
