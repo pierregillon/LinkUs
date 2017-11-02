@@ -2,3 +2,4 @@
 * single socket connection from client when no arguments
 * module manager
 * remote shell
+* lock on queue for SocketConnection

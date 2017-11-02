@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using LinkUs.Core;
 
 namespace LinkUs.CommandLine
@@ -6,15 +7,17 @@ namespace LinkUs.CommandLine
     public class ConsoleRemoteShellController
     {
         private readonly PackageTransmitter _packageTransmitter;
+        private readonly CommandDispatcher _commandDispatcher;
         private readonly ClientId _target;
         private readonly ISerializer _serializer;
         private bool _end;
         private CursorPosition _lastCursorPosition = new CursorPosition();
 
         // ----- Constructor
-        public ConsoleRemoteShellController(PackageTransmitter packageTransmitter, ClientId target, ISerializer serializer)
+        public ConsoleRemoteShellController(CommandDispatcher commandDispatcher, ClientId target, ISerializer serializer)
         {
-            _packageTransmitter = packageTransmitter;
+            _packageTransmitter = commandDispatcher.PackageTransmitter;
+            _commandDispatcher = commandDispatcher;
             _target = target;
             _serializer = serializer;
         }
@@ -22,6 +25,18 @@ namespace LinkUs.CommandLine
         // ----- Public methods
         public void SendInputs()
         {
+            Console.Write($"shell:{_target}> ");
+            var commandInput = Console.ReadLine();
+            var arguments = commandInput.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+            var commandLine = arguments.First();
+            var command = new ExecuteShellCommand {
+                Name = "ExecuteShellCommand",
+                CommandLine = commandLine,
+                Arguments = arguments.Skip(1).OfType<object>().ToList()
+            };
+            var response = _commandDispatcher.ExecuteAsync<ExecuteShellCommand, ShellStartedResponse>(command, _target).Result;
+            Console.WriteLine($"Shell started on remote host {_target}, pid: {response.ProcessId}.");
+
             _packageTransmitter.PackageReceived += PackageTransmitterOnPackageReceived;
             try {
                 var buffer = new char[1024];
@@ -51,10 +66,7 @@ namespace LinkUs.CommandLine
         private void PackageTransmitterOnPackageReceived(object sender, Package package)
         {
             var command = _serializer.Deserialize<Command>(package.Content);
-            if (command.Name == typeof(ShellStartedResponse).Name) {
-                Console.WriteLine("Shell started on remote host.");
-            }
-            else if (command.Name == typeof(ShellOuputReceivedResponse).Name) {
+            if (command.Name == typeof(ShellOuputReceivedResponse).Name) {
                 var response = _serializer.Deserialize<ShellOuputReceivedResponse>(package.Content);
                 Console.Write(response.Output);
                 _lastCursorPosition = new CursorPosition {

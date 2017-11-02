@@ -99,24 +99,11 @@ namespace LinkUs.CommandLine
                 return result.ErrorText;
             }
             else {
-                ProcessShell(commandDispatcher, ClientId.Parse(target));
+                var targetId = ClientId.Parse(target);
+                var driver = new ConsoleRemoteShellController(commandDispatcher, targetId, new JsonSerializer());
+                driver.SendInputs();
                 return "";
             }
-        }
-        private static void ProcessShell(CommandDispatcher commandDispatcher, ClientId targetId)
-        {
-            Console.Write($"shell:{targetId}> ");
-            var input = Console.ReadLine();
-            var arguments = input.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
-            var commandLine = arguments.First();
-            var command = new ExecuteShellCommand {
-                Name = "ExecuteShellCommand",
-                CommandLine = commandLine,
-                Arguments = arguments.Skip(1).OfType<object>().ToList()
-            };
-            commandDispatcher.ExecuteAsync(command, targetId);
-            var driver = new ConsoleRemoteShellController(commandDispatcher.PackageTransmitter, targetId, new JsonSerializer());
-            driver.SendInputs();
         }
 
         // ----- Utils

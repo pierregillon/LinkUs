@@ -29,10 +29,9 @@ namespace LinkUs.Client
         public Task Start()
         {
             _shellProcess.Start();
-
-            SendToController(new ShellStartedResponse());
-
             _shellProcess.BeginErrorReadLine();
+
+            SendToController(new ShellStartedResponse {ProcessId = _shellProcess.Id});
 
             return Task.Factory.StartNew(() => {
                 var buffer = new char[1024];

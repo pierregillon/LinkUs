@@ -17,6 +17,7 @@ namespace LinkUs.Core
         {
             
         }
+        public double ProcessId { get; set; }
     }
 
     public class ShellOuputReceivedResponse : Command
