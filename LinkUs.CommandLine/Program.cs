@@ -15,22 +15,44 @@ namespace LinkUs.CommandLine
         static void Main(string[] arguments)
         {
             if (arguments.Any() == false) {
-                Console.WriteLine("Nothing to do");
-                return;
+                var connection = CreateConnection();
+                while (true) {
+                    Console.Write("Command > ");
+                    var command = Console.ReadLine();
+                    arguments = command.Split(' ');
+                    var commandResult = ExecuteCommand(connection, arguments);
+                    Console.WriteLine(commandResult);
+                }
             }
-
+            else {
+                var connection = CreateConnection();
+                var commandResult = ExecuteCommand(connection, arguments);
+                Console.WriteLine(commandResult);
+            }
+        }
+        private static IConnection CreateConnection()
+        {
+            string host = "127.0.0.1";
+            int port = 9000;
+            var connection = new SocketConnection();
+            connection.Connect(host, port);
+            return connection;
+        }
+        private static string ExecuteCommand(IConnection connection, string[] arguments)
+        {
+            var commandDispatcher = GetCommandDispatcher(connection);
             var command = arguments.First();
             string commandResult = "";
             try {
                 switch (command) {
                     case "ping":
-                        commandResult = Ping(arguments.Skip(1).ToArray());
+                        commandResult = Ping(commandDispatcher, arguments.Skip(1).ToArray());
                         break;
                     case "list-clients":
-                        commandResult = ListClients();
+                        commandResult = ListClients(commandDispatcher);
                         break;
                     case "shell":
-                        commandResult = Shell(arguments.Skip(1).ToArray());
+                        commandResult = Shell(commandDispatcher, arguments.Skip(1).ToArray());
                         break;
                     default:
                         commandResult = $"'{command}' is not recognized as a command.";
@@ -40,18 +62,16 @@ namespace LinkUs.CommandLine
             catch (Exception ex) {
                 WriteInnerException(ex);
             }
-
-            Console.WriteLine(commandResult);
+            return commandResult;
         }
-
+        
         // ----- Commands
-        private static string ListClients()
+        private static string ListClients(CommandDispatcher commandDispatcher)
         {
-            var commandDispatcher = GetCommandDispatcher();
-            var defaultCommand = new Command() {Name = "list-clients" };
+            var defaultCommand = new Command() {Name = "list-clients"};
             return commandDispatcher.ExecuteAsync<Command, string>(defaultCommand).Result;
         }
-        private static string Ping(string[] arguments)
+        private static string Ping(CommandDispatcher commandDispatcher, string[] arguments)
         {
             var target = "";
 
@@ -64,7 +84,6 @@ namespace LinkUs.CommandLine
                 return result.ErrorText;
             }
             else {
-                var commandDispatcher = GetCommandDispatcher();
                 var targetId = ClientId.Parse(target);
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
@@ -74,7 +93,7 @@ namespace LinkUs.CommandLine
                 return $"Ok. {stopWatch.ElapsedMilliseconds} ms.";
             }
         }
-        private static string Shell(string[] arguments)
+        private static string Shell(CommandDispatcher commandDispatcher, string[] arguments)
         {
             var target = "";
             var p = new FluentCommandLineParser();
@@ -86,42 +105,30 @@ namespace LinkUs.CommandLine
                 return result.ErrorText;
             }
             else {
-                ProcessShell(ClientId.Parse(target));
+                ProcessShell(commandDispatcher, ClientId.Parse(target));
                 return "Shell closed.";
             }
         }
-        private static void ProcessShell(ClientId targetId)
+        private static void ProcessShell(CommandDispatcher commandDispatcher, ClientId targetId)
         {
-            var commandDispatcher = GetCommandDispatcher();
-            while (true) {
-                Console.Write($"shell:{targetId}> ");
-                var input = Console.ReadLine();
-                if (string.IsNullOrEmpty(input)) {
-                    continue;
-                }
-                var arguments = input.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
-                var commandLine = arguments.First();
-                if (commandLine == "exit") {
-                    break;
-                }
-                var command = new ExecuteRemoteCommandLine {
-                    Name = "ExecuteRemoteCommandLine",
-                    CommandLine = commandLine,
-                    Arguments = arguments.Skip(1).OfType<object>().ToList()
-                };
-                var result = commandDispatcher.ExecuteAsync<ExecuteRemoteCommandLine, string>(command, targetId).Result;
-                Console.WriteLine(result);
-            }
+            Console.Write($"shell:{targetId}> ");
+            var input = Console.ReadLine();
+            var arguments = input.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+            var commandLine = arguments.First();
+            var command = new ExecuteShellCommand {
+                Name = "ExecuteShellCommand",
+                CommandLine = commandLine,
+                Arguments = arguments.Skip(1).OfType<object>().ToList()
+            };
+            commandDispatcher.ExecuteAsync(command, targetId);
+            var driver = new ShellDriver(commandDispatcher.PackageTransmitter, targetId, new JsonSerializer());
+            driver.GetInputs();
+            driver.Close();
         }
 
         // ----- Utils
-        private static CommandDispatcher GetCommandDispatcher()
+        private static CommandDispatcher GetCommandDispatcher(IConnection connection)
         {
-            string host = "127.0.0.1";
-            int port = 9000;
-
-            var connection = new SocketConnection();
-            connection.Connect(host, port);
             var packageTransmitter = new PackageTransmitter(connection);
             return new CommandDispatcher(packageTransmitter, new JsonSerializer());
         }
@@ -133,6 +140,61 @@ namespace LinkUs.CommandLine
             else {
                 Console.WriteLine(exception);
             }
+        }
+    }
+
+    public class ShellDriver
+    {
+        private readonly PackageTransmitter _packageTransmitter;
+        private readonly ClientId _target;
+        private readonly ISerializer _serializer;
+        private bool _end = false;
+
+        public ShellDriver(PackageTransmitter packageTransmitter, ClientId target, ISerializer serializer)
+        {
+            _packageTransmitter = packageTransmitter;
+            _target = target;
+            _serializer = serializer;
+            _packageTransmitter.PackageReceived += PackageTransmitterOnPackageReceived;
+        }
+
+        private void PackageTransmitterOnPackageReceived(object sender, Package package)
+        {
+            var command = _serializer.Deserialize<Command>(package.Content);
+            if (command.Name == typeof(ShellStartedResponse).Name) {
+                //GetInputs();
+                Console.WriteLine("Process started");
+            }
+            else if (command.Name == typeof(ShellOuputReceivedResponse).Name) {
+                var response = _serializer.Deserialize<ShellOuputReceivedResponse>(package.Content);
+                Console.Write(response.Output);
+            }
+            else if (command.Name == typeof(ShellEndedResponse).Name) {
+                _end = true;
+            }
+        }
+        public void GetInputs()
+        {
+            while (_end == false) {
+                var input = Console.ReadLine();
+                if (_end) {
+                    break;
+                }
+                if (input == "stop") {
+                    var command = new KillShellCommand();
+                    var package = new Package(ClientId.Unknown, _target, _serializer.Serialize(command));
+                    _packageTransmitter.Send(package);
+                }
+                else {
+                    var command = new SendInputToShellCommand(input);
+                    var package = new Package(ClientId.Unknown, _target, _serializer.Serialize(command));
+                    _packageTransmitter.Send(package);
+                }
+            }
+        }
+        public void Close()
+        {
+            _packageTransmitter.PackageReceived -= PackageTransmitterOnPackageReceived;
         }
     }
 }

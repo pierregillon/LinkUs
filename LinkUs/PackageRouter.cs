@@ -57,6 +57,9 @@ namespace LinkUs
             if (!Equals(package.Destination, ClientId.Server)) {
                 SendPackage(package);
             }
+            else if (Equals(package.Source, package.Destination)) {
+                Console.WriteLine($"Client '{package.Source}' is trying to send package to himself.");
+            }
             else {
                 var jsonSerializer = new JsonSerializer();
                 var commandLine = jsonSerializer.Deserialize<Command>(package.Content);

@@ -48,7 +48,7 @@
   <ItemGroup>
     <Compile Include="ClientId.cs" />
     <Compile Include="Command.cs" />
-    <Compile Include="ExecuteRemoteCommandLine.cs" />
+    <Compile Include="ExecuteShellCommand.cs" />
     <Compile Include="IConnection.cs" />
     <Compile Include="IConnectionListener.cs" />
     <Compile Include="ISerializer.cs" />

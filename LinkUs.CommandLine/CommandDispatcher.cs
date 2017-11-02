@@ -6,12 +6,12 @@ namespace LinkUs.CommandLine
 {
     public class CommandDispatcher
     {
-        private readonly PackageTransmitter _packageTransmitter;
         private readonly ISerializer _serializer;
+        public PackageTransmitter PackageTransmitter { get; }
 
         public CommandDispatcher(PackageTransmitter packageTransmitter, ISerializer serializer)
         {
-            _packageTransmitter = packageTransmitter;
+            PackageTransmitter = packageTransmitter;
             _serializer = serializer;
         }
 
@@ -29,15 +29,21 @@ namespace LinkUs.CommandLine
             EventHandler closedAction = (sender, args) => {
                 completionSource.SetException(new Exception("Connection Closed"));
             };
-            _packageTransmitter.PackageReceived += packageReceivedAction;
-            _packageTransmitter.Closed += closedAction;
-            _packageTransmitter.Send(commandPackage);
+            PackageTransmitter.PackageReceived += packageReceivedAction;
+            PackageTransmitter.Closed += closedAction;
+            PackageTransmitter.Send(commandPackage);
 
             return completionSource.Task.ContinueWith(task => {
-                _packageTransmitter.PackageReceived -= packageReceivedAction;
-                _packageTransmitter.Closed -= closedAction;
+                PackageTransmitter.PackageReceived -= packageReceivedAction;
+                PackageTransmitter.Closed -= closedAction;
                 return task.Result;
             });
+        }
+        public void ExecuteAsync<TCommand>(TCommand command, ClientId clientId = null)
+        {
+            var content = _serializer.Serialize(command);
+            var commandPackage = new Package(ClientId.Unknown, clientId, content);
+            PackageTransmitter.Send(commandPackage);
         }
         //private void SendPackage(Package package)
         //{
