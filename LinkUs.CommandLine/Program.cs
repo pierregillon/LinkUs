@@ -30,14 +30,8 @@ namespace LinkUs.CommandLine
                 Console.WriteLine(commandResult);
             }
         }
-        private static IConnection CreateConnection()
-        {
-            string host = "127.0.0.1";
-            int port = 9000;
-            var connection = new SocketConnection();
-            connection.Connect(host, port);
-            return connection;
-        }
+
+        // ----- Internal logics
         private static string ExecuteCommand(IConnection connection, string[] arguments)
         {
             var commandDispatcher = GetCommandDispatcher(connection);
@@ -106,7 +100,7 @@ namespace LinkUs.CommandLine
             }
             else {
                 ProcessShell(commandDispatcher, ClientId.Parse(target));
-                return "Shell closed.";
+                return "";
             }
         }
         private static void ProcessShell(CommandDispatcher commandDispatcher, ClientId targetId)
@@ -121,9 +115,8 @@ namespace LinkUs.CommandLine
                 Arguments = arguments.Skip(1).OfType<object>().ToList()
             };
             commandDispatcher.ExecuteAsync(command, targetId);
-            var driver = new ShellDriver(commandDispatcher.PackageTransmitter, targetId, new JsonSerializer());
-            driver.GetInputs();
-            driver.Close();
+            var driver = new ConsoleRemoteShellController(commandDispatcher.PackageTransmitter, targetId, new JsonSerializer());
+            driver.SendInputs();
         }
 
         // ----- Utils
@@ -141,78 +134,13 @@ namespace LinkUs.CommandLine
                 Console.WriteLine(exception);
             }
         }
-    }
-
-    public class ShellDriver
-    {
-        private readonly PackageTransmitter _packageTransmitter;
-        private readonly ClientId _target;
-        private readonly ISerializer _serializer;
-        private bool _end;
-        private CursorPosition _lastCursorPosition = new CursorPosition();
-
-        public ShellDriver(PackageTransmitter packageTransmitter, ClientId target, ISerializer serializer)
+        private static IConnection CreateConnection()
         {
-            _packageTransmitter = packageTransmitter;
-            _target = target;
-            _serializer = serializer;
-            _packageTransmitter.PackageReceived += PackageTransmitterOnPackageReceived;
+            string host = "127.0.0.1";
+            int port = 9000;
+            var connection = new SocketConnection();
+            connection.Connect(host, port);
+            return connection;
         }
-
-        private void PackageTransmitterOnPackageReceived(object sender, Package package)
-        {
-            var command = _serializer.Deserialize<Command>(package.Content);
-            if (command.Name == typeof(ShellStartedResponse).Name) {
-                Console.WriteLine("Process started");
-            }
-            else if (command.Name == typeof(ShellOuputReceivedResponse).Name) {
-                var response = _serializer.Deserialize<ShellOuputReceivedResponse>(package.Content);
-                Console.Write(response.Output);
-                _lastCursorPosition = new CursorPosition {
-                    Left = Console.CursorLeft,
-                    Top = Console.CursorTop
-                };
-            }
-            else if (command.Name == typeof(ShellEndedResponse).Name) {
-                Console.Write("Process ended. Press any key to continue.");
-                _end = true;
-            }
-        }
-        public void GetInputs()
-        {
-            var buffer = new char[1024];
-            while (_end == false) {
-                var bytesReadCount = Console.In.Read(buffer, 0, buffer.Length);
-                if (_end) {
-                    break;
-                }
-                if (bytesReadCount > 0) {
-                    var input = new string(buffer, 0, bytesReadCount);
-
-                    if (input == "stop") {
-                        SendObject(new KillShellCommand());
-                    }
-                    else {
-                        Console.SetCursorPosition(_lastCursorPosition.Left, _lastCursorPosition.Top);
-                        SendObject(new SendInputToShellCommand(input));
-                    }
-                }
-            }
-        }
-        private void SendObject(object command)
-        {
-            var package = new Package(ClientId.Unknown, _target, _serializer.Serialize(command));
-            _packageTransmitter.Send(package);
-        }
-        public void Close()
-        {
-            _packageTransmitter.PackageReceived -= PackageTransmitterOnPackageReceived;
-        }
-    }
-
-    public class CursorPosition
-    {
-        public int Left { get; set; }
-        public int Top { get; set; }
     }
 }

