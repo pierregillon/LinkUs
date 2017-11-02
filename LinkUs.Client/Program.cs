@@ -68,10 +68,7 @@ namespace LinkUs.Client
             if (command.Name == "ExecuteShellCommand") {
                 var executeRemoteCommand = Serializer.Deserialize<ExecuteShellCommand>(package.Content);
                 var shell = new Shell(transmitter, package, executeRemoteCommand);
-                var exitCode = shell.Execute().Result;
-                var result = new ShellEndedResponse(exitCode);
-                var packageResponse = package.CreateResponsePackage(Serializer.Serialize(result));
-                transmitter.Send(packageResponse);
+                shell.Execute().Wait();
             }
             else if (command.Name == "date") {
                 var packageResponse = package.CreateResponsePackage(Serializer.Serialize(DateTime.Now.ToShortDateString()));
@@ -105,7 +102,7 @@ namespace LinkUs.Client
             }
         }
 
-        public Task<int> Execute()
+        public Task Execute()
         {
             _packageTransmitter.PackageReceived += PackageTransmitterOnPackageReceived;
             _shellProcess.Start();
@@ -114,7 +111,7 @@ namespace LinkUs.Client
 
             _shellProcess.BeginErrorReadLine();
 
-            var readTask = Task.Factory.StartNew(() => {
+            return Task.Factory.StartNew(() => {
                 var buffer = new char[1024];
                 while (_shellProcess.StandardOutput.EndOfStream == false) {
                     var bytesReadCount = _shellProcess.StandardOutput.Read(buffer, 0, buffer.Length);
@@ -123,11 +120,8 @@ namespace LinkUs.Client
                         SendObject(new ShellOuputReceivedResponse(textReceived));
                     }
                 }
-            });
-
-            return readTask.ContinueWith(task => {
                 _packageTransmitter.PackageReceived -= PackageTransmitterOnPackageReceived;
-                return _shellProcess.ExitCode;
+                SendObject(new ShellEndedResponse(_shellProcess.ExitCode));
             });
         }
 

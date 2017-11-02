@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -80,15 +81,18 @@ namespace LinkUs.Core
                 throw new Exception("unsuccessed read");
             }
 
-            var metadata = (Metadata) receiveSocketEventArgs.UserToken;
-
             var bytesTransferredCount = receiveSocketEventArgs.BytesTransferred;
             var bytesTransferred = receiveSocketEventArgs.Buffer.Take(bytesTransferredCount).ToArray();
 
+            Test(receiveSocketEventArgs, bytesTransferred);
+        }
+        private void Test(SocketAsyncEventArgs receiveSocketEventArgs, byte[] bytesTransferred)
+        {
+            var metadata = (Metadata) receiveSocketEventArgs.UserToken;
             if (metadata.PackageLength == 0) {
                 Buffer.BlockCopy(bytesTransferred, 0, metadata.PackageLengthBytes, 0, metadata.PackageLengthBytes.Length);
                 metadata.PackageLength = BitConverter.ToInt32(metadata.PackageLengthBytes, 0);
-                if (metadata.PackageLength <= 0) {
+                if (metadata.PackageLength <= 0 || metadata.PackageLength > 100000) {
                     throw new Exception("Invalid length");
                 }
                 metadata.Buffers.Add(bytesTransferred.Skip(metadata.PackageLengthBytes.Length).ToArray());
@@ -99,7 +103,7 @@ namespace LinkUs.Core
 
             var allBytesReceivedCount = metadata.Buffers.Select(x => x.Length).Sum(x => x);
             if (allBytesReceivedCount == metadata.PackageLength) {
-                DataReceived?.Invoke(metadata.Buffers.SelectMany(x=>x).ToArray());
+                DataReceived?.Invoke(metadata.Buffers.SelectMany(x => x).ToArray());
                 metadata.Reset();
                 StartReceiveData(receiveSocketEventArgs);
             }
@@ -107,7 +111,13 @@ namespace LinkUs.Core
                 StartReceiveData(receiveSocketEventArgs);
             }
             else {
-                throw new NotImplementedException("To much data received.");
+                var allData = metadata.Buffers.SelectMany(x => x).ToArray();
+                var exactData = allData.Take(metadata.PackageLength).ToArray();
+                DataReceived?.Invoke(exactData);
+                metadata.Reset();
+
+                var surplusData = allData.Skip(exactData.Length).ToArray();
+                Test(receiveSocketEventArgs, surplusData);
             }
         }
         private void RecycleReceiveArgs(SocketAsyncEventArgs receiveSocketEventArgs)

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
-namespace LinkUs.Core {
+namespace LinkUs.Core
+{
     public class SocketConnectionListener : IConnectionListener<SocketConnection>
     {
         private readonly Socket _listenSocket;
@@ -55,6 +56,9 @@ namespace LinkUs.Core {
         }
         private void ProcessAccept(SocketAsyncEventArgs acceptSocketEventArgs)
         {
+            if (acceptSocketEventArgs.SocketError == SocketError.OperationAborted) {
+                return;
+            }
             if (acceptSocketEventArgs.SocketError != SocketError.Success) {
                 throw new Exception("error");
             }
