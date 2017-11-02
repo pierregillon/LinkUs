@@ -80,7 +80,7 @@ namespace LinkUs.CommandLine
             else if (command.Name == typeof(ShellEndedResponse).Name) {
                 var response = _serializer.Deserialize<ShellEndedResponse>(package.Content);
                 if (response.ProcessId != _processId) return;
-                Console.Write("Process ended. Press any key to continue.");
+                Console.Write($"Process ended, exit code: {response.ExitCode}. Press any key to continue.");
                 _end = true;
             }
         }

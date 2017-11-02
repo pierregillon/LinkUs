@@ -49,12 +49,12 @@ namespace LinkUs.Core
     public class ShellEndedResponse : Command
     {
         public ShellEndedResponse() : base("ShellEndedResponse") { }
-        public ShellEndedResponse(int exitCode, double processId) : this()
+        public ShellEndedResponse(double exitCode, double processId) : this()
         {
             ExitCode = exitCode;
             ProcessId = processId;
         }
-        public int ExitCode { get; set; }
+        public double ExitCode { get; set; }
         public double ProcessId { get; set; }
     }
 
