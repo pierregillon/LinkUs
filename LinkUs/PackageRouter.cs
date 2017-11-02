@@ -55,6 +55,7 @@ namespace LinkUs
         private void ProcessPackage(Package package)
         {
             if (!Equals(package.Destination, ClientId.Server)) {
+                Console.WriteLine($"* Package routed {package}");
                 SendPackage(package);
             }
             else if (Equals(package.Source, package.Destination)) {

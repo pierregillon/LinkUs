@@ -64,7 +64,7 @@ namespace LinkUs.CommandLine
             }
             return commandResult;
         }
-        
+
         // ----- Commands
         private static string ListClients(CommandDispatcher commandDispatcher)
         {
@@ -148,7 +148,8 @@ namespace LinkUs.CommandLine
         private readonly PackageTransmitter _packageTransmitter;
         private readonly ClientId _target;
         private readonly ISerializer _serializer;
-        private bool _end = false;
+        private bool _end;
+        private CursorPosition _lastCursorPosition = new CursorPosition();
 
         public ShellDriver(PackageTransmitter packageTransmitter, ClientId target, ISerializer serializer)
         {
@@ -162,39 +163,56 @@ namespace LinkUs.CommandLine
         {
             var command = _serializer.Deserialize<Command>(package.Content);
             if (command.Name == typeof(ShellStartedResponse).Name) {
-                //GetInputs();
                 Console.WriteLine("Process started");
             }
             else if (command.Name == typeof(ShellOuputReceivedResponse).Name) {
                 var response = _serializer.Deserialize<ShellOuputReceivedResponse>(package.Content);
                 Console.Write(response.Output);
+                _lastCursorPosition = new CursorPosition {
+                    Left = Console.CursorLeft,
+                    Top = Console.CursorTop
+                };
             }
             else if (command.Name == typeof(ShellEndedResponse).Name) {
+                Console.Write("Process ended. Press any key to continue.");
                 _end = true;
             }
         }
         public void GetInputs()
         {
+            var buffer = new char[1024];
             while (_end == false) {
-                var input = Console.ReadLine();
+                var bytesReadCount = Console.In.Read(buffer, 0, buffer.Length);
                 if (_end) {
                     break;
                 }
-                if (input == "stop") {
-                    var command = new KillShellCommand();
-                    var package = new Package(ClientId.Unknown, _target, _serializer.Serialize(command));
-                    _packageTransmitter.Send(package);
-                }
-                else {
-                    var command = new SendInputToShellCommand(input);
-                    var package = new Package(ClientId.Unknown, _target, _serializer.Serialize(command));
-                    _packageTransmitter.Send(package);
+                if (bytesReadCount > 0) {
+                    var input = new string(buffer, 0, bytesReadCount);
+
+                    if (input == "stop") {
+                        SendObject(new KillShellCommand());
+                    }
+                    else {
+                        Console.SetCursorPosition(_lastCursorPosition.Left, _lastCursorPosition.Top);
+                        SendObject(new SendInputToShellCommand(input));
+                    }
                 }
             }
+        }
+        private void SendObject(object command)
+        {
+            var package = new Package(ClientId.Unknown, _target, _serializer.Serialize(command));
+            _packageTransmitter.Send(package);
         }
         public void Close()
         {
             _packageTransmitter.PackageReceived -= PackageTransmitterOnPackageReceived;
         }
+    }
+
+    public class CursorPosition
+    {
+        public int Left { get; set; }
+        public int Top { get; set; }
     }
 }
