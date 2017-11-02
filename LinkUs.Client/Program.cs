@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -12,7 +14,7 @@ namespace LinkUs.Client
         private static readonly UTF8Encoding Encoding = new UTF8Encoding();
         private static readonly ManualResetEvent ManualResetEvent = new ManualResetEvent(false);
         private static readonly ISerializer Serializer = new JsonSerializer();
-        private static RemoteShell _remoteShell;
+        private static readonly IDictionary<double, RemoteShell> _remoteShells = new Dictionary<double, RemoteShell>();
 
         static void Main(string[] args)
         {
@@ -65,8 +67,10 @@ namespace LinkUs.Client
             var command = Serializer.Deserialize<Command>(package.Content);
             if (command.Name == "ExecuteShellCommand") {
                 var executeRemoteCommand = Serializer.Deserialize<ExecuteShellCommand>(package.Content);
-                _remoteShell = new RemoteShell(transmitter, package, executeRemoteCommand);
-                _remoteShell.Start();
+                var remoteShell = new RemoteShell(transmitter, package, executeRemoteCommand);
+                var processId = remoteShell.Start();
+                remoteShell.ReadOutputAsync();
+                _remoteShells.Add(processId, remoteShell);
             }
             else if (command.Name == "date") {
                 var packageResponse = package.CreateResponsePackage(Serializer.Serialize(DateTime.Now.ToShortDateString()));
@@ -78,10 +82,24 @@ namespace LinkUs.Client
             }
             else if (command.Name == typeof(SendInputToShellCommand).Name) {
                 var sendInputToShellCommand = Serializer.Deserialize<SendInputToShellCommand>(package.Content);
-                _remoteShell.Write(sendInputToShellCommand.Input);
+                RemoteShell remoteShell;
+                if (_remoteShells.TryGetValue(sendInputToShellCommand.ProcessId, out remoteShell)) {
+                    remoteShell.Write(sendInputToShellCommand.Input);
+                }
+                else {
+                    throw new Exception("Unable to find the remote shell");
+                }
             }
             else if (command.Name == typeof(KillShellCommand).Name) {
-                _remoteShell.Stop();
+                var killCommand = Serializer.Deserialize<KillShellCommand>(package.Content);
+                RemoteShell remoteShell;
+                if (_remoteShells.TryGetValue(killCommand.ProcessId, out remoteShell)) {
+                    remoteShell.Kill();
+                    _remoteShells.Remove(killCommand.ProcessId);
+                }
+                else {
+                    throw new Exception("Unable to find the remote shell");
+                }
             }
             else {
                 var packageResponse = package.CreateResponsePackage(Serializer.Serialize("unknown command"));

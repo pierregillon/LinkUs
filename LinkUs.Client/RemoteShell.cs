@@ -26,26 +26,34 @@ namespace LinkUs.Client
         }
 
         // ----- Public methods
-        public Task Start()
+        public int Start()
         {
-            _shellProcess.Start();
+            if (_shellProcess.Start() == false) {
+                throw new Exception("Unable to start the shell process.");
+            }
             _shellProcess.BeginErrorReadLine();
 
-            SendToController(new ShellStartedResponse {ProcessId = _shellProcess.Id});
+            var content = _jsonSerializer.Serialize(new ShellStartedResponse { ProcessId = _shellProcess.Id });
+            var responsePackage = _package.CreateResponsePackage(content);
+            _packageTransmitter.Send(responsePackage);
 
+            return _shellProcess.Id;
+        }
+        public Task ReadOutputAsync()
+        {
             return Task.Factory.StartNew(() => {
                 var buffer = new char[1024];
                 while (_shellProcess.StandardOutput.EndOfStream == false) {
                     var bytesReadCount = _shellProcess.StandardOutput.Read(buffer, 0, buffer.Length);
                     if (bytesReadCount > 0) {
                         var textToSend = new string(buffer, 0, bytesReadCount);
-                        SendToController(new ShellOuputReceivedResponse(textToSend));
+                        SendToController(new ShellOuputReceivedResponse(textToSend, _shellProcess.Id));
                     }
                 }
-                SendToController(new ShellEndedResponse(_shellProcess.ExitCode));
+                SendToController(new ShellEndedResponse(_shellProcess.ExitCode, _shellProcess.Id));
             });
         }
-        public void Stop()
+        public void Kill()
         {
             _shellProcess.Kill();
             _shellProcess.WaitForExit();
@@ -58,14 +66,14 @@ namespace LinkUs.Client
         // ----- Callbacks
         private void ShellProcessOnErrorDataReceived(object o, DataReceivedEventArgs dataReceivedEventArgs)
         {
-            SendToController(new ShellOuputReceivedResponse(dataReceivedEventArgs.Data));
+            SendToController(new ShellOuputReceivedResponse(dataReceivedEventArgs.Data, _shellProcess.Id));
         }
 
         // ----- Utils
         private void SendToController(object response)
         {
             var content = _jsonSerializer.Serialize(response);
-            var responsePackage = _package.CreateResponsePackage(content);
+            var responsePackage = new Package(_package.Destination, _package.Source, content);
             _packageTransmitter.Send(responsePackage);
         }
         private static Process NewCmdProcess()

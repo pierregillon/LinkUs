@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace LinkUs.Core
@@ -13,9 +12,10 @@ namespace LinkUs.Core
 
     public class ShellStartedResponse : Command
     {
-        public ShellStartedResponse() : base("ShellStartedResponse")
+        public ShellStartedResponse() : base("ShellStartedResponse") { }
+        public ShellStartedResponse(double processId)
         {
-            
+            ProcessId = processId;
         }
         public double ProcessId { get; set; }
     }
@@ -23,40 +23,48 @@ namespace LinkUs.Core
     public class ShellOuputReceivedResponse : Command
     {
         public ShellOuputReceivedResponse() : base("ShellOuputReceivedResponse") { }
-        public ShellOuputReceivedResponse(string output) : this()
+        public ShellOuputReceivedResponse(string output, double processId) : this()
         {
             Output = output;
+            ProcessId = processId;
         }
 
         public string Output { get; set; }
+        public double ProcessId { get; set; }
     }
 
     public class SendInputToShellCommand : Command
     {
         public SendInputToShellCommand() : base("SendInputToShellCommand") { }
-        public SendInputToShellCommand(string input) :this()
+        public SendInputToShellCommand(string input, double processId) : this()
         {
             Input = input;
+            ProcessId = processId;
         }
 
         public string Input { get; set; }
+        public double ProcessId { get; set; }
     }
 
     public class ShellEndedResponse : Command
     {
         public ShellEndedResponse() : base("ShellEndedResponse") { }
-        public ShellEndedResponse(int exitCode) : this()
+        public ShellEndedResponse(int exitCode, double processId) : this()
         {
             ExitCode = exitCode;
+            ProcessId = processId;
         }
         public int ExitCode { get; set; }
+        public double ProcessId { get; set; }
     }
 
     public class KillShellCommand : Command
     {
-        public KillShellCommand() : base("KillShellCommand")
+        public KillShellCommand() : base("KillShellCommand") { }
+        public KillShellCommand(double processId) : this()
         {
-            
+            ProcessId = processId;
         }
+        public double ProcessId { get; set; }
     }
 }

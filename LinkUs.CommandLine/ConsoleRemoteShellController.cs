@@ -12,6 +12,7 @@ namespace LinkUs.CommandLine
         private readonly ISerializer _serializer;
         private bool _end;
         private CursorPosition _lastCursorPosition = new CursorPosition();
+        private double _processId;
 
         // ----- Constructor
         public ConsoleRemoteShellController(CommandDispatcher commandDispatcher, ClientId target, ISerializer serializer)
@@ -35,6 +36,7 @@ namespace LinkUs.CommandLine
                 Arguments = arguments.Skip(1).OfType<object>().ToList()
             };
             var response = _commandDispatcher.ExecuteAsync<ExecuteShellCommand, ShellStartedResponse>(command, _target).Result;
+            _processId = response.ProcessId;
             Console.WriteLine($"Shell started on remote host {_target}, pid: {response.ProcessId}.");
 
             _packageTransmitter.PackageReceived += PackageTransmitterOnPackageReceived;
@@ -48,11 +50,11 @@ namespace LinkUs.CommandLine
                     if (bytesReadCount > 0) {
                         var input = new string(buffer, 0, bytesReadCount);
                         if (input == "stop" + Environment.NewLine) {
-                            SendObject(new KillShellCommand());
+                            SendObject(new KillShellCommand(_processId));
                         }
                         else {
                             Console.SetCursorPosition(_lastCursorPosition.Left, _lastCursorPosition.Top);
-                            SendObject(new SendInputToShellCommand(input));
+                            SendObject(new SendInputToShellCommand(input, _processId));
                         }
                     }
                 }
@@ -68,6 +70,7 @@ namespace LinkUs.CommandLine
             var command = _serializer.Deserialize<Command>(package.Content);
             if (command.Name == typeof(ShellOuputReceivedResponse).Name) {
                 var response = _serializer.Deserialize<ShellOuputReceivedResponse>(package.Content);
+                if (response.ProcessId != _processId) return;
                 Console.Write(response.Output);
                 _lastCursorPosition = new CursorPosition {
                     Left = Console.CursorLeft,
@@ -75,6 +78,8 @@ namespace LinkUs.CommandLine
                 };
             }
             else if (command.Name == typeof(ShellEndedResponse).Name) {
+                var response = _serializer.Deserialize<ShellEndedResponse>(package.Content);
+                if (response.ProcessId != _processId) return;
                 Console.Write("Process ended. Press any key to continue.");
                 _end = true;
             }

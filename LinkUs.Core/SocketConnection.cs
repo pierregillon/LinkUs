@@ -90,6 +90,7 @@ namespace LinkUs.Core
         {
             var metadata = (Metadata) receiveSocketEventArgs.UserToken;
             if (metadata.PackageLength == 0) {
+                //todo : manage the case when we don't have enough byte for the size!
                 Buffer.BlockCopy(bytesTransferred, 0, metadata.PackageLengthBytes, 0, metadata.PackageLengthBytes.Length);
                 metadata.PackageLength = BitConverter.ToInt32(metadata.PackageLengthBytes, 0);
                 if (metadata.PackageLength <= 0 || metadata.PackageLength > 100000) {
