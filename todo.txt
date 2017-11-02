@@ -1,0 +1,4 @@
+* send data with fixed size buffer
+* single socket connection from client when no arguments
+* module manager
+* remote shell
