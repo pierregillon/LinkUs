@@ -50,7 +50,7 @@ namespace LinkUs.CommandLine
         // ----- Callbacks
         private void PackageTransmitterOnPackageReceived(object sender, Package package)
         {
-            var command = _serializer.Deserialize<Message>(package.Content);
+            var command = _serializer.Deserialize<MessageDescriptor>(package.Content);
             if (command.Name == typeof(ShellOutputReceived).Name) {
                 var response = _serializer.Deserialize<ShellOutputReceived>(package.Content);
                 if (response.ProcessId != _processId) return;

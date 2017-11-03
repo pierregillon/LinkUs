@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace LinkUs.Core.Json
@@ -19,11 +21,11 @@ namespace LinkUs.Core.Json
             var type = typeof(T);
             var isPrimitiveType = type.IsPrimitive || type.IsValueType || (type == typeof(string));
             if (isPrimitiveType) {
-                return (T)obj;
+                return (T) obj;
             }
             var properties = (IDictionary<string, object>) obj;
             var instance = Activator.CreateInstance<T>();
-            foreach (var propertyInfo in typeof(T).GetProperties()) {
+            foreach (var propertyInfo in typeof(T).GetProperties().Where(x=>x.CanRead && x.CanWrite)) {
                 object value;
                 if (properties.TryGetValue(propertyInfo.Name, out value)) {
                     propertyInfo.SetValue(instance, value);

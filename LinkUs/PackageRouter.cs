@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using LinkUs.CommandLine;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
@@ -65,8 +66,8 @@ namespace LinkUs
             }
             else {
                 var jsonSerializer = new JsonSerializer();
-                var commandLine = jsonSerializer.Deserialize<Message>(package.Content);
-                if (commandLine.Name == "list-clients") {
+                var commandLine = jsonSerializer.Deserialize<MessageDescriptor>(package.Content);
+                if (commandLine.Name == typeof(ListRemoteClients).Name) {
                     var clients = _activeTransmitter.Keys;
                     var value = string.Join(Environment.NewLine, clients.Select(x => x.ToString()));
                     var packageResponse = package.CreateResponsePackage(jsonSerializer.Serialize(value));

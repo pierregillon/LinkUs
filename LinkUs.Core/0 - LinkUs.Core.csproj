@@ -47,7 +47,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Connection\ClientId.cs" />
+    <Compile Include="ListRemoteClients.cs" />
     <Compile Include="Message.cs" />
+    <Compile Include="MessageDescriptor.cs" />
+    <Compile Include="Ping.cs" />
     <Compile Include="Shell\Commands\StartShellCommand.cs" />
     <Compile Include="Connection\IConnection.cs" />
     <Compile Include="Connection\IConnectionListener.cs" />

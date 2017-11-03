@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
-using System.Threading.Tasks;
 using Fclp;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
@@ -19,11 +15,13 @@ namespace LinkUs.CommandLine
             if (arguments.Any() == false) {
                 var connection = CreateConnection();
                 while (true) {
-                    Console.Write("Command > ");
+                    Console.Write("> ");
                     var command = Console.ReadLine();
-                    arguments = command.Split(' ');
-                    var commandResult = ExecuteCommand(connection, arguments);
-                    Console.WriteLine(commandResult);
+                    if (string.IsNullOrEmpty(command) == false) {
+                        var commandArguments = command.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+                        var commandResult = ExecuteCommand(connection, commandArguments);
+                        Console.WriteLine(commandResult);
+                    }
                 }
             }
             else {
@@ -64,8 +62,8 @@ namespace LinkUs.CommandLine
         // ----- Commands
         private static string ListClients(CommandDispatcher commandDispatcher)
         {
-            var defaultCommand = new Message() {Name = "list-clients"};
-            return commandDispatcher.ExecuteAsync<Message, string>(defaultCommand).Result;
+            var defaultCommand = new ListRemoteClients();
+            return commandDispatcher.ExecuteAsync<ListRemoteClients, string>(defaultCommand).Result;
         }
         private static string Ping(CommandDispatcher commandDispatcher, string[] arguments)
         {
@@ -83,8 +81,8 @@ namespace LinkUs.CommandLine
                 var targetId = ClientId.Parse(target);
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
-                var pingCommand = new Message() {Name = "ping"};
-                commandDispatcher.ExecuteAsync<Message, string>(pingCommand, targetId).Wait();
+                var pingCommand = new Ping();
+                commandDispatcher.ExecuteAsync<Ping, string>(pingCommand, targetId).Wait();
                 stopWatch.Stop();
                 return $"Ok. {stopWatch.ElapsedMilliseconds} ms.";
             }

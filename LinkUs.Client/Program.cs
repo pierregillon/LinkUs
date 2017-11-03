@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
-using LinkUs.Core.Shell;
 using LinkUs.Core.Shell.Commands;
 
 namespace LinkUs.Client
@@ -68,19 +65,15 @@ namespace LinkUs.Client
         {
             Console.WriteLine(package);
 
-            var command = Serializer.Deserialize<Message>(package.Content);
-            if (command.Name == "StartShellCommand") {
+            var command = Serializer.Deserialize<MessageDescriptor>(package.Content);
+            if (command.Name == typeof(StartShellCommand).Name) {
                 var executeRemoteCommand = Serializer.Deserialize<StartShellCommand>(package.Content);
                 var remoteShell = new RemoteShell(transmitter, package, executeRemoteCommand);
                 var processId = remoteShell.Start();
                 remoteShell.ReadOutputAsync();
                 _remoteShells.Add(processId, remoteShell);
             }
-            else if (command.Name == "date") {
-                var packageResponse = package.CreateResponsePackage(Serializer.Serialize(DateTime.Now.ToShortDateString()));
-                transmitter.Send(packageResponse);
-            }
-            else if (command.Name == "ping") {
+            else if (command.Name == typeof(Ping).Name) {
                 var packageResponse = package.CreateResponsePackage(Serializer.Serialize("ok"));
                 transmitter.Send(packageResponse);
             }
