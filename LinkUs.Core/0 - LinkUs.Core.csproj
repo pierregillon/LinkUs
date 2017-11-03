@@ -47,25 +47,26 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Connection\ClientId.cs" />
-    <Compile Include="Command.cs" />
-    <Compile Include="Shell\ExecuteShellCommand.cs" />
+    <Compile Include="Message.cs" />
+    <Compile Include="Shell\Commands\StartShellCommand.cs" />
     <Compile Include="Connection\IConnection.cs" />
     <Compile Include="Connection\IConnectionListener.cs" />
     <Compile Include="Json\ISerializer.cs" />
     <Compile Include="Json\JsonSerializer.cs" />
     <Compile Include="Json\Parser.cs" />
-    <Compile Include="Shell\KillShellCommand.cs" />
+    <Compile Include="Shell\Commands\KillShellCommand.cs" />
     <Compile Include="Connection\Metadata.cs" />
     <Compile Include="Connection\Package.cs" />
     <Compile Include="Connection\PackageTransmitter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Shell\SendInputToShellCommand.cs" />
-    <Compile Include="Shell\ShellEndedResponse.cs" />
-    <Compile Include="Shell\ShellOuputReceivedResponse.cs" />
-    <Compile Include="Shell\ShellStartedResponse.cs" />
+    <Compile Include="Shell\Commands\SendInputToShellCommand.cs" />
+    <Compile Include="Shell\Events\ShellEnded.cs" />
+    <Compile Include="Shell\Events\ShellOutputReceived.cs" />
+    <Compile Include="Shell\Events\ShellStarted.cs" />
     <Compile Include="Connection\SocketConnection.cs" />
     <Compile Include="Connection\SocketConnectionListener.cs" />
     <Compile Include="Connection\TransactionId.cs" />
+    <Compile Include="Shell\ShellMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

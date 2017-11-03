@@ -4,6 +4,8 @@ using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
 using LinkUs.Core.Shell;
+using LinkUs.Core.Shell.Commands;
+using LinkUs.Core.Shell.Events;
 
 namespace LinkUs.CommandLine
 {
@@ -33,12 +35,12 @@ namespace LinkUs.CommandLine
             var commandInput = Console.ReadLine();
             var arguments = commandInput.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
             var commandLine = arguments.First();
-            var command = new ExecuteShellCommand {
-                Name = "ExecuteShellCommand",
+            var command = new StartShellCommand {
+                Name = "StartShellCommand",
                 CommandLine = commandLine,
                 Arguments = arguments.Skip(1).OfType<object>().ToList()
             };
-            var response = _commandDispatcher.ExecuteAsync<ExecuteShellCommand, ShellStartedResponse>(command, _target).Result;
+            var response = _commandDispatcher.ExecuteAsync<StartShellCommand, ShellStarted>(command, _target).Result;
             _processId = response.ProcessId;
             Console.WriteLine($"Shell started on remote host {_target}, pid: {response.ProcessId}.");
 
@@ -70,9 +72,9 @@ namespace LinkUs.CommandLine
         // ----- Callbacks
         private void PackageTransmitterOnPackageReceived(object sender, Package package)
         {
-            var command = _serializer.Deserialize<Command>(package.Content);
-            if (command.Name == typeof(ShellOuputReceivedResponse).Name) {
-                var response = _serializer.Deserialize<ShellOuputReceivedResponse>(package.Content);
+            var command = _serializer.Deserialize<Message>(package.Content);
+            if (command.Name == typeof(ShellOutputReceived).Name) {
+                var response = _serializer.Deserialize<ShellOutputReceived>(package.Content);
                 if (response.ProcessId != _processId) return;
                 Console.Write(response.Output);
                 _lastCursorPosition = new CursorPosition {
@@ -80,8 +82,8 @@ namespace LinkUs.CommandLine
                     Top = Console.CursorTop
                 };
             }
-            else if (command.Name == typeof(ShellEndedResponse).Name) {
-                var response = _serializer.Deserialize<ShellEndedResponse>(package.Content);
+            else if (command.Name == typeof(ShellEnded).Name) {
+                var response = _serializer.Deserialize<ShellEnded>(package.Content);
                 if (response.ProcessId != _processId) return;
                 Console.Write($"Process ended, exit code: {response.ExitCode}. Press any key to continue.");
                 _end = true;

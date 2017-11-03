@@ -64,8 +64,8 @@ namespace LinkUs.CommandLine
         // ----- Commands
         private static string ListClients(CommandDispatcher commandDispatcher)
         {
-            var defaultCommand = new Command() {Name = "list-clients"};
-            return commandDispatcher.ExecuteAsync<Command, string>(defaultCommand).Result;
+            var defaultCommand = new Message() {Name = "list-clients"};
+            return commandDispatcher.ExecuteAsync<Message, string>(defaultCommand).Result;
         }
         private static string Ping(CommandDispatcher commandDispatcher, string[] arguments)
         {
@@ -83,8 +83,8 @@ namespace LinkUs.CommandLine
                 var targetId = ClientId.Parse(target);
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
-                var pingCommand = new Command() {Name = "ping"};
-                commandDispatcher.ExecuteAsync<Command, string>(pingCommand, targetId).Wait();
+                var pingCommand = new Message() {Name = "ping"};
+                commandDispatcher.ExecuteAsync<Message, string>(pingCommand, targetId).Wait();
                 stopWatch.Stop();
                 return $"Ok. {stopWatch.ElapsedMilliseconds} ms.";
             }

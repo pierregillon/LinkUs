@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 
-namespace LinkUs.Core.Shell
+namespace LinkUs.Core.Shell.Commands
 {
-    public class ExecuteShellCommand : Command
+    public class StartShellCommand : Message
     {
-        public ExecuteShellCommand() : base("ExecuteShellCommand") { }
-
         public string CommandLine { get; set; }
         public List<object> Arguments { get; set; }
     }

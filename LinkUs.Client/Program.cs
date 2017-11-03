@@ -9,6 +9,7 @@ using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
 using LinkUs.Core.Shell;
+using LinkUs.Core.Shell.Commands;
 
 namespace LinkUs.Client
 {
@@ -67,9 +68,9 @@ namespace LinkUs.Client
         {
             Console.WriteLine(package);
 
-            var command = Serializer.Deserialize<Command>(package.Content);
-            if (command.Name == "ExecuteShellCommand") {
-                var executeRemoteCommand = Serializer.Deserialize<ExecuteShellCommand>(package.Content);
+            var command = Serializer.Deserialize<Message>(package.Content);
+            if (command.Name == "StartShellCommand") {
+                var executeRemoteCommand = Serializer.Deserialize<StartShellCommand>(package.Content);
                 var remoteShell = new RemoteShell(transmitter, package, executeRemoteCommand);
                 var processId = remoteShell.Start();
                 remoteShell.ReadOutputAsync();

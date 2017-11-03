@@ -6,6 +6,8 @@ using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
 using LinkUs.Core.Shell;
+using LinkUs.Core.Shell.Commands;
+using LinkUs.Core.Shell.Events;
 
 namespace LinkUs.Client
 {
@@ -17,13 +19,13 @@ namespace LinkUs.Client
         private readonly JsonSerializer _jsonSerializer = new JsonSerializer();
 
         // ----- Constructor
-        public RemoteShell(PackageTransmitter packageTransmitter, Package package, ExecuteShellCommand executeRemoteCommand)
+        public RemoteShell(PackageTransmitter packageTransmitter, Package package, StartShellCommand startRemoteCommand)
         {
             _packageTransmitter = packageTransmitter;
             _package = package;
             _shellProcess = NewCmdProcess();
-            if (executeRemoteCommand.CommandLine != "cmd") {
-                _shellProcess.StartInfo.Arguments = $"/C {executeRemoteCommand.CommandLine} " + string.Join(" ", executeRemoteCommand.Arguments);
+            if (startRemoteCommand.CommandLine != "cmd") {
+                _shellProcess.StartInfo.Arguments = $"/C {startRemoteCommand.CommandLine} " + string.Join(" ", startRemoteCommand.Arguments);
             }
             _shellProcess.ErrorDataReceived += ShellProcessOnErrorDataReceived;
         }
@@ -36,7 +38,7 @@ namespace LinkUs.Client
             }
             _shellProcess.BeginErrorReadLine();
 
-            var content = _jsonSerializer.Serialize(new ShellStartedResponse { ProcessId = _shellProcess.Id });
+            var content = _jsonSerializer.Serialize(new ShellStarted { ProcessId = _shellProcess.Id });
             var responsePackage = _package.CreateResponsePackage(content);
             _packageTransmitter.Send(responsePackage);
 
@@ -50,10 +52,10 @@ namespace LinkUs.Client
                     var bytesReadCount = _shellProcess.StandardOutput.Read(buffer, 0, buffer.Length);
                     if (bytesReadCount > 0) {
                         var textToSend = new string(buffer, 0, bytesReadCount);
-                        SendToController(new ShellOuputReceivedResponse(textToSend, _shellProcess.Id));
+                        SendToController(new ShellOutputReceived(textToSend, _shellProcess.Id));
                     }
                 }
-                SendToController(new ShellEndedResponse(_shellProcess.ExitCode, _shellProcess.Id));
+                SendToController(new ShellEnded(_shellProcess.ExitCode, _shellProcess.Id));
             });
         }
         public void Kill()
@@ -69,7 +71,7 @@ namespace LinkUs.Client
         // ----- Callbacks
         private void ShellProcessOnErrorDataReceived(object o, DataReceivedEventArgs dataReceivedEventArgs)
         {
-            SendToController(new ShellOuputReceivedResponse(dataReceivedEventArgs.Data, _shellProcess.Id));
+            SendToController(new ShellOutputReceived(dataReceivedEventArgs.Data, _shellProcess.Id));
         }
 
         // ----- Utils
