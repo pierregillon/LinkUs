@@ -1,8 +1,4 @@
 * send data with fixed size buffer
-* single socket connection from client when no arguments
 * module manager
-* remote shell
 * lock on queue for SocketConnection
-* console location to initialize better (not 0;0)
-* execute remote shell command sync with response ? transactionId?
-* rename event / command class
+* introduce concept for sending package with command or event.
