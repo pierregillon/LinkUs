@@ -38,9 +38,7 @@ namespace LinkUs.Client
             }
             _shellProcess.BeginErrorReadLine();
 
-            var content = _jsonSerializer.Serialize(new ShellStarted { ProcessId = _shellProcess.Id });
-            var responsePackage = _package.CreateResponsePackage(content);
-            _packageTransmitter.Send(responsePackage);
+            SendResponse(new ShellStarted {ProcessId = _shellProcess.Id});
 
             return _shellProcess.Id;
         }
@@ -52,10 +50,10 @@ namespace LinkUs.Client
                     var bytesReadCount = _shellProcess.StandardOutput.Read(buffer, 0, buffer.Length);
                     if (bytesReadCount > 0) {
                         var textToSend = new string(buffer, 0, bytesReadCount);
-                        SendToController(new ShellOutputReceived(textToSend, _shellProcess.Id));
+                        SendEvent(new ShellOutputReceived(textToSend, _shellProcess.Id));
                     }
                 }
-                SendToController(new ShellEnded(_shellProcess.ExitCode, _shellProcess.Id));
+                SendEvent(new ShellEnded(_shellProcess.ExitCode, _shellProcess.Id));
             });
         }
         public void Kill()
@@ -71,14 +69,20 @@ namespace LinkUs.Client
         // ----- Callbacks
         private void ShellProcessOnErrorDataReceived(object o, DataReceivedEventArgs dataReceivedEventArgs)
         {
-            SendToController(new ShellOutputReceived(dataReceivedEventArgs.Data, _shellProcess.Id));
+            SendEvent(new ShellOutputReceived(dataReceivedEventArgs.Data, _shellProcess.Id));
         }
 
         // ----- Utils
-        private void SendToController(object response)
+        private void SendEvent(object response)
         {
             var content = _jsonSerializer.Serialize(response);
             var responsePackage = new Package(_package.Destination, _package.Source, content);
+            _packageTransmitter.Send(responsePackage);
+        }
+        private void SendResponse(object message)
+        {
+            var content = _jsonSerializer.Serialize(message);
+            var responsePackage = _package.CreateResponsePackage(content);
             _packageTransmitter.Send(responsePackage);
         }
         private static Process NewCmdProcess()
