@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace LinkUs.Core
+namespace LinkUs.Core.Connection
 {
     public class Metadata
     {

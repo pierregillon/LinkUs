@@ -2,20 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace LinkUs.Core
+namespace LinkUs.Core.Json
 {
     public class JsonSerializer : ISerializer
     {
         public byte[] Serialize<T>(T command)
         {
-            var json = Json.Json.Stringify(command);
+            var json = Core.Json.Json.Stringify(command);
             var bytes = Encoding.UTF8.GetBytes(json);
             return bytes;
         }
         public T Deserialize<T>(byte[] result)
         {
             var json = Encoding.UTF8.GetString(result);
-            var obj = Json.Json.Parse(json);
+            var obj = Core.Json.Json.Parse(json);
             var type = typeof(T);
             var isPrimitiveType = type.IsPrimitive || type.IsValueType || (type == typeof(string));
             if (isPrimitiveType) {

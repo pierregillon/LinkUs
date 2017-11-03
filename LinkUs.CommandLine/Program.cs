@@ -7,6 +7,8 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using Fclp;
 using LinkUs.Core;
+using LinkUs.Core.Connection;
+using LinkUs.Core.Json;
 
 namespace LinkUs.CommandLine
 {

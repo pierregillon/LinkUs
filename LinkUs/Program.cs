@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using LinkUs.Core;
+using LinkUs.Core.Connection;
 
 namespace LinkUs
 {

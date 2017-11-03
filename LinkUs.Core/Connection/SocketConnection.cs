@@ -1,10 +1,9 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 
-namespace LinkUs.Core
+namespace LinkUs.Core.Connection
 {
     public class SocketConnection : IConnection
     {

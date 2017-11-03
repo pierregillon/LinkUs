@@ -3,6 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using LinkUs.Core;
+using LinkUs.Core.Connection;
+using LinkUs.Core.Json;
+using LinkUs.Core.Shell;
 
 namespace LinkUs.Client
 {

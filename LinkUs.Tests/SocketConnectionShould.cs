@@ -2,6 +2,7 @@
 using System.Net;
 using System.Threading;
 using LinkUs.Core;
+using LinkUs.Core.Connection;
 using NFluent;
 using Xunit;
 

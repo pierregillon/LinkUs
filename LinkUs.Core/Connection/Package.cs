@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace LinkUs.Core
+namespace LinkUs.Core.Connection
 {
     public class Package
     {

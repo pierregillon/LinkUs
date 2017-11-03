@@ -6,6 +6,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using LinkUs.Core;
+using LinkUs.Core.Connection;
+using LinkUs.Core.Json;
+using LinkUs.Core.Shell;
 
 namespace LinkUs.Client
 {

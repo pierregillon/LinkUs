@@ -46,21 +46,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClientId.cs" />
+    <Compile Include="Connection\ClientId.cs" />
     <Compile Include="Command.cs" />
-    <Compile Include="ExecuteShellCommand.cs" />
-    <Compile Include="IConnection.cs" />
-    <Compile Include="IConnectionListener.cs" />
-    <Compile Include="ISerializer.cs" />
-    <Compile Include="JsonSerializer.cs" />
+    <Compile Include="Shell\ExecuteShellCommand.cs" />
+    <Compile Include="Connection\IConnection.cs" />
+    <Compile Include="Connection\IConnectionListener.cs" />
+    <Compile Include="Json\ISerializer.cs" />
+    <Compile Include="Json\JsonSerializer.cs" />
     <Compile Include="Json\Parser.cs" />
-    <Compile Include="Metadata.cs" />
-    <Compile Include="Package.cs" />
-    <Compile Include="PackageTransmitter.cs" />
+    <Compile Include="Shell\KillShellCommand.cs" />
+    <Compile Include="Connection\Metadata.cs" />
+    <Compile Include="Connection\Package.cs" />
+    <Compile Include="Connection\PackageTransmitter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SocketConnection.cs" />
-    <Compile Include="SocketConnectionListener.cs" />
-    <Compile Include="TransactionId.cs" />
+    <Compile Include="Shell\SendInputToShellCommand.cs" />
+    <Compile Include="Shell\ShellEndedResponse.cs" />
+    <Compile Include="Shell\ShellOuputReceivedResponse.cs" />
+    <Compile Include="Shell\ShellStartedResponse.cs" />
+    <Compile Include="Connection\SocketConnection.cs" />
+    <Compile Include="Connection\SocketConnectionListener.cs" />
+    <Compile Include="Connection\TransactionId.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

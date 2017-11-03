@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
-namespace LinkUs.Core
+namespace LinkUs.Core.Connection
 {
     public class SocketConnectionListener : IConnectionListener<SocketConnection>
     {

@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using LinkUs.Core;
+using LinkUs.Core.Connection;
+using LinkUs.Core.Json;
 
 namespace LinkUs.CommandLine
 {

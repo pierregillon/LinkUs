@@ -1,6 +1,6 @@
 using System;
 
-namespace LinkUs.Core
+namespace LinkUs.Core.Connection
 {
     public interface IConnectionListener<out TConnection> where TConnection : IConnection
     {
