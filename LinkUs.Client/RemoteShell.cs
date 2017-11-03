@@ -19,13 +19,13 @@ namespace LinkUs.Client
         private readonly JsonSerializer _jsonSerializer = new JsonSerializer();
 
         // ----- Constructor
-        public RemoteShell(PackageTransmitter packageTransmitter, Package package, StartShellCommand startRemoteCommand)
+        public RemoteShell(PackageTransmitter packageTransmitter, Package package, StartShell startRemote)
         {
             _packageTransmitter = packageTransmitter;
             _package = package;
             _shellProcess = NewCmdProcess();
-            if (startRemoteCommand.CommandLine != "cmd") {
-                _shellProcess.StartInfo.Arguments = $"/C {startRemoteCommand.CommandLine} " + string.Join(" ", startRemoteCommand.Arguments);
+            if (startRemote.CommandLine != "cmd") {
+                _shellProcess.StartInfo.Arguments = $"/C {startRemote.CommandLine} " + string.Join(" ", startRemote.Arguments);
             }
             _shellProcess.ErrorDataReceived += ShellProcessOnErrorDataReceived;
         }

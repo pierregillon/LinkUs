@@ -74,7 +74,7 @@ namespace LinkUs.CommandLine
             Console.Write("Command to execute on remote client > ");
             var commandInput = Console.ReadLine();
             var command = BuildStartShellCommand(commandInput);
-            var response = _commandDispatcher.ExecuteAsync<StartShellCommand, ShellStarted>(command, _target).Result;
+            var response = _commandDispatcher.ExecuteAsync<StartShell, ShellStarted>(command, _target).Result;
             Console.WriteLine($"Shell started on remote host {_target}, pid: {response.ProcessId}.");
             return response.ProcessId;
         }
@@ -91,18 +91,18 @@ namespace LinkUs.CommandLine
         private void ProcessInput(string input)
         {
             if (input == "kill" + Environment.NewLine) {
-                SendObject(new KillShellCommand(_processId));
+                SendObject(new KillShell(_processId));
             }
             else {
                 Console.SetCursorPosition(_lastCursorPosition.Left, _lastCursorPosition.Top);
-                SendObject(new SendInputToShellCommand(input, _processId));
+                SendObject(new SendInputToShell(input, _processId));
             }
         }
-        private static StartShellCommand BuildStartShellCommand(string commandInput)
+        private static StartShell BuildStartShellCommand(string commandInput)
         {
             var arguments = commandInput.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
             var commandLine = arguments.First();
-            return new StartShellCommand {
+            return new StartShell {
                 CommandLine = commandLine,
                 Arguments = arguments.Skip(1).OfType<object>().ToList()
             };

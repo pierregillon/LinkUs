@@ -66,8 +66,8 @@ namespace LinkUs.Client
             Console.WriteLine(package);
 
             var command = Serializer.Deserialize<MessageDescriptor>(package.Content);
-            if (command.Name == typeof(StartShellCommand).Name) {
-                var executeRemoteCommand = Serializer.Deserialize<StartShellCommand>(package.Content);
+            if (command.Name == typeof(StartShell).Name) {
+                var executeRemoteCommand = Serializer.Deserialize<StartShell>(package.Content);
                 var remoteShell = new RemoteShell(transmitter, package, executeRemoteCommand);
                 var processId = remoteShell.Start();
                 remoteShell.ReadOutputAsync();
@@ -77,8 +77,8 @@ namespace LinkUs.Client
                 var packageResponse = package.CreateResponsePackage(Serializer.Serialize("ok"));
                 transmitter.Send(packageResponse);
             }
-            else if (command.Name == typeof(SendInputToShellCommand).Name) {
-                var sendInputToShellCommand = Serializer.Deserialize<SendInputToShellCommand>(package.Content);
+            else if (command.Name == typeof(SendInputToShell).Name) {
+                var sendInputToShellCommand = Serializer.Deserialize<SendInputToShell>(package.Content);
                 RemoteShell remoteShell;
                 if (_remoteShells.TryGetValue(sendInputToShellCommand.ProcessId, out remoteShell)) {
                     remoteShell.Write(sendInputToShellCommand.Input);
@@ -87,8 +87,8 @@ namespace LinkUs.Client
                     throw new Exception("Unable to find the remote shell");
                 }
             }
-            else if (command.Name == typeof(KillShellCommand).Name) {
-                var killCommand = Serializer.Deserialize<KillShellCommand>(package.Content);
+            else if (command.Name == typeof(KillShell).Name) {
+                var killCommand = Serializer.Deserialize<KillShell>(package.Content);
                 RemoteShell remoteShell;
                 if (_remoteShells.TryGetValue(killCommand.ProcessId, out remoteShell)) {
                     remoteShell.Kill();
