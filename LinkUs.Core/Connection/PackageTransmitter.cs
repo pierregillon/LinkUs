@@ -13,7 +13,7 @@ namespace LinkUs.Core.Connection
         {
             _connection = connection;
             _connection.DataReceived += ConnectionOnDataReceived;
-            _connection.Closed += () => Closed?.Invoke(this, EventArgs.Empty);
+            _connection.Closed += ConnectionOnClosed;
         }
 
         // ----- Public methods
@@ -25,6 +25,8 @@ namespace LinkUs.Core.Connection
         public void Close()
         {
             _connection.Close();
+            _connection.DataReceived -= ConnectionOnDataReceived;
+            _connection.Closed -= ConnectionOnClosed;
         }
 
         // ----- Event callbacks
@@ -32,6 +34,10 @@ namespace LinkUs.Core.Connection
         {
             var package = Package.Parse(bytes);
             PackageReceived?.Invoke(this, package);
+        }
+        private void ConnectionOnClosed()
+        {
+            Closed?.Invoke(this, EventArgs.Empty);
         }
     }
 }

@@ -1,6 +1,4 @@
-using LinkUs.Core;
-
-namespace LinkUs.CommandLine
+namespace LinkUs.Core
 {
     public class ListRemoteClients : Message { }
 }

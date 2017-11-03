@@ -82,7 +82,7 @@ namespace LinkUs.CommandLine
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
                 var pingCommand = new Ping();
-                commandDispatcher.ExecuteAsync<Ping, string>(pingCommand, targetId).Wait();
+                commandDispatcher.ExecuteAsync<Ping, PingOk>(pingCommand, targetId).Wait();
                 stopWatch.Stop();
                 return $"Ok. {stopWatch.ElapsedMilliseconds} ms.";
             }

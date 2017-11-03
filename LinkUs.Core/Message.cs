@@ -1,3 +1,5 @@
+using LinkUs.Core.Connection;
+
 namespace LinkUs.Core
 {
     public class Message

@@ -7,7 +7,7 @@ namespace LinkUs.Core.Connection
     {
         private static readonly UTF8Encoding Encoding = new UTF8Encoding();
 
-        public TransactionId TransactionId { get; private set; } = TransactionId.New();
+        public TransactionId TransactionId { get; set; } = TransactionId.New();
         public ClientId Source { get; private set; }
         public ClientId Destination { get; }
         public byte[] Content { get; }

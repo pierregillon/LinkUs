@@ -47,10 +47,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Connection\ClientId.cs" />
+    <Compile Include="ErrorMessage.cs" />
     <Compile Include="ListRemoteClients.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageDescriptor.cs" />
+    <Compile Include="MessageTransmitter.cs" />
     <Compile Include="Ping.cs" />
+    <Compile Include="PingOk.cs" />
     <Compile Include="Shell\Commands\StartShell.cs" />
     <Compile Include="Connection\IConnection.cs" />
     <Compile Include="Connection\IConnectionListener.cs" />

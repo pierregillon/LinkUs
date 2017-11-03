@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
 using LinkUs.Core.Shell.Commands;
+using LinkUs.Core.Shell.Events;
 
 namespace LinkUs.Client
 {
     class Program
     {
-        private static readonly UTF8Encoding Encoding = new UTF8Encoding();
         private static readonly ManualResetEvent ManualResetEvent = new ManualResetEvent(false);
-        private static readonly ISerializer Serializer = new JsonSerializer();
-        private static readonly IDictionary<double, RemoteShell> _remoteShells = new Dictionary<double, RemoteShell>();
+        private static readonly IDictionary<double, RemoteShell> _activeRemoteShells = new Dictionary<double, RemoteShell>();
 
         static void Main(string[] args)
         {
@@ -24,14 +22,15 @@ namespace LinkUs.Client
                 var connection = new SocketConnection();
                 if (TryConnectSocketToHost(connection)) {
                     try {
-                        var packageTransmitter = new PackageTransmitter(connection);
-                        packageTransmitter.PackageReceived += (sender, package) => {
-                            ProcessCommand(packageTransmitter, package);
+                        var messageTransmitter = new MessageTransmitter(new PackageTransmitter(connection), new JsonSerializer());
+                        messageTransmitter.MessageReceived += envelop => {
+                            ProcessCommand(messageTransmitter, envelop);
                         };
-                        packageTransmitter.Closed += (sender, eventArgs) => {
+                        messageTransmitter.Closed += () => {
                             ManualResetEvent.Set();
                         };
                         ManualResetEvent.WaitOne();
+                        messageTransmitter.Close();
                         Thread.Sleep(1000);
                     }
                     catch (Exception ex) {
@@ -61,46 +60,47 @@ namespace LinkUs.Client
             }
         }
 
-        private static void ProcessCommand(PackageTransmitter transmitter, Package package)
+        private static void ProcessCommand(MessageTransmitter transmitter, Envelop envelop)
         {
-            Console.WriteLine(package);
+            Console.WriteLine(envelop.Message.Name);
 
-            var command = Serializer.Deserialize<MessageDescriptor>(package.Content);
-            if (command.Name == typeof(StartShell).Name) {
-                var executeRemoteCommand = Serializer.Deserialize<StartShell>(package.Content);
-                var remoteShell = new RemoteShell(transmitter, package, executeRemoteCommand);
-                var processId = remoteShell.Start();
+            if (envelop.Message is StartShell) {
+                var command = (StartShell) envelop.Message;
+                var remoteShell = new RemoteShell(transmitter, envelop.Sender);
+                var processId = remoteShell.Start(command);
                 remoteShell.ReadOutputAsync();
-                _remoteShells.Add(processId, remoteShell);
+                var returnEnvelop = envelop.CreateReturn(new ShellStarted {ProcessId = processId});
+                transmitter.Send(returnEnvelop);
+                _activeRemoteShells.Add(processId, remoteShell);
             }
-            else if (command.Name == typeof(Ping).Name) {
-                var packageResponse = package.CreateResponsePackage(Serializer.Serialize("ok"));
-                transmitter.Send(packageResponse);
+            else if (envelop.Message is Ping) {
+                var returnEnvelop = envelop.CreateReturn(new PingOk("ok"));
+                transmitter.Send(returnEnvelop);
             }
-            else if (command.Name == typeof(SendInputToShell).Name) {
-                var sendInputToShellCommand = Serializer.Deserialize<SendInputToShell>(package.Content);
+            else if (envelop.Message is SendInputToShell) {
+                var sendInputToShellCommand = (SendInputToShell) envelop.Message;
                 RemoteShell remoteShell;
-                if (_remoteShells.TryGetValue(sendInputToShellCommand.ProcessId, out remoteShell)) {
+                if (_activeRemoteShells.TryGetValue(sendInputToShellCommand.ProcessId, out remoteShell)) {
                     remoteShell.Write(sendInputToShellCommand.Input);
                 }
                 else {
                     throw new Exception("Unable to find the remote shell");
                 }
             }
-            else if (command.Name == typeof(KillShell).Name) {
-                var killCommand = Serializer.Deserialize<KillShell>(package.Content);
+            else if (envelop.Message is KillShell) {
+                var killCommand = (KillShell) envelop.Message;
                 RemoteShell remoteShell;
-                if (_remoteShells.TryGetValue(killCommand.ProcessId, out remoteShell)) {
+                if (_activeRemoteShells.TryGetValue(killCommand.ProcessId, out remoteShell)) {
                     remoteShell.Kill();
-                    _remoteShells.Remove(killCommand.ProcessId);
+                    _activeRemoteShells.Remove(killCommand.ProcessId);
                 }
                 else {
                     throw new Exception("Unable to find the remote shell");
                 }
             }
             else {
-                var packageResponse = package.CreateResponsePackage(Serializer.Serialize("unknown command"));
-                transmitter.Send(packageResponse);
+                var returnEnvelop = envelop.CreateReturn(new ErrorMessage($"Unknown message : {envelop.Message.Name}"));
+                transmitter.Send(returnEnvelop);
             }
         }
     }

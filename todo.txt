@@ -1,4 +1,5 @@
 * send data with fixed size buffer
 * module manager
-* lock on queue for SocketConnection
+* lock on queue for SocketConnection => "exit" on remote shell
 * introduce concept for sending package with command or event.
+* introduct materialiser to instanciate class from json and eventually throw exception (ErrorMessage, ExceptionMessage)

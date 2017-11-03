@@ -4,8 +4,6 @@ using System.IO;
 using System.Threading.Tasks;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
-using LinkUs.Core.Json;
-using LinkUs.Core.Shell;
 using LinkUs.Core.Shell.Commands;
 using LinkUs.Core.Shell.Events;
 
@@ -13,33 +11,29 @@ namespace LinkUs.Client
 {
     public class RemoteShell
     {
-        private readonly PackageTransmitter _packageTransmitter;
-        private readonly Package _package;
+        private readonly MessageTransmitter _transmitter;
+        private readonly ClientId _destination;
         private readonly Process _shellProcess;
-        private readonly JsonSerializer _jsonSerializer = new JsonSerializer();
 
         // ----- Constructor
-        public RemoteShell(PackageTransmitter packageTransmitter, Package package, StartShell startRemote)
+        public RemoteShell(MessageTransmitter transmitter, ClientId destination)
         {
-            _packageTransmitter = packageTransmitter;
-            _package = package;
+            _transmitter = transmitter;
+            _destination = destination;
             _shellProcess = NewCmdProcess();
+        }
+
+        // ----- Public methods
+        public int Start(StartShell startRemote)
+        {
             if (startRemote.CommandLine != "cmd") {
                 _shellProcess.StartInfo.Arguments = $"/C {startRemote.CommandLine} " + string.Join(" ", startRemote.Arguments);
             }
             _shellProcess.ErrorDataReceived += ShellProcessOnErrorDataReceived;
-        }
-
-        // ----- Public methods
-        public int Start()
-        {
             if (_shellProcess.Start() == false) {
                 throw new Exception("Unable to start the shell process.");
             }
             _shellProcess.BeginErrorReadLine();
-
-            SendResponse(new ShellStarted {ProcessId = _shellProcess.Id});
-
             return _shellProcess.Id;
         }
         public Task ReadOutputAsync()
@@ -50,10 +44,11 @@ namespace LinkUs.Client
                     var bytesReadCount = _shellProcess.StandardOutput.Read(buffer, 0, buffer.Length);
                     if (bytesReadCount > 0) {
                         var textToSend = new string(buffer, 0, bytesReadCount);
-                        SendEvent(new ShellOutputReceived(textToSend, _shellProcess.Id));
+                        var message = new ShellOutputReceived(textToSend, _shellProcess.Id);
+                        Send(message);
                     }
                 }
-                SendEvent(new ShellEnded(_shellProcess.ExitCode, _shellProcess.Id));
+                Send(new ShellEnded(_shellProcess.ExitCode, _shellProcess.Id));
             });
         }
         public void Kill()
@@ -66,25 +61,20 @@ namespace LinkUs.Client
             _shellProcess.StandardInput.Write(input);
         }
 
-        // ----- Callbacks
-        private void ShellProcessOnErrorDataReceived(object o, DataReceivedEventArgs dataReceivedEventArgs)
+        // ----- Internal logic
+        private void Send(Message message)
         {
-            SendEvent(new ShellOutputReceived(dataReceivedEventArgs.Data, _shellProcess.Id));
+            var envelop = new Envelop(message, _destination);
+            _transmitter.Send(envelop);
+        }
+
+        // ----- Callbacks
+        private void ShellProcessOnErrorDataReceived(object o, DataReceivedEventArgs args)
+        {
+            Send(new ShellOutputReceived(args.Data, _shellProcess.Id));
         }
 
         // ----- Utils
-        private void SendEvent(object response)
-        {
-            var content = _jsonSerializer.Serialize(response);
-            var responsePackage = new Package(_package.Destination, _package.Source, content);
-            _packageTransmitter.Send(responsePackage);
-        }
-        private void SendResponse(object message)
-        {
-            var content = _jsonSerializer.Serialize(message);
-            var responsePackage = _package.CreateResponsePackage(content);
-            _packageTransmitter.Send(responsePackage);
-        }
         private static Process NewCmdProcess()
         {
             return new Process {
