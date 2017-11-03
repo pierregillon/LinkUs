@@ -3,3 +3,4 @@
 * lock on queue for SocketConnection => "exit" on remote shell
 * introduce concept for sending package with command or event.
 * introduct materialiser to instanciate class from json and eventually throw exception (ErrorMessage, ExceptionMessage)
+* download / upload
