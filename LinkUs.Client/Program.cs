@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using LinkUs.Core;
@@ -14,6 +15,7 @@ namespace LinkUs.Client
     {
         private static readonly ManualResetEvent ManualResetEvent = new ManualResetEvent(false);
         private static readonly IDictionary<double, RemoteShell> _activeRemoteShells = new Dictionary<double, RemoteShell>();
+        private static readonly ISerializer _serializer = new JsonSerializer();
 
         static void Main(string[] args)
         {
@@ -22,15 +24,15 @@ namespace LinkUs.Client
                 var connection = new SocketConnection();
                 if (TryConnectSocketToHost(connection)) {
                     try {
-                        var messageTransmitter = new MessageTransmitter(new PackageTransmitter(connection), new JsonSerializer());
-                        messageTransmitter.MessageReceived += envelop => {
-                            ProcessCommand(messageTransmitter, envelop);
+                        var packageTransmitter = new PackageTransmitter(connection);
+                        packageTransmitter.PackageReceived += (sender, package) => {
+                            ProcessCommand(packageTransmitter, package);
                         };
-                        messageTransmitter.Closed += () => {
+                        packageTransmitter.Closed += (sender, eventArgs) => {
                             ManualResetEvent.Set();
                         };
                         ManualResetEvent.WaitOne();
-                        messageTransmitter.Close();
+                        packageTransmitter.Close();
                         Thread.Sleep(1000);
                     }
                     catch (Exception ex) {
@@ -60,25 +62,32 @@ namespace LinkUs.Client
             }
         }
 
-        private static void ProcessCommand(MessageTransmitter transmitter, Envelop envelop)
+        private static void ProcessCommand(PackageTransmitter transmitter, Package package)
         {
-            Console.WriteLine(envelop.Message.Name);
+            Console.WriteLine(package);
 
-            if (envelop.Message is StartShell) {
-                var command = (StartShell) envelop.Message;
-                var remoteShell = new RemoteShell(transmitter, envelop.Sender);
+            var types = typeof(Message).Assembly.GetTypes().Where(x => x.IsSubclassOf(typeof(Message)));
+            var message = _serializer.Deserialize<MessageDescriptor>(package.Content);
+            var messageType = types.Single(x => x.Name == message.Name);
+            var messageInstance = (Message) _serializer.Deserialize(package.Content, messageType);
+
+            if (messageInstance is StartShell) {
+                var command = (StartShell) messageInstance;
+                var remoteShell = new RemoteShell(transmitter, package.Source, new JsonSerializer());
                 var processId = remoteShell.Start(command);
                 remoteShell.ReadOutputAsync();
-                var returnEnvelop = envelop.CreateReturn(new ShellStarted {ProcessId = processId});
-                transmitter.Send(returnEnvelop);
+                var bytes = _serializer.Serialize(new ShellStarted {ProcessId = processId});
+                var response = package.CreateResponsePackage(bytes);
+                transmitter.Send(response);
                 _activeRemoteShells.Add(processId, remoteShell);
             }
-            else if (envelop.Message is Ping) {
-                var returnEnvelop = envelop.CreateReturn(new PingOk("ok"));
-                transmitter.Send(returnEnvelop);
+            else if (messageInstance is Ping) {
+                var bytes = _serializer.Serialize(new PingOk("ok"));
+                var response = package.CreateResponsePackage(bytes);
+                transmitter.Send(response);
             }
-            else if (envelop.Message is SendInputToShell) {
-                var sendInputToShellCommand = (SendInputToShell) envelop.Message;
+            else if (messageInstance is SendInputToShell) {
+                var sendInputToShellCommand = (SendInputToShell) messageInstance;
                 RemoteShell remoteShell;
                 if (_activeRemoteShells.TryGetValue(sendInputToShellCommand.ProcessId, out remoteShell)) {
                     remoteShell.Write(sendInputToShellCommand.Input);
@@ -87,8 +96,8 @@ namespace LinkUs.Client
                     throw new Exception("Unable to find the remote shell");
                 }
             }
-            else if (envelop.Message is KillShell) {
-                var killCommand = (KillShell) envelop.Message;
+            else if (messageInstance is KillShell) {
+                var killCommand = (KillShell) messageInstance;
                 RemoteShell remoteShell;
                 if (_activeRemoteShells.TryGetValue(killCommand.ProcessId, out remoteShell)) {
                     remoteShell.Kill();
@@ -99,8 +108,9 @@ namespace LinkUs.Client
                 }
             }
             else {
-                var returnEnvelop = envelop.CreateReturn(new ErrorMessage($"Unknown message : {envelop.Message.Name}"));
-                transmitter.Send(returnEnvelop);
+                var bytes = _serializer.Serialize(new ErrorMessage($"Unknown message : {messageInstance.Name}"));
+                var response = package.CreateResponsePackage(bytes);
+                transmitter.Send(response);
             }
         }
     }

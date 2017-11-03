@@ -1,9 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Remoting;
 using System.Threading.Tasks;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
+using LinkUs.Core.Json;
 using LinkUs.Core.Shell.Commands;
 using LinkUs.Core.Shell.Events;
 
@@ -11,15 +13,17 @@ namespace LinkUs.Client
 {
     public class RemoteShell
     {
-        private readonly MessageTransmitter _transmitter;
+        private readonly PackageTransmitter _transmitter;
         private readonly ClientId _destination;
+        private readonly ISerializer _serializer;
         private readonly Process _shellProcess;
 
         // ----- Constructor
-        public RemoteShell(MessageTransmitter transmitter, ClientId destination)
+        public RemoteShell(PackageTransmitter transmitter, ClientId destination, ISerializer serializer)
         {
             _transmitter = transmitter;
             _destination = destination;
+            _serializer = serializer;
             _shellProcess = NewCmdProcess();
         }
 
@@ -64,14 +68,18 @@ namespace LinkUs.Client
         // ----- Internal logic
         private void Send(Message message)
         {
-            var envelop = new Envelop(message, _destination);
-            _transmitter.Send(envelop);
+            var bytes = _serializer.Serialize(message);
+            var response = new Package(ClientId.Unknown, _destination, bytes);
+            _transmitter.Send(response);
         }
 
         // ----- Callbacks
         private void ShellProcessOnErrorDataReceived(object o, DataReceivedEventArgs args)
         {
-            Send(new ShellOutputReceived(args.Data, _shellProcess.Id));
+            var message = new ShellOutputReceived(args.Data, _shellProcess.Id);
+            var bytes = _serializer.Serialize(message);
+            var response = new Package(ClientId.Unknown, _destination, bytes);
+            _transmitter.Send(response);
         }
 
         // ----- Utils
