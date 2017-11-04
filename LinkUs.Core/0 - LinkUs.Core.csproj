@@ -53,6 +53,7 @@
     <Compile Include="ListRemoteClients.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageDescriptor.cs" />
+    <Compile Include="MessageHandlerLocator.cs" />
     <Compile Include="MessageTransmitter.cs" />
     <Compile Include="Ping.cs" />
     <Compile Include="PingHandler.cs" />

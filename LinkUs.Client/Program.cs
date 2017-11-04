@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Threading;
+using LinkUs.Core;
 using LinkUs.Core.Connection;
+using LinkUs.Core.Json;
 
 namespace LinkUs.Client
 {
@@ -49,7 +51,7 @@ namespace LinkUs.Client
         private static void ListenCommandsFromConnection(IConnection connection)
         {
             var packageTransmitter = new PackageTransmitter(connection);
-            var packageProcessor = new PackageProcessor(packageTransmitter, new HandlerLocator());
+            var packageProcessor = new PackageProcessor(packageTransmitter, new MessageHandlerLocator(), new JsonSerializer());
             packageTransmitter.PackageReceived += (sender, package) => {
                 Console.WriteLine(package);
                 packageProcessor.Process(package);

@@ -9,14 +9,15 @@ namespace LinkUs.Client
     public class PackageProcessor
     {
         private readonly PackageTransmitter _transmitter;
-        private readonly HandlerLocator _handlerLocator;
-        private readonly ISerializer _serializer = new JsonSerializer();
+        private readonly MessageHandlerLocator _messageHandlerLocator;
+        private readonly ISerializer _serializer;
 
         // ----- Constructors
-        public PackageProcessor(PackageTransmitter transmitter, HandlerLocator handlerLocator)
+        public PackageProcessor(PackageTransmitter transmitter, MessageHandlerLocator messageHandlerLocator, ISerializer serializer)
         {
             _transmitter = transmitter;
-            _handlerLocator = handlerLocator;
+            _messageHandlerLocator = messageHandlerLocator;
+            _serializer = serializer;
         }
 
         // ----- Public methods
@@ -24,7 +25,7 @@ namespace LinkUs.Client
         {
             try {
                 var messageName = GetMessageName(package);
-                var response = ExecuteCommand(_transmitter, messageName, package);
+                var response = ExecuteCommand(messageName, package);
                 if (response != null) {
                     Answer(package, response);
                 }
@@ -33,23 +34,35 @@ namespace LinkUs.Client
                 Answer(package, new ErrorMessage(ex.ToString()));
             }
         }
-        private object ExecuteCommand(PackageTransmitter transmitter, string messageName, Package package)
+
+        // ----- Internal logics
+        private object ExecuteCommand(string messageName, Package package)
         {
-            var messageType = _handlerLocator.GetMessageType(messageName);
-            if (messageType == null) {
-                throw new Exception($"Unknown message : {messageName}");
-            }
+            var messageType = _messageHandlerLocator.GetMessageType(messageName);
             var messageInstance = (Message) _serializer.Deserialize(package.Content, messageType);
-            var handlerType = _handlerLocator.GetHandlerType(messageType);
-            var handlerConstructor = handlerType.GetConstructors().First();
+            var handlerType = _messageHandlerLocator.GetHandlerType(messageType);
+            var handlerInstance = CreateHandlerInstance(package, handlerType);
+            return Handle(handlerInstance, messageType, messageInstance);
+        }
+        private object CreateHandlerInstance(Package package, Type handlerType)
+        {
             object handlerInstance;
+            var handlerConstructor = handlerType.GetConstructors().First();
             if (handlerConstructor.GetParameters()[0].ParameterType == typeof(IMessageTransmitter)) {
-                handlerInstance = Activator.CreateInstance(handlerType, new DedicatedMessageTransmitter(transmitter, package.Source, _serializer));
+                handlerInstance = Activator.CreateInstance(handlerType, new DedicatedMessageTransmitter(_transmitter, package.Source, _serializer));
             }
             else {
                 handlerInstance = Activator.CreateInstance(handlerType);
             }
-            var handle = handlerInstance.GetType().GetMethods().Single(x=>x.Name == "Handle" && x.GetParameters()[0].ParameterType == messageType);
+            return handlerInstance;
+        }
+        private static object Handle(object handlerInstance, Type messageType, Message messageInstance)
+        {
+            var handle = handlerInstance
+                .GetType()
+                .GetMethods()
+                .SingleOrDefault(x => x.Name == "Handle" && x.GetParameters()[0].ParameterType == messageType);
+
             if (handle == null) {
                 throw new Exception("Unable to find the handle method.");
             }
@@ -57,7 +70,7 @@ namespace LinkUs.Client
                 return handle.Invoke(handlerInstance, new object[] {messageInstance});
             }
             else {
-                handle.Invoke(handlerInstance, new object[] { messageInstance });
+                handle.Invoke(handlerInstance, new object[] {messageInstance});
                 return null;
             }
         }
@@ -72,41 +85,6 @@ namespace LinkUs.Client
             var bytes = _serializer.Serialize(response);
             var responsePackage = package.CreateResponsePackage(bytes);
             _transmitter.Send(responsePackage);
-        }
-    }
-
-    public class HandlerLocator
-    {
-        private readonly Type[] _handlerTypes;
-        private readonly Type[] _types;
-
-        public HandlerLocator()
-        {
-            _handlerTypes = typeof(Message)
-                .Assembly
-                .GetTypes()
-                .Where(x => x
-                    .GetInterfaces()
-                    .Any(interf => interf.IsGenericType &&
-                               (interf.GetGenericTypeDefinition() == typeof(IHandler<,>) || interf.GetGenericTypeDefinition() == typeof(IHandler<>))))
-                .ToArray();
-
-            _types = typeof(Message)
-                .Assembly
-                .GetTypes()
-                .Where(x => x.IsSubclassOf(typeof(Message)))
-                .ToArray();
-        }
-
-        public Type GetHandlerType(Type command)
-        {
-            return _handlerTypes.SingleOrDefault(x => x
-                .GetInterfaces()
-                .Any(interf => interf.GenericTypeArguments[0] == command));
-        }
-        public Type GetMessageType(string messageName)
-        {
-            return _types.Single(x => x.Name == messageName);
         }
     }
 }
