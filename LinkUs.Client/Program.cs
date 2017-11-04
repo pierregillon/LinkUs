@@ -49,8 +49,9 @@ namespace LinkUs.Client
         private static void ListenCommandsFromConnection(IConnection connection)
         {
             var packageTransmitter = new PackageTransmitter(connection);
-            var packageProcessor = new PackageProcessor(packageTransmitter);
+            var packageProcessor = new PackageProcessor(packageTransmitter, new HandlerLocator());
             packageTransmitter.PackageReceived += (sender, package) => {
+                Console.WriteLine(package);
                 packageProcessor.Process(package);
             };
             packageTransmitter.Closed += (sender, eventArgs) => {

@@ -1,30 +1,22 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.Remoting;
 using System.Threading.Tasks;
-using LinkUs.Core;
-using LinkUs.Core.Connection;
-using LinkUs.Core.Json;
 using LinkUs.Core.Shell.Commands;
 using LinkUs.Core.Shell.Events;
 
-namespace LinkUs.Client
+namespace LinkUs.Core.Shell
 {
     public class RemoteShell
     {
-        private readonly PackageTransmitter _transmitter;
-        private readonly ClientId _destination;
-        private readonly ISerializer _serializer;
+        private readonly IMessageTransmitter _messageTransmitter;
         private readonly Process _shellProcess;
 
         // ----- Constructor
-        public RemoteShell(PackageTransmitter transmitter, ClientId destination, ISerializer serializer)
+        public RemoteShell(IMessageTransmitter messageTransmitter)
         {
-            _transmitter = transmitter;
-            _destination = destination;
-            _serializer = serializer;
             _shellProcess = NewCmdProcess();
+            _messageTransmitter = messageTransmitter;
         }
 
         // ----- Public methods
@@ -49,10 +41,10 @@ namespace LinkUs.Client
                     if (bytesReadCount > 0) {
                         var textToSend = new string(buffer, 0, bytesReadCount);
                         var message = new ShellOutputReceived(textToSend, _shellProcess.Id);
-                        Send(message);
+                        _messageTransmitter.Send(message);
                     }
                 }
-                Send(new ShellEnded(_shellProcess.ExitCode, _shellProcess.Id));
+                _messageTransmitter.Send(new ShellEnded(_shellProcess.ExitCode, _shellProcess.Id));
             });
         }
         public void Kill()
@@ -65,21 +57,10 @@ namespace LinkUs.Client
             _shellProcess.StandardInput.Write(input);
         }
 
-        // ----- Internal logic
-        private void Send(Message message)
-        {
-            var bytes = _serializer.Serialize(message);
-            var response = new Package(ClientId.Unknown, _destination, bytes);
-            _transmitter.Send(response);
-        }
-
         // ----- Callbacks
         private void ShellProcessOnErrorDataReceived(object o, DataReceivedEventArgs args)
         {
-            var message = new ShellOutputReceived(args.Data, _shellProcess.Id);
-            var bytes = _serializer.Serialize(message);
-            var response = new Package(ClientId.Unknown, _destination, bytes);
-            _transmitter.Send(response);
+            _messageTransmitter.Send(new ShellOutputReceived(args.Data, _shellProcess.Id));
         }
 
         // ----- Utils
