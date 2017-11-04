@@ -49,15 +49,15 @@
     <Compile Include="Connection\ClientId.cs" />
     <Compile Include="ErrorMessage.cs" />
     <Compile Include="IHandler.cs" />
-    <Compile Include="IMessageTransmitter.cs" />
+    <Compile Include="IBus.cs" />
     <Compile Include="ListRemoteClients.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageDescriptor.cs" />
     <Compile Include="MessageHandlerLocator.cs" />
     <Compile Include="MessageTransmitter.cs" />
-    <Compile Include="Ping.cs" />
-    <Compile Include="PingHandler.cs" />
-    <Compile Include="PingOk.cs" />
+    <Compile Include="PingLib\Ping.cs" />
+    <Compile Include="PingLib\PingHandler.cs" />
+    <Compile Include="PingLib\PingOk.cs" />
     <Compile Include="Shell\Commands\StartShell.cs" />
     <Compile Include="Connection\IConnection.cs" />
     <Compile Include="Connection\IConnectionListener.cs" />
@@ -76,8 +76,8 @@
     <Compile Include="Connection\SocketConnection.cs" />
     <Compile Include="Connection\SocketConnectionListener.cs" />
     <Compile Include="Connection\TransactionId.cs" />
-    <Compile Include="Shell\RemoteShell.cs" />
-    <Compile Include="Shell\ShellHandler.cs" />
+    <Compile Include="Shell\ShellProcessProxy.cs" />
+    <Compile Include="Shell\ShellCommandHandler.cs" />
     <Compile Include="Shell\ShellMessage.cs" />
   </ItemGroup>
   <ItemGroup>

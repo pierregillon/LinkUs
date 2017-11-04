@@ -1,27 +1,30 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LinkUs.Core.Shell.Commands;
 using LinkUs.Core.Shell.Events;
 
 namespace LinkUs.Core.Shell
 {
-    public class ShellHandler :
+    public class ShellCommandHandler :
         IHandler<StartShell, ShellStarted>,
         IHandler<SendInputToShell>,
         IHandler<KillShell>
     {
-        private readonly IMessageTransmitter _messageTransmitter;
-        private static readonly IDictionary<double, RemoteShell> _activeRemoteShells = new Dictionary<double, RemoteShell>();
+        private readonly IBus _bus;
+        private static readonly IDictionary<double, ShellProcessProxy> _activeRemoteShells = new Dictionary<double, ShellProcessProxy>();
 
-        public ShellHandler(IMessageTransmitter messageTransmitter)
+        // ----- Constructor
+        public ShellCommandHandler(IBus bus)
         {
-            _messageTransmitter = messageTransmitter;
+            _bus = bus;
         }
 
+        // ----- Public methods
         public ShellStarted Handle(StartShell command)
         {
-            var remoteShell = new RemoteShell(_messageTransmitter);
-            var processId = remoteShell.Start(command);
+            var remoteShell = new ShellProcessProxy(_bus);
+            var processId = remoteShell.Start(command.CommandLine, command.Arguments.Cast<string>().ToArray());
             remoteShell.ReadOutputAsync();
             _activeRemoteShells.Add(processId, remoteShell);
             return new ShellStarted {ProcessId = processId};
@@ -39,13 +42,13 @@ namespace LinkUs.Core.Shell
         }
 
         // ----- Internal logics
-        private RemoteShell GetRemoteShell(double processId)
+        private static ShellProcessProxy GetRemoteShell(double processId)
         {
-            RemoteShell remoteShell;
-            if (!_activeRemoteShells.TryGetValue(processId, out remoteShell)) {
+            ShellProcessProxy shellProcessProxy;
+            if (!_activeRemoteShells.TryGetValue(processId, out shellProcessProxy)) {
                 throw new Exception("Unable to find the remote shell");
             }
-            return remoteShell;
+            return shellProcessProxy;
         }
     }
 }

@@ -48,8 +48,8 @@ namespace LinkUs.Client
         {
             object handlerInstance;
             var handlerConstructor = handlerType.GetConstructors().First();
-            if (handlerConstructor.GetParameters()[0].ParameterType == typeof(IMessageTransmitter)) {
-                handlerInstance = Activator.CreateInstance(handlerType, new DedicatedMessageTransmitter(_transmitter, package.Source, _serializer));
+            if (handlerConstructor.GetParameters()[0].ParameterType == typeof(IBus)) {
+                handlerInstance = Activator.CreateInstance(handlerType, new DedicatedBus(_transmitter, package.Source, _serializer));
             }
             else {
                 handlerInstance = Activator.CreateInstance(handlerType);

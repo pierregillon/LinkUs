@@ -1,11 +1,11 @@
 ﻿namespace LinkUs.Core.Shell
 {
-    public class ShellMessage : Message
+    public abstract class ShellMessage : Message
     {
         public double ProcessId { get; set; }
 
-        public ShellMessage() { }
-        public ShellMessage(double processId)
+        protected ShellMessage() { }
+        protected ShellMessage(double processId)
         {
             ProcessId = processId;
         }

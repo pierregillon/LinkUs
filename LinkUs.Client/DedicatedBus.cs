@@ -4,13 +4,13 @@ using LinkUs.Core.Json;
 
 namespace LinkUs.Client
 {
-    public class DedicatedMessageTransmitter : IMessageTransmitter
+    public class DedicatedBus : IBus
     {
         private readonly PackageTransmitter _transmitter;
         private readonly ClientId _target;
         private readonly ISerializer _serializer;
 
-        public DedicatedMessageTransmitter(PackageTransmitter transmitter, ClientId target, ISerializer serializer)
+        public DedicatedBus(PackageTransmitter transmitter, ClientId target, ISerializer serializer)
         {
             _transmitter = transmitter;
             _target = target;

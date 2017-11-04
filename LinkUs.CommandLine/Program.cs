@@ -5,6 +5,7 @@ using Fclp;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
+using LinkUs.Core.PingLib;
 
 namespace LinkUs.CommandLine
 {

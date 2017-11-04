@@ -2,28 +2,27 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using LinkUs.Core.Shell.Commands;
 using LinkUs.Core.Shell.Events;
 
 namespace LinkUs.Core.Shell
 {
-    public class RemoteShell
+    public class ShellProcessProxy
     {
-        private readonly IMessageTransmitter _messageTransmitter;
+        private readonly IBus _bus;
         private readonly Process _shellProcess;
 
         // ----- Constructor
-        public RemoteShell(IMessageTransmitter messageTransmitter)
+        public ShellProcessProxy(IBus bus)
         {
             _shellProcess = NewCmdProcess();
-            _messageTransmitter = messageTransmitter;
+            _bus = bus;
         }
 
         // ----- Public methods
-        public int Start(StartShell startRemote)
+        public int Start(string commandLine, string[] arguments)
         {
-            if (startRemote.CommandLine != "cmd") {
-                _shellProcess.StartInfo.Arguments = $"/C {startRemote.CommandLine} " + string.Join(" ", startRemote.Arguments);
+            if (commandLine != "cmd") {
+                _shellProcess.StartInfo.Arguments = $"/C {commandLine} " + string.Join(" ", arguments);
             }
             _shellProcess.ErrorDataReceived += ShellProcessOnErrorDataReceived;
             if (_shellProcess.Start() == false) {
@@ -41,10 +40,10 @@ namespace LinkUs.Core.Shell
                     if (bytesReadCount > 0) {
                         var textToSend = new string(buffer, 0, bytesReadCount);
                         var message = new ShellOutputReceived(textToSend, _shellProcess.Id);
-                        _messageTransmitter.Send(message);
+                        _bus.Send(message);
                     }
                 }
-                _messageTransmitter.Send(new ShellEnded(_shellProcess.ExitCode, _shellProcess.Id));
+                _bus.Send(new ShellEnded(_shellProcess.ExitCode, _shellProcess.Id));
             });
         }
         public void Kill()
@@ -60,7 +59,7 @@ namespace LinkUs.Core.Shell
         // ----- Callbacks
         private void ShellProcessOnErrorDataReceived(object o, DataReceivedEventArgs args)
         {
-            _messageTransmitter.Send(new ShellOutputReceived(args.Data, _shellProcess.Id));
+            _bus.Send(new ShellOutputReceived(args.Data, _shellProcess.Id));
         }
 
         // ----- Utils
