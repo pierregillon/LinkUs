@@ -1,4 +1,4 @@
 namespace LinkUs.Core
 {
-    public class ListRemoteClients : Message { }
+    public class ListRemoteClients { }
 }

@@ -9,9 +9,11 @@ namespace LinkUs.Core.Json
     {
         public byte[] Serialize<T>(T command)
         {
-            var json = Core.Json.Json.Stringify(command);
-            var bytes = Encoding.UTF8.GetBytes(json);
-            return bytes;
+            var json = Json.Stringify(command);
+            if (json.First() == '{') {
+                json = json.Insert(1, $"\"Name\":\"{command.GetType().Name}\"");
+            }
+            return Encoding.UTF8.GetBytes(json);
         }
         public object Deserialize(byte[] content, Type type)
         {

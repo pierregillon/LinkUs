@@ -51,10 +51,8 @@
     <Compile Include="IHandler.cs" />
     <Compile Include="IBus.cs" />
     <Compile Include="ListRemoteClients.cs" />
-    <Compile Include="Message.cs" />
     <Compile Include="MessageDescriptor.cs" />
     <Compile Include="MessageHandlerLocator.cs" />
-    <Compile Include="MessageTransmitter.cs" />
     <Compile Include="PingLib\Ping.cs" />
     <Compile Include="PingLib\PingHandler.cs" />
     <Compile Include="PingLib\PingOk.cs" />

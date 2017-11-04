@@ -1,6 +1,6 @@
 namespace LinkUs.Core
 {
-    public class ErrorMessage : Message
+    public class ErrorMessage
     {
         public string Error { get; set; }
 

@@ -1,6 +1,6 @@
 ﻿namespace LinkUs.Core.Shell
 {
-    public abstract class ShellMessage : Message
+    public abstract class ShellMessage 
     {
         public double ProcessId { get; set; }
 

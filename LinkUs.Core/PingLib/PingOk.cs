@@ -1,6 +1,6 @@
 namespace LinkUs.Core.PingLib
 {
-    public class PingOk : Message
+    public class PingOk 
     {
         public string Message { get; set; }
         public PingOk() { }

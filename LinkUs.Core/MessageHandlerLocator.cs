@@ -10,7 +10,7 @@ namespace LinkUs.Core
 
         public MessageHandlerLocator()
         {
-            _handlerTypes = typeof(Message)
+            _handlerTypes = typeof(IHandler<>)
                 .Assembly
                 .GetTypes()
                 .Where(x => x
@@ -19,10 +19,9 @@ namespace LinkUs.Core
                                    (interf.GetGenericTypeDefinition() == typeof(IHandler<,>) || interf.GetGenericTypeDefinition() == typeof(IHandler<>))))
                 .ToArray();
 
-            _types = typeof(Message)
+            _types = typeof(IHandler<>)
                 .Assembly
                 .GetTypes()
-                .Where(x => x.IsSubclassOf(typeof(Message)))
                 .ToArray();
         }
 

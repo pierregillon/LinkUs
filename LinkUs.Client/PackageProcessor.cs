@@ -38,11 +38,11 @@ namespace LinkUs.Client
         // ----- Internal logics
         private object ExecuteCommand(string messageName, Package package)
         {
-            var messageType = _messageHandlerLocator.GetMessageType(messageName);
-            var messageInstance = (Message) _serializer.Deserialize(package.Content, messageType);
-            var handlerType = _messageHandlerLocator.GetHandlerType(messageType);
+            var messageTypeName = _messageHandlerLocator.GetMessageType(messageName);
+            var messageInstance = _serializer.Deserialize(package.Content, messageTypeName);
+            var handlerType = _messageHandlerLocator.GetHandlerType(messageTypeName);
             var handlerInstance = CreateHandlerInstance(package, handlerType);
-            return Handle(handlerInstance, messageType, messageInstance);
+            return Handle(handlerInstance, messageTypeName, messageInstance);
         }
         private object CreateHandlerInstance(Package package, Type handlerType)
         {
@@ -56,7 +56,7 @@ namespace LinkUs.Client
             }
             return handlerInstance;
         }
-        private static object Handle(object handlerInstance, Type messageType, Message messageInstance)
+        private static object Handle(object handlerInstance, Type messageType, object messageInstance)
         {
             var handle = handlerInstance
                 .GetType()
@@ -67,10 +67,10 @@ namespace LinkUs.Client
                 throw new Exception("Unable to find the handle method.");
             }
             if (handle.ReturnType != typeof(void)) {
-                return handle.Invoke(handlerInstance, new object[] {messageInstance});
+                return handle.Invoke(handlerInstance, new[] {messageInstance});
             }
             else {
-                handle.Invoke(handlerInstance, new object[] {messageInstance});
+                handle.Invoke(handlerInstance, new[] {messageInstance});
                 return null;
             }
         }
