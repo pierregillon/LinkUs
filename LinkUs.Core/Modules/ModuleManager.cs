@@ -10,11 +10,6 @@ namespace LinkUs.Core.Modules
         private readonly List<IModule> _modules = new List<IModule>();
         private const string MODULE_DIRECTORY = ".";
 
-        public IEnumerable<Type> AvailableHandlers
-        {
-            get { return _modules.SelectMany(x => x.AvailableHandlers); }
-        }
-
         public IEnumerable<IModule> Modules => _modules;
 
         public void Register(IModule module)
@@ -36,17 +31,13 @@ namespace LinkUs.Core.Modules
                 }
             }
         }
-        public Type FindCommand(string commandName)
+        public MaterializationInfo FindCommandHandler(string commandName)
         {
-            return _modules
-                .SelectMany(x => x.AvailableCommands)
-                .SingleOrDefault(x => x.Name == commandName);
-        }
-        public Type FindCommandHandler(Type commandType)
-        {
-            return _modules
-                .SelectMany(x => x.AvailableHandlers)
-                .SingleOrDefault(v => v.GetMethods().Any(method => method.Name == "Handle" && method.GetParameters()[0].ParameterType == commandType));
+            var module = _modules.SingleOrDefault(x => x.CanProcess(commandName));
+            if (module == null) {
+                throw new Exception($"Cannot process {commandName}.");
+            }
+            return module.GetMaterializationInfo(commandName);
         }
     }
 }

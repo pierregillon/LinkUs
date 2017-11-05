@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,10 +12,9 @@ namespace LinkUs.Core.Modules
         private AppDomain _moduleDomain;
         private readonly AssemblyName _assemblyName;
         private bool _isLoaded;
+        private readonly IDictionary<string, MaterializationInfo> _info = new ConcurrentDictionary<string, MaterializationInfo>();
 
         public string Path { get; }
-        public IEnumerable<Type> AvailableHandlers { get; private set; }
-        public IEnumerable<Type> AvailableCommands { get; private set; }
 
         // ----- Constructors
         public LoadableModule(string modulepath)
@@ -36,8 +36,16 @@ namespace LinkUs.Core.Modules
             try {
                 var assembly = LoadAssembly();
                 var moduleType = GetModuleClassFromAssembly(assembly);
-                AvailableHandlers = GetHandlers(moduleType);
-                AvailableCommands = GetCommands(AvailableHandlers);
+                var handlers = GetHandlers(moduleType);
+                foreach (var handler in handlers) {
+                    foreach (var methodInfo in handler.GetMethods().Where(x => x.Name == "Handle")) {
+                        var parameterType = methodInfo.GetParameters()[0].ParameterType;
+                        _info.Add(parameterType.Name, new MaterializationInfo {
+                            CommandType = parameterType,
+                            HandlerType = handler
+                        });
+                    }
+                }
             }
             catch (Exception) {
                 AppDomain.Unload(_moduleDomain);
@@ -45,7 +53,6 @@ namespace LinkUs.Core.Modules
             }
             _isLoaded = true;
         }
-
         public void Unload()
         {
             AppDomain.Unload(_moduleDomain);
@@ -58,6 +65,18 @@ namespace LinkUs.Core.Modules
                 IsLoaded = _isLoaded,
                 Version = _assemblyName.Version.ToString()
             };
+        }
+        public MaterializationInfo GetMaterializationInfo(string commandName)
+        {
+            MaterializationInfo info;
+            if (_info.TryGetValue(commandName, out info)) {
+                return info;
+            }
+            throw new Exception("Cannot materialize.");
+        }
+        public bool CanProcess(string commandName)
+        {
+            return _info.ContainsKey(commandName);
         }
 
         // ----- Internal logics
@@ -85,15 +104,6 @@ namespace LinkUs.Core.Modules
                 throw new Exception($"Method '{methodName}' not found on the Module class.");
             }
             return (IEnumerable<Type>) method.Invoke(module, new object[0]);
-        }
-        private Type[] GetCommands(IEnumerable<Type> availableHandlers)
-        {
-            return availableHandlers
-                .Select(x => x.GetMethods().Where(method => method.Name == "Handle"))
-                .SelectMany(x => x)
-                .Where(x => x.GetParameters().Length != 0)
-                .Select(x => x.GetParameters()[0].ParameterType)
-                .ToArray();
         }
 
         // ----- Event callbacks

@@ -57,8 +57,7 @@ namespace LinkUs.Client
         {
             var packageTransmitter = new PackageTransmitter(connection);
             var jsonSerializer = new JsonSerializer();
-            var materializer = new Materializer(jsonSerializer, moduleManager);
-            var packageProcessor = new PackageProcessor(packageTransmitter, moduleManager, materializer, jsonSerializer);
+            var packageProcessor = new PackageProcessor(packageTransmitter, jsonSerializer, new HandlerLocator(moduleManager), new PackageParser(jsonSerializer));
             packageTransmitter.PackageReceived += (sender, package) => {
                 Console.WriteLine(package);
                 packageProcessor.Process(package);

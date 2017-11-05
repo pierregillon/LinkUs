@@ -46,12 +46,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HandlerLocator.cs" />
     <Compile Include="Connection\ClientId.cs" />
     <Compile Include="ErrorMessage.cs" />
     <Compile Include="IBus.cs" />
     <Compile Include="IHandler.cs" />
     <Compile Include="ListRemoteClients.cs" />
-    <Compile Include="Materializer.cs" />
     <Compile Include="MessageDescriptor.cs" />
     <Compile Include="Modules\IModule.cs" />
     <Compile Include="Modules\ListModules.cs" />
@@ -61,6 +61,7 @@
     <Compile Include="Modules\ModuleInformation.cs" />
     <Compile Include="Modules\ModuleInformationResponse.cs" />
     <Compile Include="Modules\ModuleManager.cs" />
+    <Compile Include="PackageParser.cs" />
     <Compile Include="PingLib\Ping.cs" />
     <Compile Include="PingLib\PingHandler.cs" />
     <Compile Include="PingLib\PingOk.cs" />

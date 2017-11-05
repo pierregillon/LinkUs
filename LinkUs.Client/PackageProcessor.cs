@@ -10,30 +10,33 @@ namespace LinkUs.Client
     public class PackageProcessor
     {
         private readonly PackageTransmitter _transmitter;
-        private readonly ModuleManager _moduleManager;
         private readonly ISerializer _serializer;
-        private readonly Materializer _materializer;
+        private readonly HandlerLocator _handlerLocator;
+        private readonly PackageParser _packageParser;
 
         // ----- Constructors
         public PackageProcessor(
-            PackageTransmitter transmitter, 
-            ModuleManager moduleManager,
-            Materializer materializer,
-            ISerializer serializer)
+            PackageTransmitter transmitter,
+            ISerializer serializer,
+            HandlerLocator handlerLocator,
+            PackageParser packageParser)
         {
             _transmitter = transmitter;
-            _moduleManager = moduleManager;
-            _materializer = materializer;
             _serializer = serializer;
+            _handlerLocator = handlerLocator;
+            _packageParser = packageParser;
         }
 
         // ----- Public methods
         public void Process(Package package)
         {
             try {
-                var command = _materializer.Materialize(package.Content);
+                var commandName = _packageParser.GetCommandName(package);
+                var materializationInfo = _handlerLocator.GetHandler(commandName);
                 var bus = new DedicatedBus(_transmitter, package.Source, _serializer);
-                var response = Handle(command, bus);
+                var handlerInstance = CreateHandlerInstance(materializationInfo.HandlerType, bus);
+                var command = _packageParser.Materialize(materializationInfo.CommandType, package);
+                var response = CallHandleMethod(handlerInstance, command);
                 if (response != null) {
                     Answer(package, response);
                 }
@@ -44,13 +47,6 @@ namespace LinkUs.Client
         }
 
         // ----- Internal logics
-        private object Handle(object command, IBus bus)
-        {
-            var commandType = command.GetType();
-            var handlerType = _moduleManager.FindCommandHandler(commandType);
-            var handlerInstance = CreateHandlerInstance(handlerType, bus);
-            return CallHandleMethod(handlerInstance, command);
-        }
         private static object CreateHandlerInstance(Type handlerType, IBus bus)
         {
             object handlerInstance;
