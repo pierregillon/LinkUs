@@ -53,6 +53,10 @@
     <Compile Include="ListRemoteClients.cs" />
     <Compile Include="MessageDescriptor.cs" />
     <Compile Include="MessageHandlerLocator.cs" />
+    <Compile Include="Modules\IModule.cs" />
+    <Compile Include="Modules\LocalModule.cs" />
+    <Compile Include="Modules\LoadableModule.cs" />
+    <Compile Include="Modules\ModuleManager.cs" />
     <Compile Include="PingLib\Ping.cs" />
     <Compile Include="PingLib\PingHandler.cs" />
     <Compile Include="PingLib\PingOk.cs" />

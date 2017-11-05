@@ -2,7 +2,7 @@
 
 namespace LinkUs.Modules.RemoteShell
 {
-    public class ModuleDefinition
+    public class Module
     {
         public Type[] GetHandlers()
         {

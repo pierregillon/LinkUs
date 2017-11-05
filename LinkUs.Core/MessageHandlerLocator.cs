@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
+using LinkUs.Core.Modules;
 using LinkUs.Core.PingLib;
-using LinkUs.Modules.RemoteShell;
 
 namespace LinkUs.Core
 {
@@ -10,11 +10,11 @@ namespace LinkUs.Core
         private readonly Type[] _handlerTypes;
         private readonly Type[] _types;
 
-        public MessageHandlerLocator()
+        public MessageHandlerLocator(IModule module)
         {
-            var definition = (dynamic) Activator.CreateInstance(typeof(ModuleDefinition));
-            _handlerTypes = definition.GetHandlers();
-            _handlerTypes = _handlerTypes.Union(new[] { typeof(PingHandler) }).ToArray();
+            _handlerTypes = new Type[0]
+                .Union(module.AvailableHandlers)
+                .Union(new[] { typeof(PingHandler) }).ToArray();
 
             _types = _handlerTypes
                 .Select(x => x.GetMethods().Where(method => method.Name == "Handle"))
