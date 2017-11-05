@@ -1,4 +1,4 @@
-namespace LinkUs.Core.Shell.Events
+namespace LinkUs.Modules.RemoteShell.Events
 {
     public class ShellOutputReceived : ShellMessage
     {

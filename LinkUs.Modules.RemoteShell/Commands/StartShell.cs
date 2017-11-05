@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace LinkUs.Core.Shell.Commands
+namespace LinkUs.Modules.RemoteShell.Commands
 {
     public class StartShell 
     {

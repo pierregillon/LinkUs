@@ -48,38 +48,35 @@
   <ItemGroup>
     <Compile Include="Connection\ClientId.cs" />
     <Compile Include="ErrorMessage.cs" />
-    <Compile Include="IHandler.cs" />
     <Compile Include="IBus.cs" />
+    <Compile Include="IHandler.cs" />
     <Compile Include="ListRemoteClients.cs" />
     <Compile Include="MessageDescriptor.cs" />
     <Compile Include="MessageHandlerLocator.cs" />
     <Compile Include="PingLib\Ping.cs" />
     <Compile Include="PingLib\PingHandler.cs" />
     <Compile Include="PingLib\PingOk.cs" />
-    <Compile Include="Shell\Commands\StartShell.cs" />
     <Compile Include="Connection\IConnection.cs" />
     <Compile Include="Connection\IConnectionListener.cs" />
     <Compile Include="Json\ISerializer.cs" />
     <Compile Include="Json\JsonSerializer.cs" />
     <Compile Include="Json\Parser.cs" />
-    <Compile Include="Shell\Commands\KillShell.cs" />
     <Compile Include="Connection\Metadata.cs" />
     <Compile Include="Connection\Package.cs" />
     <Compile Include="Connection\PackageTransmitter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Shell\Commands\SendInputToShell.cs" />
-    <Compile Include="Shell\Events\ShellEnded.cs" />
-    <Compile Include="Shell\Events\ShellOutputReceived.cs" />
-    <Compile Include="Shell\Events\ShellStarted.cs" />
     <Compile Include="Connection\SocketConnection.cs" />
     <Compile Include="Connection\SocketConnectionListener.cs" />
     <Compile Include="Connection\TransactionId.cs" />
-    <Compile Include="Shell\ShellProcessProxy.cs" />
-    <Compile Include="Shell\ShellCommandHandler.cs" />
-    <Compile Include="Shell\ShellMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LinkUs.Modules.RemoteShell\LinkUs.Modules.RemoteShell.csproj">
+      <Project>{ED039716-0C2A-4900-BDC7-2576A668D057}</Project>
+      <Name>LinkUs.Modules.RemoteShell</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

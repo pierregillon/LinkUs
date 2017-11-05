@@ -48,11 +48,18 @@ namespace LinkUs.Client
         {
             object handlerInstance;
             var handlerConstructor = handlerType.GetConstructors().First();
-            if (handlerConstructor.GetParameters()[0].ParameterType == typeof(IBus)) {
+            var parameters = handlerConstructor.GetParameters();
+            if (parameters.Length == 0) {
+                handlerInstance = Activator.CreateInstance(handlerType);
+            }
+            else if (parameters.Length == 1) {
+                if (parameters.Single().ParameterType != typeof(object)) {
+                    throw new Exception($"The constructor parameter of '{handlerType.Name}' should be 'object' type.");
+                }
                 handlerInstance = Activator.CreateInstance(handlerType, new DedicatedBus(_transmitter, package.Source, _serializer));
             }
             else {
-                handlerInstance = Activator.CreateInstance(handlerType);
+                throw new Exception($"To many parameters for the class '{handlerType.Name}'. Cannot instanciate.");
             }
             return handlerInstance;
         }

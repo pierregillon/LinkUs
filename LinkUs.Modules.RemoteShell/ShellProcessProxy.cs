@@ -2,17 +2,17 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using LinkUs.Core.Shell.Events;
+using LinkUs.Modules.RemoteShell.Events;
 
-namespace LinkUs.Core.Shell
+namespace LinkUs.Modules.RemoteShell
 {
     public class ShellProcessProxy
     {
-        private readonly IBus _bus;
+        private readonly dynamic _bus;
         private readonly Process _shellProcess;
 
         // ----- Constructor
-        public ShellProcessProxy(IBus bus)
+        public ShellProcessProxy(dynamic bus)
         {
             _shellProcess = NewCmdProcess();
             _bus = bus;

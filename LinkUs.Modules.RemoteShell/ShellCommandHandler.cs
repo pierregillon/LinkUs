@@ -1,21 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LinkUs.Core.Shell.Commands;
-using LinkUs.Core.Shell.Events;
+using LinkUs.Modules.RemoteShell.Commands;
+using LinkUs.Modules.RemoteShell.Events;
 
-namespace LinkUs.Core.Shell
+namespace LinkUs.Modules.RemoteShell
 {
     public class ShellCommandHandler :
         IHandler<StartShell, ShellStarted>,
         IHandler<SendInputToShell>,
         IHandler<KillShell>
     {
-        private readonly IBus _bus;
+        private readonly object _bus;
         private static readonly IDictionary<double, ShellProcessProxy> _activeRemoteShells = new Dictionary<double, ShellProcessProxy>();
 
         // ----- Constructor
-        public ShellCommandHandler(IBus bus)
+        public ShellCommandHandler(object bus)
         {
             _bus = bus;
         }

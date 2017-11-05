@@ -3,9 +3,8 @@ using System.Linq;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
-using LinkUs.Core.Shell;
-using LinkUs.Core.Shell.Commands;
-using LinkUs.Core.Shell.Events;
+using LinkUs.Modules.RemoteShell.Commands;
+using LinkUs.Modules.RemoteShell.Events;
 
 namespace LinkUs.CommandLine
 {
@@ -16,7 +15,7 @@ namespace LinkUs.CommandLine
         private readonly ClientId _target;
         private readonly ISerializer _serializer;
         private bool _remoteShellIsActive;
-        private CursorPosition _lastCursorPosition = null;
+        private CursorPosition _lastCursorPosition;
         private double _processId;
 
         // ----- Constructor

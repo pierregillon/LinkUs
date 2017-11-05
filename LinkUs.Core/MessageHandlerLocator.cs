@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using LinkUs.Core.PingLib;
+using LinkUs.Modules.RemoteShell;
 
 namespace LinkUs.Core
 {
@@ -10,18 +12,15 @@ namespace LinkUs.Core
 
         public MessageHandlerLocator()
         {
-            _handlerTypes = typeof(IHandler<>)
-                .Assembly
-                .GetTypes()
-                .Where(x => x
-                    .GetInterfaces()
-                    .Any(interf => interf.IsGenericType &&
-                                   (interf.GetGenericTypeDefinition() == typeof(IHandler<,>) || interf.GetGenericTypeDefinition() == typeof(IHandler<>))))
-                .ToArray();
+            var definition = (dynamic) Activator.CreateInstance(typeof(ModuleDefinition));
+            _handlerTypes = definition.GetHandlers();
+            _handlerTypes = _handlerTypes.Union(new[] { typeof(PingHandler) }).ToArray();
 
-            _types = typeof(IHandler<>)
-                .Assembly
-                .GetTypes()
+            _types = _handlerTypes
+                .Select(x => x.GetMethods().Where(method => method.Name == "Handle"))
+                .SelectMany(x => x)
+                .Where(x => x.GetParameters().Length != 0)
+                .Select(x => x.GetParameters()[0].ParameterType)
                 .ToArray();
         }
 

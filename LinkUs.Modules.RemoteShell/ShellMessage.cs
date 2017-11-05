@@ -1,4 +1,4 @@
-﻿namespace LinkUs.Core.Shell
+﻿namespace LinkUs.Modules.RemoteShell
 {
     public abstract class ShellMessage 
     {

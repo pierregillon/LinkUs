@@ -1,4 +1,4 @@
-namespace LinkUs.Core.Shell.Commands
+namespace LinkUs.Modules.RemoteShell.Commands
 {
     public class KillShell : ShellMessage
     {
