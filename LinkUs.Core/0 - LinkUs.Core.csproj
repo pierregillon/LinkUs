@@ -76,12 +76,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\LinkUs.Modules.RemoteShell\LinkUs.Modules.RemoteShell.csproj">
-      <Project>{ED039716-0C2A-4900-BDC7-2576A668D057}</Project>
-      <Name>LinkUs.Modules.RemoteShell</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

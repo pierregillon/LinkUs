@@ -65,10 +65,6 @@
       <Project>{511C52CB-31E3-43AE-92E7-481FF4C82ACB}</Project>
       <Name>0 - LinkUs.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\LinkUs.Modules.RemoteShell\LinkUs.Modules.RemoteShell.csproj">
-      <Project>{ed039716-0c2a-4900-bdc7-2576a668d057}</Project>
-      <Name>LinkUs.Modules.RemoteShell</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
