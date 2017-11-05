@@ -10,13 +10,11 @@ namespace LinkUs.Core.Modules
     {
         private AppDomain _moduleDomain;
         private readonly AssemblyName _assemblyName;
+        private bool _isLoaded;
 
         public string Path { get; }
-        public string Name => _assemblyName.Name;
-        public Version Version => _assemblyName.Version;
-
         public IEnumerable<Type> AvailableHandlers { get; private set; }
-        public bool IsLoaded { get; private set; }
+        public IEnumerable<Type> AvailableCommands { get; private set; }
 
         // ----- Constructors
         public LoadableModule(string modulepath)
@@ -39,17 +37,27 @@ namespace LinkUs.Core.Modules
                 var assembly = LoadAssembly();
                 var moduleType = GetModuleClassFromAssembly(assembly);
                 AvailableHandlers = GetHandlers(moduleType);
+                AvailableCommands = GetCommands(AvailableHandlers);
             }
             catch (Exception) {
                 AppDomain.Unload(_moduleDomain);
                 throw;
             }
-            IsLoaded = true;
+            _isLoaded = true;
         }
+
         public void Unload()
         {
             AppDomain.Unload(_moduleDomain);
-            IsLoaded = false;
+            _isLoaded = false;
+        }
+        public ModuleInformation GetStatus()
+        {
+            return new ModuleInformation {
+                Name = _assemblyName.Name,
+                IsLoaded = _isLoaded,
+                Version = _assemblyName.Version.ToString()
+            };
         }
 
         // ----- Internal logics
@@ -77,6 +85,15 @@ namespace LinkUs.Core.Modules
                 throw new Exception($"Method '{methodName}' not found on the Module class.");
             }
             return (IEnumerable<Type>) method.Invoke(module, new object[0]);
+        }
+        private Type[] GetCommands(IEnumerable<Type> availableHandlers)
+        {
+            return availableHandlers
+                .Select(x => x.GetMethods().Where(method => method.Name == "Handle"))
+                .SelectMany(x => x)
+                .Where(x => x.GetParameters().Length != 0)
+                .Select(x => x.GetParameters()[0].ParameterType)
+                .ToArray();
         }
 
         // ----- Event callbacks

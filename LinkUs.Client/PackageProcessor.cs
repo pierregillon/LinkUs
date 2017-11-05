@@ -3,20 +3,27 @@ using System.Linq;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
+using LinkUs.Core.Modules;
 
 namespace LinkUs.Client
 {
     public class PackageProcessor
     {
         private readonly PackageTransmitter _transmitter;
-        private readonly MessageHandlerLocator _messageHandlerLocator;
+        private readonly ModuleManager _moduleManager;
         private readonly ISerializer _serializer;
+        private readonly Materializer _materializer;
 
         // ----- Constructors
-        public PackageProcessor(PackageTransmitter transmitter, MessageHandlerLocator messageHandlerLocator, ISerializer serializer)
+        public PackageProcessor(
+            PackageTransmitter transmitter, 
+            ModuleManager moduleManager,
+            Materializer materializer,
+            ISerializer serializer)
         {
             _transmitter = transmitter;
-            _messageHandlerLocator = messageHandlerLocator;
+            _moduleManager = moduleManager;
+            _materializer = materializer;
             _serializer = serializer;
         }
 
@@ -24,8 +31,9 @@ namespace LinkUs.Client
         public void Process(Package package)
         {
             try {
-                var messageName = GetMessageName(package);
-                var response = ExecuteCommand(messageName, package);
+                var command = _materializer.Materialize(package.Content);
+                var bus = new DedicatedBus(_transmitter, package.Source, _serializer);
+                var response = Handle(command, bus);
                 if (response != null) {
                     Answer(package, response);
                 }
@@ -36,15 +44,14 @@ namespace LinkUs.Client
         }
 
         // ----- Internal logics
-        private object ExecuteCommand(string messageName, Package package)
+        private object Handle(object command, IBus bus)
         {
-            var messageTypeName = _messageHandlerLocator.GetMessageType(messageName);
-            var messageInstance = _serializer.Deserialize(package.Content, messageTypeName);
-            var handlerType = _messageHandlerLocator.GetHandlerType(messageTypeName);
-            var handlerInstance = CreateHandlerInstance(package, handlerType);
-            return Handle(handlerInstance, messageTypeName, messageInstance);
+            var commandType = command.GetType();
+            var handlerType = _moduleManager.FindCommandHandler(commandType);
+            var handlerInstance = CreateHandlerInstance(handlerType, bus);
+            return CallHandleMethod(handlerInstance, command);
         }
-        private object CreateHandlerInstance(Package package, Type handlerType)
+        private static object CreateHandlerInstance(Type handlerType, IBus bus)
         {
             object handlerInstance;
             var handlerConstructor = handlerType.GetConstructors().First();
@@ -56,19 +63,19 @@ namespace LinkUs.Client
                 if (parameters.Single().ParameterType != typeof(object)) {
                     throw new Exception($"The constructor parameter of '{handlerType.Name}' should be 'object' type.");
                 }
-                handlerInstance = Activator.CreateInstance(handlerType, new DedicatedBus(_transmitter, package.Source, _serializer));
+                handlerInstance = Activator.CreateInstance(handlerType, bus);
             }
             else {
                 throw new Exception($"To many parameters for the class '{handlerType.Name}'. Cannot instanciate.");
             }
             return handlerInstance;
         }
-        private static object Handle(object handlerInstance, Type messageType, object messageInstance)
+        private static object CallHandleMethod(object handlerInstance, object messageInstance)
         {
             var handle = handlerInstance
                 .GetType()
                 .GetMethods()
-                .SingleOrDefault(x => x.Name == "Handle" && x.GetParameters()[0].ParameterType == messageType);
+                .SingleOrDefault(x => x.Name == "Handle" && x.GetParameters()[0].ParameterType == messageInstance.GetType());
 
             if (handle == null) {
                 throw new Exception("Unable to find the handle method.");
@@ -81,12 +88,6 @@ namespace LinkUs.Client
                 return null;
             }
         }
-        private string GetMessageName(Package package)
-        {
-            return _serializer.Deserialize<MessageDescriptor>(package.Content).Name;
-        }
-
-        // ----- Utils
         private void Answer(Package package, object response)
         {
             var bytes = _serializer.Serialize(response);

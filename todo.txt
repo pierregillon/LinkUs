@@ -4,4 +4,4 @@
 * introduce concept for sending package with command or event.
 * introduct materialiser to instanciate class from json and eventually throw exception (ErrorMessage, ExceptionMessage)
 * download / upload
-* Remove the inheritance on Message to avoid dependency. Add Name:"" in the Json by hand or with library
+* Set Type.FullName in message, easier for deserialization.
