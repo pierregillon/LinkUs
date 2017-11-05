@@ -11,12 +11,11 @@ namespace LinkUs.Client
     class Program
     {
         private static readonly ManualResetEvent ManualResetEvent = new ManualResetEvent(false);
+
         static void Main(string[] args)
         {
             var moduleManager = new ModuleManager();
-            var remoteShellModule = new LoadableModule("LinkUs.Modules.RemoteShell.dll");
-            remoteShellModule.Load();
-            moduleManager.Register(remoteShellModule);
+            moduleManager.ScanAssemblies();
             moduleManager.Register(new LocalModule());
 
             Thread.Sleep(1000);
