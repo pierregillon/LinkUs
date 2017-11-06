@@ -36,6 +36,10 @@ namespace LinkUs.Core.Modules
         // ----- Public methods
         public void Load()
         {
+            if (_isLoaded) {
+                throw new Exception($"Module '{_assemblyName.Name}' is already loaded.");
+            }
+
             _moduleDomain = AppDomain.CreateDomain("ModuleDomain");
 
             try {

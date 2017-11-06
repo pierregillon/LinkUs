@@ -1,8 +1,11 @@
-﻿using LinkUs.Core.Modules.Commands;
+﻿using System;
+using LinkUs.Core.Modules.Commands;
 
 namespace LinkUs.Core.Modules
 {
-    public class ModuleCommandHandler : IHandler<ListModules, ModuleInformationResponse>
+    public class ModuleCommandHandler :
+        IHandler<ListModules, ModuleInformationResponse>,
+        IHandler<LoadModule, bool>
     {
         private readonly ModuleManager _moduleManager;
 
@@ -18,6 +21,23 @@ namespace LinkUs.Core.Modules
                 response.ModuleInformations.Add(module.GetStatus());
             }
             return response;
+        }
+
+        public bool Handle(LoadModule request)
+        {
+            var module = _moduleManager.GetModule(request.ModuleName);
+            if (module == null) {
+                throw new Exception($"Module '{request.ModuleName}' was not found.");
+            }
+            if (module is LocalAssemblyModule) {
+                throw new Exception($"Cannot load/unload with default module '{request.ModuleName}'.");
+            }
+            if (module is ExternalAssemblyModule == false) {
+                throw new NotImplementedException("Module implementation is invalid.");
+            }
+            var externalAssemblyModule = (ExternalAssemblyModule) module;
+            externalAssemblyModule.Load();
+            return true;
         }
     }
 }

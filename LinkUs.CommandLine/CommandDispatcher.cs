@@ -25,8 +25,13 @@ namespace LinkUs.CommandLine
             var completionSource = new TaskCompletionSource<TResponse>();
             EventHandler<Package> packageReceivedAction = (sender, responsePackage) => {
                 if (Equals(responsePackage.TransactionId, commandPackage.TransactionId)) {
-                    var response = _serializer.Deserialize<TResponse>(responsePackage.Content);
-                    completionSource.SetResult(response);
+                    try {
+                        var response = _serializer.Deserialize<TResponse>(responsePackage.Content);
+                        completionSource.SetResult(response);
+                    }
+                    catch (Exception ex) {
+                        completionSource.SetException(ex);
+                    }
                 }
             };
             EventHandler closedAction = (sender, args) => {
