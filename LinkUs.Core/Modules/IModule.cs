@@ -1,12 +1,13 @@
 using System;
+using LinkUs.Core.Connection;
 
 namespace LinkUs.Core.Modules
 {
     public interface IModule
     {
+        string Name { get; }
+        object Process(string commandName, Package package, IBus bus);
         ModuleInformation GetStatus();
-        MaterializationInfo GetMaterializationInfo(string commandName);
-        bool CanProcess(string commandName);
     }
 
     public class MaterializationInfo

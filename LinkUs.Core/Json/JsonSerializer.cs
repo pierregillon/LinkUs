@@ -11,7 +11,9 @@ namespace LinkUs.Core.Json
         {
             var json = Json.Stringify(command);
             if (json.First() == '{') {
-                json = json.Insert(1, $"\"Name\":\"{command.GetType().Name}\"");
+                var commandName = $"\"Name\":\"{command.GetType().Name}\"";
+                var assemblyName = $"\"AssemblyName\":\"{command.GetType().Assembly.GetName().Name}\"";
+                json = json.Insert(1, commandName + "," + assemblyName + ",");
             }
             return Encoding.UTF8.GetBytes(json);
         }

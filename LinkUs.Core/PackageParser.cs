@@ -13,9 +13,9 @@ namespace LinkUs.Core
             _serializer = serializer;
         }
 
-        public string GetCommandName(Package package)
+        public MessageDescriptor GetCommandDescription(Package package)
         {
-            return _serializer.Deserialize<MessageDescriptor>(package.Content).Name;
+            return _serializer.Deserialize<MessageDescriptor>(package.Content);
         }
 
         public object Materialize(Type type, Package package)

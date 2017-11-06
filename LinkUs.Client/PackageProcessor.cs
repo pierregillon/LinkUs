@@ -11,32 +11,33 @@ namespace LinkUs.Client
     {
         private readonly PackageTransmitter _transmitter;
         private readonly ISerializer _serializer;
-        private readonly HandlerLocator _handlerLocator;
         private readonly PackageParser _packageParser;
+        private readonly ModuleManager _moduleManager;
 
         // ----- Constructors
         public PackageProcessor(
             PackageTransmitter transmitter,
             ISerializer serializer,
-            HandlerLocator handlerLocator,
-            PackageParser packageParser)
+            PackageParser packageParser,
+            ModuleManager moduleManager)
         {
             _transmitter = transmitter;
             _serializer = serializer;
-            _handlerLocator = handlerLocator;
             _packageParser = packageParser;
+            _moduleManager = moduleManager;
         }
 
         // ----- Public methods
         public void Process(Package package)
         {
             try {
-                var commandName = _packageParser.GetCommandName(package);
-                var materializationInfo = _handlerLocator.GetHandler(commandName);
+                var messageDescriptor = _packageParser.GetCommandDescription(package);
+                var module = _moduleManager.GetModule(messageDescriptor.AssemblyName);
+                if (module == null) {
+                    throw new Exception($"Unable to process the command '{messageDescriptor.Name}': the module '{messageDescriptor.AssemblyName}' is not loaded.");
+                }
                 var bus = new DedicatedBus(_transmitter, package.Source, _serializer);
-                var handlerInstance = CreateHandlerInstance(materializationInfo.HandlerType, bus);
-                var command = _packageParser.Materialize(materializationInfo.CommandType, package);
-                var response = CallHandleMethod(handlerInstance, command);
+                var response = module.Process(messageDescriptor.Name, package, bus);
                 if (response != null) {
                     Answer(package, response);
                 }
@@ -47,43 +48,6 @@ namespace LinkUs.Client
         }
 
         // ----- Internal logics
-        private static object CreateHandlerInstance(Type handlerType, IBus bus)
-        {
-            object handlerInstance;
-            var handlerConstructor = handlerType.GetConstructors().First();
-            var parameters = handlerConstructor.GetParameters();
-            if (parameters.Length == 0) {
-                handlerInstance = Activator.CreateInstance(handlerType);
-            }
-            else if (parameters.Length == 1) {
-                if (parameters.Single().ParameterType != typeof(object)) {
-                    throw new Exception($"The constructor parameter of '{handlerType.Name}' should be 'object' type.");
-                }
-                handlerInstance = Activator.CreateInstance(handlerType, bus);
-            }
-            else {
-                throw new Exception($"To many parameters for the class '{handlerType.Name}'. Cannot instanciate.");
-            }
-            return handlerInstance;
-        }
-        private static object CallHandleMethod(object handlerInstance, object messageInstance)
-        {
-            var handle = handlerInstance
-                .GetType()
-                .GetMethods()
-                .SingleOrDefault(x => x.Name == "Handle" && x.GetParameters()[0].ParameterType == messageInstance.GetType());
-
-            if (handle == null) {
-                throw new Exception("Unable to find the handle method.");
-            }
-            if (handle.ReturnType != typeof(void)) {
-                return handle.Invoke(handlerInstance, new[] {messageInstance});
-            }
-            else {
-                handle.Invoke(handlerInstance, new[] {messageInstance});
-                return null;
-            }
-        }
         private void Answer(Package package, object response)
         {
             var bytes = _serializer.Serialize(response);

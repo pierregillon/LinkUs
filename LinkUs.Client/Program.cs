@@ -14,9 +14,12 @@ namespace LinkUs.Client
 
         static void Main(string[] args)
         {
+            var packageParser = new PackageParser(new JsonSerializer());
             var moduleManager = new ModuleManager();
-            moduleManager.Register(new LocalModule());
-            moduleManager.ScanAssemblies();
+            moduleManager.Register(new LocalAssemblyModule(moduleManager, packageParser));
+            foreach (var module in new ModuleAssemblyScanner(packageParser).Scan(".")) {
+                moduleManager.Register(module);
+            }
 
             Thread.Sleep(1000);
             while (true) {
@@ -57,7 +60,7 @@ namespace LinkUs.Client
         {
             var packageTransmitter = new PackageTransmitter(connection);
             var jsonSerializer = new JsonSerializer();
-            var packageProcessor = new PackageProcessor(packageTransmitter, jsonSerializer, new HandlerLocator(moduleManager), new PackageParser(jsonSerializer));
+            var packageProcessor = new PackageProcessor(packageTransmitter, jsonSerializer, new PackageParser(new JsonSerializer()), moduleManager);
             packageTransmitter.PackageReceived += (sender, package) => {
                 Console.WriteLine(package);
                 packageProcessor.Process(package);

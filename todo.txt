@@ -5,3 +5,4 @@
 * introduct materialiser to instanciate class from json and eventually throw exception (ErrorMessage, ExceptionMessage)
 * download / upload
 * Set Type.FullName in message, easier for deserialization.
+* ILogger in ExternalAssemblyModule to do the Console Printing.

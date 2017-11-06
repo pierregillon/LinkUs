@@ -4,21 +4,25 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using LinkUs.Core.Connection;
 
 namespace LinkUs.Core.Modules
 {
-    public class LoadableModule : IModule
+    public class ExternalAssemblyModule : IModule
     {
+        private readonly PackageParser _packageParser;
         private AppDomain _moduleDomain;
         private readonly AssemblyName _assemblyName;
         private bool _isLoaded;
         private readonly IDictionary<string, MaterializationInfo> _info = new ConcurrentDictionary<string, MaterializationInfo>();
 
         public string Path { get; }
+        public string Name => _assemblyName.Name;
 
         // ----- Constructors
-        public LoadableModule(string modulepath)
+        public ExternalAssemblyModule(PackageParser packageParser, string modulepath)
         {
+            _packageParser = packageParser;
             try {
                 Path = modulepath;
                 _assemblyName = AssemblyName.GetAssemblyName(modulepath);
@@ -66,17 +70,12 @@ namespace LinkUs.Core.Modules
                 Version = _assemblyName.Version.ToString()
             };
         }
-        public MaterializationInfo GetMaterializationInfo(string commandName)
+        public object Process(string commandName, Package package, IBus bus)
         {
-            MaterializationInfo info;
-            if (_info.TryGetValue(commandName, out info)) {
-                return info;
-            }
-            throw new Exception("Cannot materialize.");
-        }
-        public bool CanProcess(string commandName)
-        {
-            return _info.ContainsKey(commandName);
+            var materializationInfo = _info[commandName];
+            var handlerInstance = CreateHandlerInstance(materializationInfo.HandlerType, bus);
+            var command = _packageParser.Materialize(materializationInfo.CommandType, package);
+            return CallHandleMethod(handlerInstance, command);
         }
 
         // ----- Internal logics
@@ -104,6 +103,43 @@ namespace LinkUs.Core.Modules
                 throw new Exception($"Method '{methodName}' not found on the Module class.");
             }
             return (IEnumerable<Type>) method.Invoke(module, new object[0]);
+        }
+        private static object CreateHandlerInstance(Type handlerType, IBus bus)
+        {
+            object handlerInstance;
+            var handlerConstructor = handlerType.GetConstructors().First();
+            var parameters = handlerConstructor.GetParameters();
+            if (parameters.Length == 0) {
+                handlerInstance = Activator.CreateInstance(handlerType);
+            }
+            else if (parameters.Length == 1) {
+                if (parameters.Single().ParameterType != typeof(object)) {
+                    throw new Exception($"The constructor parameter of '{handlerType.Name}' should be 'object' type.");
+                }
+                handlerInstance = Activator.CreateInstance(handlerType, bus);
+            }
+            else {
+                throw new Exception($"To many parameters for the class '{handlerType.Name}'. Cannot instanciate.");
+            }
+            return handlerInstance;
+        }
+        private static object CallHandleMethod(object handlerInstance, object messageInstance)
+        {
+            var handle = handlerInstance
+                .GetType()
+                .GetMethods()
+                .SingleOrDefault(x => x.Name == "Handle" && x.GetParameters()[0].ParameterType == messageInstance.GetType());
+
+            if (handle == null) {
+                throw new Exception("Unable to find the handle method.");
+            }
+            if (handle.ReturnType != typeof(void)) {
+                return handle.Invoke(handlerInstance, new[] {messageInstance});
+            }
+            else {
+                handle.Invoke(handlerInstance, new[] {messageInstance});
+                return null;
+            }
         }
 
         // ----- Event callbacks

@@ -46,7 +46,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HandlerLocator.cs" />
     <Compile Include="Connection\ClientId.cs" />
     <Compile Include="ErrorMessage.cs" />
     <Compile Include="IBus.cs" />
@@ -55,8 +54,9 @@
     <Compile Include="MessageDescriptor.cs" />
     <Compile Include="Modules\IModule.cs" />
     <Compile Include="Modules\ListModules.cs" />
-    <Compile Include="Modules\LoadableModule.cs" />
-    <Compile Include="Modules\LocalModule.cs" />
+    <Compile Include="Modules\ExternalAssemblyModule.cs" />
+    <Compile Include="Modules\LocalAssemblyModule.cs" />
+    <Compile Include="Modules\ModuleAssemblyScanner.cs" />
     <Compile Include="Modules\ModuleCommandHandler.cs" />
     <Compile Include="Modules\ModuleInformation.cs" />
     <Compile Include="Modules\ModuleInformationResponse.cs" />
