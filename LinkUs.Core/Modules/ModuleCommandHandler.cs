@@ -1,4 +1,6 @@
-﻿namespace LinkUs.Core.Modules
+﻿using LinkUs.Core.Modules.Commands;
+
+namespace LinkUs.Core.Modules
 {
     public class ModuleCommandHandler : IHandler<ListModules, ModuleInformationResponse>
     {

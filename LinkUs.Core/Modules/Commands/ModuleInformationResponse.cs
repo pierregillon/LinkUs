@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace LinkUs.Core.Modules
+namespace LinkUs.Core.Modules.Commands
 {
     public class ModuleInformationResponse
     {

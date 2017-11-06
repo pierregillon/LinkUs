@@ -50,7 +50,7 @@ namespace LinkUs.CommandLine
         private void PackageTransmitterOnPackageReceived(object sender, Package package)
         {
             var command = _serializer.Deserialize<MessageDescriptor>(package.Content);
-            if (command.Name == typeof(ShellOutputReceived).Name) {
+            if (command.CommandName == typeof(ShellOutputReceived).Name) {
                 var response = _serializer.Deserialize<ShellOutputReceived>(package.Content);
                 if (response.ProcessId != _processId) return;
                 Console.Write(response.Output);
@@ -59,7 +59,7 @@ namespace LinkUs.CommandLine
                     Top = Console.CursorTop
                 };
             }
-            else if (command.Name == typeof(ShellEnded).Name) {
+            else if (command.CommandName == typeof(ShellEnded).Name) {
                 var response = _serializer.Deserialize<ShellEnded>(package.Content);
                 if (response.ProcessId != _processId) return;
                 Console.Write($"Process ended, exit code: {response.ExitCode}. Press any key to continue.");

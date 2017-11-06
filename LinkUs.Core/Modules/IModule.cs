@@ -1,5 +1,6 @@
 using System;
 using LinkUs.Core.Connection;
+using LinkUs.Core.Modules.Commands;
 
 namespace LinkUs.Core.Modules
 {

@@ -53,13 +53,13 @@
     <Compile Include="ListRemoteClients.cs" />
     <Compile Include="MessageDescriptor.cs" />
     <Compile Include="Modules\IModule.cs" />
-    <Compile Include="Modules\ListModules.cs" />
+    <Compile Include="Modules\Commands\ListModules.cs" />
     <Compile Include="Modules\ExternalAssemblyModule.cs" />
     <Compile Include="Modules\LocalAssemblyModule.cs" />
     <Compile Include="Modules\ModuleAssemblyScanner.cs" />
     <Compile Include="Modules\ModuleCommandHandler.cs" />
-    <Compile Include="Modules\ModuleInformation.cs" />
-    <Compile Include="Modules\ModuleInformationResponse.cs" />
+    <Compile Include="Modules\Commands\ModuleInformation.cs" />
+    <Compile Include="Modules\Commands\ModuleInformationResponse.cs" />
     <Compile Include="Modules\ModuleManager.cs" />
     <Compile Include="PackageParser.cs" />
     <Compile Include="PingLib\Ping.cs" />
@@ -69,7 +69,6 @@
     <Compile Include="Connection\IConnectionListener.cs" />
     <Compile Include="Json\ISerializer.cs" />
     <Compile Include="Json\JsonSerializer.cs" />
-    <Compile Include="Json\Parser.cs" />
     <Compile Include="Connection\Metadata.cs" />
     <Compile Include="Connection\Package.cs" />
     <Compile Include="Connection\PackageTransmitter.cs" />
@@ -77,9 +76,11 @@
     <Compile Include="Connection\SocketConnection.cs" />
     <Compile Include="Connection\SocketConnectionListener.cs" />
     <Compile Include="Connection\TransactionId.cs" />
+    <Compile Include="Json\SimpleJson.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

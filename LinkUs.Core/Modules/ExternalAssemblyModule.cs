@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using LinkUs.Core.Connection;
+using LinkUs.Core.Modules.Commands;
 
 namespace LinkUs.Core.Modules
 {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using LinkUs.Core.Connection;
+using LinkUs.Core.Modules.Commands;
 using LinkUs.Core.PingLib;
 
 namespace LinkUs.Core.Modules

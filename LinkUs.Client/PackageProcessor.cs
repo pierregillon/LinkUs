@@ -32,12 +32,12 @@ namespace LinkUs.Client
         {
             try {
                 var messageDescriptor = _packageParser.GetCommandDescription(package);
-                var module = _moduleManager.GetModule(messageDescriptor.AssemblyName);
+                var module = _moduleManager.GetModule(messageDescriptor.ModuleName);
                 if (module == null) {
-                    throw new Exception($"Unable to process the command '{messageDescriptor.Name}': the module '{messageDescriptor.AssemblyName}' is not loaded.");
+                    throw new Exception($"Unable to process the command '{messageDescriptor.CommandName}': the module '{messageDescriptor.ModuleName}' is not loaded.");
                 }
                 var bus = new DedicatedBus(_transmitter, package.Source, _serializer);
-                var response = module.Process(messageDescriptor.Name, package, bus);
+                var response = module.Process(messageDescriptor.CommandName, package, bus);
                 if (response != null) {
                     Answer(package, response);
                 }

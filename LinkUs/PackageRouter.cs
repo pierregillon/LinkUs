@@ -66,7 +66,7 @@ namespace LinkUs
             else {
                 var jsonSerializer = new JsonSerializer();
                 var commandLine = jsonSerializer.Deserialize<MessageDescriptor>(package.Content);
-                if (commandLine.Name == typeof(ListRemoteClients).Name) {
+                if (commandLine.CommandName == typeof(ListRemoteClients).Name) {
                     var clients = _activeTransmitter.Keys;
                     var value = string.Join(Environment.NewLine, clients.Select(x => x.ToString()));
                     var packageResponse = package.CreateResponsePackage(jsonSerializer.Serialize(value));

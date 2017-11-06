@@ -5,6 +5,7 @@ using Fclp;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
+using LinkUs.Core.Modules.Commands;
 using LinkUs.Core.PingLib;
 
 namespace LinkUs.CommandLine
@@ -39,15 +40,19 @@ namespace LinkUs.CommandLine
             var command = arguments.First();
             string commandResult = "";
             try {
+                var commandArguments = arguments.Skip(1).ToArray();
                 switch (command) {
                     case "ping":
-                        commandResult = Ping(commandDispatcher, arguments.Skip(1).ToArray());
+                        commandResult = Ping(commandDispatcher, commandArguments);
                         break;
                     case "list-clients":
                         commandResult = ListClients(commandDispatcher);
                         break;
                     case "shell":
-                        commandResult = Shell(commandDispatcher, arguments.Skip(1).ToArray());
+                        commandResult = Shell(commandDispatcher, commandArguments);
+                        break;
+                    case "list-modules":
+                        commandResult = ListModules(commandDispatcher, commandArguments);
                         break;
                     default:
                         commandResult = $"'{command}' is not recognized as a command.";
@@ -104,6 +109,25 @@ namespace LinkUs.CommandLine
                 var driver = new ConsoleRemoteShellController(commandDispatcher, targetId, new JsonSerializer());
                 driver.SendInputs();
                 return "";
+            }
+        }
+        private static string ListModules(CommandDispatcher commandDispatcher, string[] arguments)
+        {
+            var target = "";
+
+            var p = new FluentCommandLineParser();
+            p.Setup<string>('t', "target")
+                .Callback(x => target = x)
+                .Required();
+            var result = p.Parse(arguments);
+            if (result.HasErrors) {
+                return result.ErrorText;
+            }
+            else {
+                var targetId = ClientId.Parse(target);
+                var command = new ListModules();
+                var modules = commandDispatcher.ExecuteAsync<ListModules, ModuleInformationResponse>(command, targetId).Result;
+                return string.Join(Environment.NewLine, modules.ModuleInformations);
             }
         }
 
