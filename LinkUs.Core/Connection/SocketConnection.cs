@@ -81,11 +81,15 @@ namespace LinkUs.Core.Connection
             }
 
             var bytesTransferredCount = receiveSocketEventArgs.BytesTransferred;
-            var bytesTransferred = receiveSocketEventArgs.Buffer.Take(bytesTransferredCount).ToArray();
-
-            Test(receiveSocketEventArgs, bytesTransferred);
+            if (bytesTransferredCount == 0) {
+                StartReceiveData(receiveSocketEventArgs);
+            }
+            else {
+                var bytesTransferred = receiveSocketEventArgs.Buffer.Take(bytesTransferredCount).ToArray();
+                ProcessBytesTransferred(receiveSocketEventArgs, bytesTransferred);
+            }
         }
-        private void Test(SocketAsyncEventArgs receiveSocketEventArgs, byte[] bytesTransferred)
+        private void ProcessBytesTransferred(SocketAsyncEventArgs receiveSocketEventArgs, byte[] bytesTransferred)
         {
             var metadata = (Metadata) receiveSocketEventArgs.UserToken;
             if (metadata.PackageLength == 0) {
@@ -117,7 +121,7 @@ namespace LinkUs.Core.Connection
                 metadata.Reset();
 
                 var surplusData = allData.Skip(exactData.Length).ToArray();
-                Test(receiveSocketEventArgs, surplusData);
+                ProcessBytesTransferred(receiveSocketEventArgs, surplusData);
             }
         }
         private void RecycleReceiveArgs(SocketAsyncEventArgs receiveSocketEventArgs)

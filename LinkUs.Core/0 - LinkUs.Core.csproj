@@ -52,6 +52,7 @@
     <Compile Include="IHandler.cs" />
     <Compile Include="ListRemoteClients.cs" />
     <Compile Include="MessageDescriptor.cs" />
+    <Compile Include="Modules\Commands\LoadModule.cs" />
     <Compile Include="Modules\IModule.cs" />
     <Compile Include="Modules\Commands\ListModules.cs" />
     <Compile Include="Modules\ExternalAssemblyModule.cs" />

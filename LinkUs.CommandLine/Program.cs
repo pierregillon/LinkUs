@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
-using Fclp;
+using System.Reflection;
+using CommandLine;
+using CommandLine.Text;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
-using LinkUs.Core.Modules.Commands;
-using LinkUs.Core.PingLib;
 
 namespace LinkUs.CommandLine
 {
@@ -20,114 +19,60 @@ namespace LinkUs.CommandLine
                     Console.Write("> ");
                     var command = Console.ReadLine();
                     if (string.IsNullOrEmpty(command) == false) {
+                        if (command == "exit") {
+                            break;
+                        }
                         var commandArguments = command.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
-                        var commandResult = ExecuteCommand(connection, commandArguments);
-                        Console.WriteLine(commandResult);
+                        ParseArguments(commandArguments, connection);
                     }
                 }
+                connection.Close();
             }
             else {
                 var connection = CreateConnection();
-                var commandResult = ExecuteCommand(connection, arguments);
-                Console.WriteLine(commandResult);
+                ParseArguments(arguments, connection);
+                connection.Close();
+            }
+        }
+        private static void ParseArguments(string[] commandArguments, IConnection connection)
+        {
+            var options = new Options();
+            string invokedVerb = null;
+            object invokedVerbInstance = null;
+            if (!Parser.Default.ParseArguments(commandArguments, options, (verb, subOptions) => {
+                invokedVerb = verb;
+                invokedVerbInstance = subOptions;
+            })) {
+                Console.WriteLine(HelpText.AutoBuild(options, invokedVerb));
+            }
+            else {
+                ExecuteCommand(connection, invokedVerbInstance);
             }
         }
 
         // ----- Internal logics
-        private static string ExecuteCommand(IConnection connection, string[] arguments)
+        private static void ExecuteCommand(IConnection connection, object commandLine)
         {
-            var commandDispatcher = GetCommandDispatcher(connection);
-            var command = arguments.First();
-            string commandResult = "";
             try {
-                var commandArguments = arguments.Skip(1).ToArray();
-                switch (command) {
-                    case "ping":
-                        commandResult = Ping(commandDispatcher, commandArguments);
-                        break;
-                    case "list-clients":
-                        commandResult = ListClients(commandDispatcher);
-                        break;
-                    case "shell":
-                        commandResult = Shell(commandDispatcher, commandArguments);
-                        break;
-                    case "list-modules":
-                        commandResult = ListModules(commandDispatcher, commandArguments);
-                        break;
-                    default:
-                        commandResult = $"'{command}' is not recognized as a command.";
-                        break;
+                var commandDispatcher = GetCommandDispatcher(connection);
+                var commandLineType = commandLine.GetType();
+                var commandLineHandlerType =
+                    Assembly.GetExecutingAssembly()
+                        .GetTypes()
+                        .SingleOrDefault(x => x.GetInterfaces().Contains(typeof(IHandler<>).MakeGenericType(commandLineType)));
+                if (commandLineHandlerType == null) {
+                    throw new Exception("No handler found for the command");
                 }
+
+                var commandLineHandler = Activator.CreateInstance(commandLineHandlerType, commandDispatcher);
+                var handleMethod = commandLineHandlerType
+                    .GetMethods()
+                    .Where(x => x.Name == "Handle")
+                    .Single(x => x.GetParameters()[0].ParameterType == commandLineType);
+                handleMethod.Invoke(commandLineHandler, new[] {commandLine});
             }
             catch (Exception ex) {
                 WriteInnerException(ex);
-            }
-            return commandResult;
-        }
-
-        // ----- Commands
-        private static string ListClients(CommandDispatcher commandDispatcher)
-        {
-            var defaultCommand = new ListRemoteClients();
-            return commandDispatcher.ExecuteAsync<ListRemoteClients, string>(defaultCommand).Result;
-        }
-        private static string Ping(CommandDispatcher commandDispatcher, string[] arguments)
-        {
-            var target = "";
-
-            var p = new FluentCommandLineParser();
-            p.Setup<string>('t', "target")
-                .Callback(x => target = x)
-                .Required();
-            var result = p.Parse(arguments);
-            if (result.HasErrors) {
-                return result.ErrorText;
-            }
-            else {
-                var targetId = ClientId.Parse(target);
-                var stopWatch = new Stopwatch();
-                stopWatch.Start();
-                var pingCommand = new Ping();
-                commandDispatcher.ExecuteAsync<Ping, PingOk>(pingCommand, targetId).Wait();
-                stopWatch.Stop();
-                return $"Ok. {stopWatch.ElapsedMilliseconds} ms.";
-            }
-        }
-        private static string Shell(CommandDispatcher commandDispatcher, string[] arguments)
-        {
-            var target = "";
-            var p = new FluentCommandLineParser();
-            p.Setup<string>('t', "target")
-                .Callback(x => target = x)
-                .Required();
-            var result = p.Parse(arguments);
-            if (result.HasErrors) {
-                return result.ErrorText;
-            }
-            else {
-                var targetId = ClientId.Parse(target);
-                var driver = new ConsoleRemoteShellController(commandDispatcher, targetId, new JsonSerializer());
-                driver.SendInputs();
-                return "";
-            }
-        }
-        private static string ListModules(CommandDispatcher commandDispatcher, string[] arguments)
-        {
-            var target = "";
-
-            var p = new FluentCommandLineParser();
-            p.Setup<string>('t', "target")
-                .Callback(x => target = x)
-                .Required();
-            var result = p.Parse(arguments);
-            if (result.HasErrors) {
-                return result.ErrorText;
-            }
-            else {
-                var targetId = ClientId.Parse(target);
-                var command = new ListModules();
-                var modules = commandDispatcher.ExecuteAsync<ListModules, ModuleInformationResponse>(command, targetId).Result;
-                return string.Join(Environment.NewLine, modules.ModuleInformations);
             }
         }
 

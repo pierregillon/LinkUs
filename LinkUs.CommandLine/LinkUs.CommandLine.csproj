@@ -33,8 +33,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FluentCommandLineParser, Version=1.4.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentCommandLineParser.1.4.3\lib\net35\FluentCommandLineParser.dll</HintPath>
+    <Reference Include="CommandLine, Version=1.9.71.2, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
+      <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -47,11 +47,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Handlers\ListClientsCommandLineHandler.cs" />
+    <Compile Include="Handlers\ShellCommandLineHandler.cs" />
+    <Compile Include="RemoteClient.cs" />
+    <Compile Include="Server.cs" />
+    <Compile Include="Verbs\ListModulesCommandLine.cs" />
+    <Compile Include="Handlers\PingCommandLineHandler.cs" />
+    <Compile Include="Verbs\ClientTargettedCommandLine.cs" />
     <Compile Include="CommandDispatcher.cs" />
     <Compile Include="CursorPosition.cs" />
+    <Compile Include="Handlers\ModuleCommandHandler.cs" />
+    <Compile Include="Verbs\LoadModuleCommandLine.cs" />
+    <Compile Include="Options.cs" />
+    <Compile Include="Verbs\PingCommandLine.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ConsoleRemoteShellController.cs" />
+    <Compile Include="Verbs\ShellCommandLine.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
