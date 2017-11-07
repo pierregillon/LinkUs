@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Modules.Commands;
 using LinkUs.Core.PingLib;
@@ -11,12 +11,6 @@ namespace LinkUs.Core.Modules
     {
         private readonly ModuleManager _moduleManager;
         private readonly PackageParser _packageParser;
-
-        private readonly IDictionary<string, MaterializationInfo> _infos = new ConcurrentDictionary<string, MaterializationInfo> {
-            [typeof(Ping).Name] = new MaterializationInfo {CommandType = typeof(Ping), HandlerType = typeof(PingHandler)},
-            [typeof(ListModules).Name] = new MaterializationInfo {CommandType = typeof(ListModules), HandlerType = typeof(ModuleCommandHandler)},
-            [typeof(LoadModule).Name] = new MaterializationInfo {CommandType = typeof(LoadModule), HandlerType = typeof(ModuleCommandHandler)}
-        };
 
         public LocalAssemblyModule(ModuleManager moduleManager, PackageParser packageParser)
         {
@@ -35,8 +29,16 @@ namespace LinkUs.Core.Modules
         public string Name => GetType().Assembly.GetName().Name;
         public object Process(string commandName, Package package, IBus bus)
         {
-            var commandType = _infos[commandName];
-            var commandInstance = _packageParser.Materialize(commandType.CommandType, package);
+            var commandType = Assembly
+                .GetExecutingAssembly()
+                .GetTypes()
+                .SingleOrDefault(x => x.Name == commandName);
+
+            if (commandType == null) {
+                throw new Exception($"Unable to proces the command {commandName}.");
+            }
+
+            var commandInstance = _packageParser.Materialize(commandType, package);
             if (commandInstance is Ping) {
                 return new PingHandler().Handle((Ping) commandInstance);
             }
