@@ -22,10 +22,10 @@ namespace LinkUs.CommandLine.Handlers
             var clients = _server.GetConnectedClients();
             var matchingClients = clients.Where(x => x.Id.StartsWith(commandLine.Target)).ToArray();
             if (matchingClients.Length == 0) {
-                ConsoleUtils.WriteError($"The client '{commandLine.Target}' is not connected.");
+                ConsoleExt.WriteError($"The client '{commandLine.Target}' is not connected.");
             }
             else if (matchingClients.Length > 1) {
-                ConsoleUtils.WriteError($"Multiple client are matching '{commandLine.Target}'.");
+                ConsoleExt.WriteError($"Multiple client are matching '{commandLine.Target}'.");
             }
             else {
                 var targetId = ClientId.Parse(matchingClients.Single().Id);

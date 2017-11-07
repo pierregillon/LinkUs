@@ -47,8 +47,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleExt.cs" />
     <Compile Include="Handlers\ListConnectedClientsCommandLineHandler.cs" />
     <Compile Include="Handlers\ShellCommandLineHandler.cs" />
+    <Compile Include="Handlers\StringExtension.cs" />
     <Compile Include="RemoteClient.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="Verbs\ListModulesCommandLine.cs" />
