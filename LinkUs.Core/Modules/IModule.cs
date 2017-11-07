@@ -1,6 +1,5 @@
 using System;
 using LinkUs.Core.Connection;
-using LinkUs.Core.Modules.Commands;
 
 namespace LinkUs.Core.Modules
 {
@@ -8,7 +7,6 @@ namespace LinkUs.Core.Modules
     {
         string Name { get; }
         object Process(string commandName, Package package, IBus bus);
-        ModuleInformation GetStatus();
     }
 
     public class MaterializationInfo

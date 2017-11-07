@@ -14,9 +14,13 @@ namespace LinkUs.Core.Modules
             _modules.Add(module);
         }
 
-        public IModule GetModule(string moduleName)
+        public IModule FindModule(string moduleName)
         {
-            return _modules.SingleOrDefault(x => x.Name == moduleName);
+            var module = _modules.SingleOrDefault(x => x.Name == moduleName);
+            if (module == null) {
+                throw new ModuleNotLoadedException(moduleName);
+            }
+            return module;
         }
     }
 }

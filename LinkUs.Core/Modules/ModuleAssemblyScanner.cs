@@ -25,7 +25,6 @@ namespace LinkUs.Core.Modules
                 Console.Write($"* Loading module {Path.GetFileName(filePath)} \t ");
                 try {
                     var module = new ExternalAssemblyModule(_packageParser, filePath);
-                    module.Load();
                     loadedModules.Add(module);
                     Console.WriteLine("[OK]");
                 }

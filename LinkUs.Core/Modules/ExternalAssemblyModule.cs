@@ -5,16 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using LinkUs.Core.Connection;
-using LinkUs.Core.Modules.Commands;
 
 namespace LinkUs.Core.Modules
 {
     public class ExternalAssemblyModule : IModule
     {
         private readonly PackageParser _packageParser;
-        private AppDomain _moduleDomain;
+        private readonly AppDomain _moduleDomain;
         private readonly AssemblyName _assemblyName;
-        private bool _isLoaded;
         private readonly IDictionary<string, MaterializationInfo> _info = new ConcurrentDictionary<string, MaterializationInfo>();
 
         public string Path { get; }
@@ -27,6 +25,26 @@ namespace LinkUs.Core.Modules
             try {
                 Path = modulepath;
                 _assemblyName = AssemblyName.GetAssemblyName(modulepath);
+                _moduleDomain = AppDomain.CreateDomain("ModuleDomain");
+
+                try {
+                    var assembly = LoadAssembly();
+                    var moduleType = GetModuleClassFromAssembly(assembly);
+                    var handlers = GetHandlers(moduleType);
+                    foreach (var handler in handlers) {
+                        foreach (var methodInfo in handler.GetMethods().Where(x => x.Name == "Handle")) {
+                            var parameterType = methodInfo.GetParameters()[0].ParameterType;
+                            _info.Add(parameterType.Name, new MaterializationInfo {
+                                CommandType = parameterType,
+                                HandlerType = handler
+                            });
+                        }
+                    }
+                }
+                catch (Exception) {
+                    AppDomain.Unload(_moduleDomain);
+                    throw;
+                }
             }
             catch (FileNotFoundException ex) {
                 throw new Exception("Module path is not valid.", ex);
@@ -34,46 +52,10 @@ namespace LinkUs.Core.Modules
         }
 
         // ----- Public methods
-        public void Load()
-        {
-            if (_isLoaded) {
-                throw new Exception($"Module '{_assemblyName.Name}' is already loaded.");
-            }
-
-            _moduleDomain = AppDomain.CreateDomain("ModuleDomain");
-
-            try {
-                var assembly = LoadAssembly();
-                var moduleType = GetModuleClassFromAssembly(assembly);
-                var handlers = GetHandlers(moduleType);
-                foreach (var handler in handlers) {
-                    foreach (var methodInfo in handler.GetMethods().Where(x => x.Name == "Handle")) {
-                        var parameterType = methodInfo.GetParameters()[0].ParameterType;
-                        _info.Add(parameterType.Name, new MaterializationInfo {
-                            CommandType = parameterType,
-                            HandlerType = handler
-                        });
-                    }
-                }
-            }
-            catch (Exception) {
-                AppDomain.Unload(_moduleDomain);
-                throw;
-            }
-            _isLoaded = true;
-        }
-        public void Unload()
+        public void Dispose()
         {
             AppDomain.Unload(_moduleDomain);
-            _isLoaded = false;
-        }
-        public ModuleInformation GetStatus()
-        {
-            return new ModuleInformation {
-                Name = _assemblyName.Name,
-                IsLoaded = _isLoaded,
-                Version = _assemblyName.Version.ToString()
-            };
+            _info.Clear();
         }
         public object Process(string commandName, Package package, IBus bus)
         {

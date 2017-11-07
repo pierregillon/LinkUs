@@ -16,7 +16,8 @@ namespace LinkUs.Client
         {
             var packageParser = new PackageParser(new JsonSerializer());
             var moduleManager = new ModuleManager();
-            moduleManager.Register(new LocalAssemblyModule(moduleManager, packageParser));
+            var moduleLocator = new ModuleLocator();
+            moduleManager.Register(new LocalAssemblyModule(moduleManager, moduleLocator, packageParser));
             foreach (var module in new ModuleAssemblyScanner(packageParser).Scan(".")) {
                 moduleManager.Register(module);
             }

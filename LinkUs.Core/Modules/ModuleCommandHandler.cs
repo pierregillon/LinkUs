@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using LinkUs.Core.Modules.Commands;
 
 namespace LinkUs.Core.Modules
@@ -8,35 +9,42 @@ namespace LinkUs.Core.Modules
         IHandler<LoadModule, bool>
     {
         private readonly ModuleManager _moduleManager;
+        private readonly ModuleLocator _moduleLocator;
+        private readonly PackageParser _packageParser;
 
-        public ModuleCommandHandler(ModuleManager moduleManager)
+        public ModuleCommandHandler(
+            ModuleManager moduleManager,
+            ModuleLocator moduleLocator,
+            PackageParser packageParser)
         {
             _moduleManager = moduleManager;
+            _moduleLocator = moduleLocator;
+            _packageParser = packageParser;
         }
 
         public ModuleInformationResponse Handle(ListModules command)
         {
-            var response = new ModuleInformationResponse();
-            foreach (var module in _moduleManager.Modules) {
-                response.ModuleInformations.Add(module.GetStatus());
+            var externalAssemblyModules = _moduleLocator.GetAllExternalAssemblyModules().ToList();
+            foreach (var loadedModule in _moduleManager.Modules) {
+                var module = externalAssemblyModules.SingleOrDefault(x => x.Name == loadedModule.Name);
+                if (module != null) {
+                    module.IsLoaded = true;
+                }
             }
-            return response;
+            return new ModuleInformationResponse {
+                ModuleInformations = externalAssemblyModules
+            };
         }
 
         public bool Handle(LoadModule request)
         {
-            var module = _moduleManager.GetModule(request.ModuleName);
-            if (module == null) {
-                throw new Exception($"Module '{request.ModuleName}' was not found.");
+            var module = _moduleManager.FindModule(request.ModuleName);
+            if (module != null) {
+                throw new Exception($"Module '{request.ModuleName}' is already loaded.");
             }
-            if (module is LocalAssemblyModule) {
-                throw new Exception($"Cannot load/unload with default module '{request.ModuleName}'.");
-            }
-            if (module is ExternalAssemblyModule == false) {
-                throw new NotImplementedException("Module implementation is invalid.");
-            }
-            var externalAssemblyModule = (ExternalAssemblyModule) module;
-            externalAssemblyModule.Load();
+            var filePath = _moduleLocator.GetFullPath(request.ModuleName);
+            var externalAssemblyModule = new ExternalAssemblyModule(_packageParser, filePath);
+            _moduleManager.Register(externalAssemblyModule);
             return true;
         }
     }

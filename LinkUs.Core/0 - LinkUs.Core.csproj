@@ -61,7 +61,9 @@
     <Compile Include="Modules\ModuleCommandHandler.cs" />
     <Compile Include="Modules\Commands\ModuleInformation.cs" />
     <Compile Include="Modules\Commands\ModuleInformationResponse.cs" />
+    <Compile Include="Modules\ModuleLocator.cs" />
     <Compile Include="Modules\ModuleManager.cs" />
+    <Compile Include="Modules\ModuleNotLoadedException.cs" />
     <Compile Include="PackageParser.cs" />
     <Compile Include="PingLib\Ping.cs" />
     <Compile Include="PingLib\PingHandler.cs" />
