@@ -4,6 +4,7 @@ using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
 using LinkUs.Core.Modules;
+using LinkUs.Core.Modules.Exceptions;
 
 namespace LinkUs.Client
 {
@@ -38,6 +39,12 @@ namespace LinkUs.Client
                 if (response != null) {
                     Answer(package, response);
                 }
+            }
+            catch (UnknownCommandException ex) {
+                Answer(package, new ErrorMessage(ex.Message));
+            }
+            catch (ModuleException ex) {
+                Answer(package, new ErrorMessage(ex.Message));
             }
             catch (Exception ex) {
                 Answer(package, new ErrorMessage(ex.ToString()));

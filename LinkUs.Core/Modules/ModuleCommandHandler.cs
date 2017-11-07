@@ -1,6 +1,7 @@
-﻿using System;
+﻿using System.IO;
 using System.Linq;
 using LinkUs.Core.Modules.Commands;
+using LinkUs.Core.Modules.Exceptions;
 
 namespace LinkUs.Core.Modules
 {
@@ -41,13 +42,17 @@ namespace LinkUs.Core.Modules
         {
             var module = _moduleManager.GetModule(request.ModuleName);
             if (module != null) {
-                throw new Exception($"Module '{request.ModuleName}' is already loaded.");
+                throw new ModuleAlreadyLoadedException(request.ModuleName);
             }
             var filePath = _moduleLocator.GetFullPath(request.ModuleName);
+            if (File.Exists(filePath) == false) {
+                throw new ModuleNotInstalledOnClientException(request.ModuleName);
+            }
             var externalAssemblyModule = new ExternalAssemblyModule(_packageParser, filePath);
             _moduleManager.Register(externalAssemblyModule);
             return true;
         }
+
         public bool Handle(UnloadModule request)
         {
             var module = _moduleManager.FindModule(request.ModuleName);

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using LinkUs.Core.Connection;
+using LinkUs.Core.Modules.Exceptions;
 
 namespace LinkUs.Core.Modules
 {
@@ -19,35 +20,31 @@ namespace LinkUs.Core.Modules
         public string Name => _assemblyName.Name;
 
         // ----- Constructors
-        public ExternalAssemblyModule(PackageParser packageParser, string modulepath)
+        public ExternalAssemblyModule(PackageParser packageParser, string filePath)
         {
             _packageParser = packageParser;
-            try {
-                Path = modulepath;
-                _assemblyName = AssemblyName.GetAssemblyName(modulepath);
-                _moduleDomain = AppDomain.CreateDomain("ModuleDomain");
 
-                try {
-                    var assembly = LoadAssembly();
-                    var moduleType = GetModuleClassFromAssembly(assembly);
-                    var handlers = GetHandlers(moduleType);
-                    foreach (var handler in handlers) {
-                        foreach (var methodInfo in handler.GetMethods().Where(x => x.Name == "Handle")) {
-                            var parameterType = methodInfo.GetParameters()[0].ParameterType;
-                            _info.Add(parameterType.Name, new MaterializationInfo {
-                                CommandType = parameterType,
-                                HandlerType = handler
-                            });
-                        }
+            Path = filePath;
+            _assemblyName = AssemblyName.GetAssemblyName(filePath);
+            _moduleDomain = AppDomain.CreateDomain("ModuleDomain");
+
+            try {
+                var assembly = LoadAssembly();
+                var moduleType = GetModuleClassFromAssembly(assembly);
+                var handlers = GetHandlers(moduleType);
+                foreach (var handler in handlers) {
+                    foreach (var methodInfo in handler.GetMethods().Where(x => x.Name == "Handle")) {
+                        var parameterType = methodInfo.GetParameters()[0].ParameterType;
+                        _info.Add(parameterType.Name, new MaterializationInfo {
+                            CommandType = parameterType,
+                            HandlerType = handler
+                        });
                     }
                 }
-                catch (Exception) {
-                    AppDomain.Unload(_moduleDomain);
-                    throw;
-                }
             }
-            catch (FileNotFoundException ex) {
-                throw new Exception("Module path is not valid.", ex);
+            catch (Exception) {
+                AppDomain.Unload(_moduleDomain);
+                throw;
             }
         }
 
@@ -59,7 +56,10 @@ namespace LinkUs.Core.Modules
         }
         public object Process(string commandName, Package package, IBus bus)
         {
-            var materializationInfo = _info[commandName];
+            MaterializationInfo materializationInfo;
+            if (_info.TryGetValue(commandName, out materializationInfo) == false) {
+                throw new UnknownCommandException(commandName, Name);
+            }
             var handlerInstance = CreateHandlerInstance(materializationInfo.HandlerType, bus);
             var command = _packageParser.Materialize(materializationInfo.CommandType, package);
             return CallHandleMethod(handlerInstance, command);

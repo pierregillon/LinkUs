@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Modules.Commands;
+using LinkUs.Core.Modules.Exceptions;
 using LinkUs.Core.PingLib;
 
 namespace LinkUs.Core.Modules
@@ -32,7 +33,7 @@ namespace LinkUs.Core.Modules
                 .SingleOrDefault(x => x.Name == commandName);
 
             if (commandType == null) {
-                throw new Exception($"Unable to proces the command {commandName}.");
+                throw new UnknownCommandException(commandName, Name);
             }
 
             var commandInstance = _packageParser.Materialize(commandType, package);

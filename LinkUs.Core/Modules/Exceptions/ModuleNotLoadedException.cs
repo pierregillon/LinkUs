@@ -1,8 +1,8 @@
 using System;
 
-namespace LinkUs.Core.Modules
+namespace LinkUs.Core.Modules.Exceptions
 {
-    public class ModuleNotLoadedException : Exception
+    public class ModuleNotLoadedException : ModuleException
     {
         private readonly string _moduleName;
 
