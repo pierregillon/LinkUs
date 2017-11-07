@@ -47,28 +47,39 @@ namespace LinkUs
         }
         private void PackageRouterOnClientConnected(ClientId clientId)
         {
-            var transmitter = _packageRouter.GetTransmitter(clientId);
-            var commandDispatcher = new CommandDispatcher(transmitter, new JsonSerializer());
-            var information = commandDispatcher.ExecuteAsync<GetBasicInformation, ClientBasicInformation>(new GetBasicInformation(), clientId, ClientId.Server).Result;
-            _clients.Add(clientId, information);
-            WriteLine($"* Client '{information.MachineName}' connected.");
+            WriteLine($"* Client '{clientId}' connected.");
         }
         private void PackageRouterOnClientDisconnected(ClientId clientId)
         {
-            _clients.Remove(clientId);
             WriteLine($"* Client '{clientId}' disconnected.");
         }
         private void PackageRouterOnTargettedServerPackageReceived(Package package)
         {
             var jsonSerializer = new JsonSerializer();
             var commandLine = jsonSerializer.Deserialize<MessageDescriptor>(package.Content);
-            if (commandLine.CommandName == typeof(ListConnectedClient).Name) {
+            if (commandLine.CommandName == typeof(SetStatus).Name) {
+                var command = jsonSerializer.Deserialize<SetStatus>(package.Content);
+                if (command.Status == "Provider") {
+                    var packageResponse = package.CreateResponsePackage(jsonSerializer.Serialize(new GetBasicInformation()));
+                    _packageRouter.SendPackage(packageResponse);
+                }
+                else {
+                    _clients.Remove(package.Source);
+                }
+            }
+            else if (commandLine.CommandName == typeof(ClientBasicInformation).Name) {
+                var information = jsonSerializer.Deserialize<ClientBasicInformation>(package.Content);
+                _clients.Add(package.Source, information);
+                WriteLine($"* Client '{information.MachineName}' connected.");
+            }
+            else if (commandLine.CommandName == typeof(ListConnectedClient).Name) {
                 var value = _clients.Select(x => new ConnectedClient {
-                    Id = x.Key.ToString(),
-                    MachineName = x.Value.MachineName,
-                    OperatingSystem = x.Value.OperatingSystem,
-                    UserName = x.Value.UserName,
-                }).ToArray();
+                        Id = x.Key.ToString(),
+                        MachineName = x.Value.MachineName,
+                        OperatingSystem = x.Value.OperatingSystem,
+                        UserName = x.Value.UserName,
+                    })
+                    .ToArray();
                 var packageResponse = package.CreateResponsePackage(jsonSerializer.Serialize(value));
                 _packageRouter.SendPackage(packageResponse);
             }

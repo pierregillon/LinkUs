@@ -4,6 +4,7 @@ using System.Reflection;
 using CommandLine;
 using CommandLine.Text;
 using LinkUs.Core;
+using LinkUs.Core.ClientInformation;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
 
@@ -97,9 +98,12 @@ namespace LinkUs.CommandLine
             int port = 9000;
             var connection = new SocketConnection();
             connection.Connect(host, port);
+            var commandDispatcher = GetCommandDispatcher(connection);
+            commandDispatcher.ExecuteAsync(new SetStatus {Status = "Consumer"});
             return connection;
         }
     }
+
     public static class ConsoleUtils
     {
         private const ConsoleColor InfoColor = ConsoleColor.Gray;
@@ -127,5 +131,4 @@ namespace LinkUs.CommandLine
             Console.ForegroundColor = previousColor;
         }
     }
-
 }

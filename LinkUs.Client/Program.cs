@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using System.Threading;
 using LinkUs.Core;
+using LinkUs.Core.ClientInformation;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
 using LinkUs.Core.Modules;
@@ -76,6 +77,8 @@ namespace LinkUs.Client
             packageTransmitter.Closed += (sender, eventArgs) => {
                 ManualResetEvent.Set();
             };
+            var commandDispatcher = new CommandDispatcher(packageTransmitter, jsonSerializer);
+            commandDispatcher.ExecuteAsync(new SetStatus {Status = "Provider"});
             ManualResetEvent.WaitOne();
             packageTransmitter.Close();
         }

@@ -50,6 +50,7 @@ namespace LinkUs.Core
         }
         public void ExecuteAsync<TCommand>(TCommand command, ClientId destination = null)
         {
+            destination = destination ?? ClientId.Server;
             var content = _serializer.Serialize(command);
             var commandPackage = new Package(ClientId.Unknown, destination, content);
             PackageTransmitter.Send(commandPackage);

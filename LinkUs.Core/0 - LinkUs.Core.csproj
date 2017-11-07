@@ -50,6 +50,7 @@
     <Compile Include="ClientInformation\GetBasicInformation.cs" />
     <Compile Include="ClientInformation\GetBasicInformationHandler.cs" />
     <Compile Include="ClientInformation\NetHelper.cs" />
+    <Compile Include="ClientInformation\SetStatus.cs" />
     <Compile Include="CommandDispatcher.cs" />
     <Compile Include="Connection\ClientId.cs" />
     <Compile Include="ErrorMessage.cs" />

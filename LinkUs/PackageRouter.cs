@@ -37,10 +37,6 @@ namespace LinkUs
             var packageTransmitter = _activeTransmitter[package.Destination];
             packageTransmitter.Send(package);
         }
-        public PackageTransmitter GetTransmitter(ClientId clientId)
-        {
-            return _activeTransmitter[clientId];
-        }
 
         // ----- Event callbacks
         private void PackageTransmitterOnPackageReceived(object sender, Package package)
