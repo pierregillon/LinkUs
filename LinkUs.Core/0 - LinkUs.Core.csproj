@@ -50,7 +50,6 @@
     <Compile Include="ErrorMessage.cs" />
     <Compile Include="IBus.cs" />
     <Compile Include="IHandler.cs" />
-    <Compile Include="ListRemoteClients.cs" />
     <Compile Include="MessageDescriptor.cs" />
     <Compile Include="Modules\Commands\LoadModule.cs" />
     <Compile Include="Modules\Commands\UnloadModule.cs" />

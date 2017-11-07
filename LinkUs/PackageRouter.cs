@@ -14,6 +14,7 @@ namespace LinkUs
         private readonly IDictionary<ClientId, PackageTransmitter> _activeTransmitter = new ConcurrentDictionary<ClientId, PackageTransmitter>();
         public event Action<ClientId> ClientConnected;
         public event Action<ClientId> ClientDisconnected;
+        public event Action<Package> TargettedServerPackageReceived;
 
         // ----- Public methods
         public void Connect(IConnection connection)
@@ -30,6 +31,11 @@ namespace LinkUs
             foreach (var packageTransmitter in _activeTransmitter.Values) {
                 packageTransmitter.Close();
             }
+        }
+        public void SendPackage(Package package)
+        {
+            var packageTransmitter = _activeTransmitter[package.Destination];
+            packageTransmitter.Send(package);
         }
 
         // ----- Event callbacks
@@ -49,11 +55,6 @@ namespace LinkUs
         }
 
         // ----- Internal logics
-        private void SendPackage(Package package)
-        {
-            var packageTransmitter = _activeTransmitter[package.Destination];
-            packageTransmitter.Send(package);
-        }
         private void ProcessPackage(Package package)
         {
             if (!Equals(package.Destination, ClientId.Server)) {
@@ -64,18 +65,7 @@ namespace LinkUs
                 Console.WriteLine($"Client '{package.Source}' is trying to send package to himself.");
             }
             else {
-                var jsonSerializer = new JsonSerializer();
-                var commandLine = jsonSerializer.Deserialize<MessageDescriptor>(package.Content);
-                if (commandLine.CommandName == typeof(ListRemoteClients).Name) {
-                    var clients = _activeTransmitter.Keys;
-                    var value = string.Join(Environment.NewLine, clients.Select(x => x.ToString()));
-                    var packageResponse = package.CreateResponsePackage(jsonSerializer.Serialize(value));
-                    SendPackage(packageResponse);
-                }
-                else {
-                    var responsePackage = package.CreateResponsePackage(jsonSerializer.Serialize("Invalid command"));
-                    SendPackage(responsePackage);
-                }
+                TargettedServerPackageReceived?.Invoke(package);
             }
         }
     }

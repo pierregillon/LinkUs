@@ -47,7 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Handlers\ListClientsCommandLineHandler.cs" />
+    <Compile Include="Handlers\ListConnectedClientsCommandLineHandler.cs" />
     <Compile Include="Handlers\ShellCommandLineHandler.cs" />
     <Compile Include="RemoteClient.cs" />
     <Compile Include="Server.cs" />
@@ -78,6 +78,10 @@
     <ProjectReference Include="..\LinkUs.Modules.RemoteShell\LinkUs.Modules.RemoteShell.csproj">
       <Project>{ED039716-0C2A-4900-BDC7-2576A668D057}</Project>
       <Name>LinkUs.Modules.RemoteShell</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LinkUs\LinkUs.csproj">
+      <Project>{0A5AD8DA-E2B1-4D51-927C-0593AD9EDCC0}</Project>
+      <Name>LinkUs</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

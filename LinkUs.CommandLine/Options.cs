@@ -19,7 +19,7 @@ namespace LinkUs.CommandLine
         public ListModulesCommandLine ListModules { get; set; }
 
         [VerbOption("list-clients", HelpText = "Display the list of connected clients.")]
-        public ListRemoteClients ListRemoteClients { get; set; }
+        public ListConnectedClient ListConnectedClient { get; set; }
 
         [VerbOption("shell", HelpText = "Start a remote shell on client.")]
         public ShellCommandLine Shell { get; set; }

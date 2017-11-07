@@ -11,10 +11,10 @@ namespace LinkUs.CommandLine
             _commandDispatcher = commandDispatcher;
         }
 
-        public string GetConnectedClients()
+        public ConnectedClient[] GetConnectedClients()
         {
-            var defaultCommand = new ListRemoteClients();
-            return _commandDispatcher.ExecuteAsync<ListRemoteClients, string>(defaultCommand).Result;
+            var command = new ListConnectedClient();
+            return _commandDispatcher.ExecuteAsync<ListConnectedClient, ConnectedClient[]>(command).Result;
         }
     }
 }

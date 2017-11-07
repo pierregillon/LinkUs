@@ -11,7 +11,6 @@ namespace LinkUs.Core.Connection
         private readonly Queue<SocketAsyncEventArgs> _acceptSocketOperations = new Queue<SocketAsyncEventArgs>();
 
         public event Action<SocketConnection> ConnectionEstablished;
-        public event Action<SocketConnection> ConnectionLost;
 
         public SocketConnectionListener(IPEndPoint endPoint)
         {
