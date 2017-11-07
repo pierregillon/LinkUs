@@ -5,7 +5,7 @@ namespace LinkUs.Modules.RemoteShell.Commands
         public string Input { get; set; }
 
         public SendInputToShell() { }
-        public SendInputToShell(string input, double processId) : base(processId)
+        public SendInputToShell(string input, int processId) : base(processId)
         {
             Input = input;
         }

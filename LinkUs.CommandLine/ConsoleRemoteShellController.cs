@@ -16,7 +16,7 @@ namespace LinkUs.CommandLine
         private readonly ISerializer _serializer;
         private bool _remoteShellIsActive;
         private CursorPosition _lastCursorPosition;
-        private double _processId;
+        private int _processId;
 
         // ----- Constructor
         public ConsoleRemoteShellController(CommandDispatcher commandDispatcher, ClientId target, ISerializer serializer)
@@ -68,7 +68,7 @@ namespace LinkUs.CommandLine
         }
 
         // ----- Internal logic
-        private double StartRemoteShell()
+        private int StartRemoteShell()
         {
             Console.Write("Command to execute on remote client > ");
             var commandInput = Console.ReadLine();

@@ -2,10 +2,10 @@
 {
     public abstract class ShellMessage 
     {
-        public double ProcessId { get; set; }
+        public int ProcessId { get; set; }
 
         protected ShellMessage() { }
-        protected ShellMessage(double processId)
+        protected ShellMessage(int processId)
         {
             ProcessId = processId;
         }

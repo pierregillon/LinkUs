@@ -5,7 +5,7 @@ namespace LinkUs.Modules.RemoteShell.Events
         public string Output { get; set; }
 
         public ShellOutputReceived() { }
-        public ShellOutputReceived(string output, double processId) : base(processId)
+        public ShellOutputReceived(string output, int processId) : base(processId)
         {
             Output = output;
         }

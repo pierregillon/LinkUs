@@ -62,7 +62,7 @@
     <Compile Include="Modules\ExternalAssemblyModuleScanner.cs" />
     <Compile Include="Modules\Exceptions\ModuleAlreadyLoadedException.cs" />
     <Compile Include="Modules\ModuleCommandHandler.cs" />
-    <Compile Include="Modules\Commands\ModuleInformation.cs" />
+    <Compile Include="Modules\ModuleInformation.cs" />
     <Compile Include="Modules\Commands\ModuleInformationResponse.cs" />
     <Compile Include="Modules\ExternalAssemblyModuleLocator.cs" />
     <Compile Include="Modules\ModuleManager.cs" />
