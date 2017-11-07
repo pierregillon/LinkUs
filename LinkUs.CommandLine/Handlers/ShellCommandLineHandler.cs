@@ -14,9 +14,9 @@ namespace LinkUs.CommandLine.Handlers
             _commandDispatcher = commandDispatcher;
         }
 
-        public void Handle(ShellCommandLine command)
+        public void Handle(ShellCommandLine commandLine)
         {
-            var targetId = ClientId.Parse(command.Target);
+            var targetId = ClientId.Parse(commandLine.Target);
             var driver = new ConsoleRemoteShellController(_commandDispatcher, targetId, new JsonSerializer());
             driver.SendInputs();
         }

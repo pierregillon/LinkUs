@@ -7,6 +7,6 @@ namespace LinkUs.Core
 
     public interface IHandler<in TRequest>
     {
-        void Handle(TRequest command);
+        void Handle(TRequest commandLine);
     }
 }

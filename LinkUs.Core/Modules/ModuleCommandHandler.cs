@@ -6,7 +6,8 @@ namespace LinkUs.Core.Modules
 {
     public class ModuleCommandHandler :
         IHandler<ListModules, ModuleInformationResponse>,
-        IHandler<LoadModule, bool>
+        IHandler<LoadModule, bool>,
+        IHandler<UnloadModule, bool>
     {
         private readonly ModuleManager _moduleManager;
         private readonly ModuleLocator _moduleLocator;
@@ -38,13 +39,20 @@ namespace LinkUs.Core.Modules
 
         public bool Handle(LoadModule request)
         {
-            var module = _moduleManager.FindModule(request.ModuleName);
+            var module = _moduleManager.GetModule(request.ModuleName);
             if (module != null) {
                 throw new Exception($"Module '{request.ModuleName}' is already loaded.");
             }
             var filePath = _moduleLocator.GetFullPath(request.ModuleName);
             var externalAssemblyModule = new ExternalAssemblyModule(_packageParser, filePath);
             _moduleManager.Register(externalAssemblyModule);
+            return true;
+        }
+        public bool Handle(UnloadModule request)
+        {
+            var module = _moduleManager.FindModule(request.ModuleName);
+            module.Dispose();
+            _moduleManager.Unregister(module);
             return true;
         }
     }

@@ -36,5 +36,11 @@ namespace LinkUs.CommandLine
             var isSucceded = _commandDispatcher.ExecuteAsync<LoadModule, bool>(command, target).Result;
             return isSucceded;
         }
+        public bool UnLoadModule(ClientId target, string moduleName)
+        {
+            var command = new UnloadModule(moduleName);
+            var isSucceded = _commandDispatcher.ExecuteAsync<UnloadModule, bool>(command, target).Result;
+            return isSucceded;
+        }
     }
 }

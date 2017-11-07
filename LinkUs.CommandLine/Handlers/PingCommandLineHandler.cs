@@ -14,9 +14,9 @@ namespace LinkUs.CommandLine.Handlers
             _remoteClient = new RemoteClient(commandDispatcher);
         }
 
-        public void Handle(PingCommandLine command)
+        public void Handle(PingCommandLine commandLine)
         {
-            var targetId = ClientId.Parse(command.Target);
+            var targetId = ClientId.Parse(commandLine.Target);
             var pingEllapsedTime = _remoteClient.Ping(targetId);
             Console.WriteLine($"Ok. {pingEllapsedTime} ms.");
         }

@@ -12,9 +12,9 @@ namespace LinkUs.CommandLine.Handlers
             _commandDispatcher = commandDispatcher;
         }
 
-        public void Handle(ListRemoteClients command)
+        public void Handle(ListRemoteClients commandLine)
         {
-            var result = _commandDispatcher.ExecuteAsync<ListRemoteClients, string>(command).Result;
+            var result = _commandDispatcher.ExecuteAsync<ListRemoteClients, string>(commandLine).Result;
             Console.WriteLine(result);
         }
     }

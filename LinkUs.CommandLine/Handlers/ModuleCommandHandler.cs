@@ -7,6 +7,7 @@ namespace LinkUs.CommandLine.Handlers
 {
     public class ModuleCommandHandler :
         IHandler<LoadModuleCommandLine>,
+        IHandler<UnloadModuleCommandLine>,
         IHandler<ListModulesCommandLine>
     {
         private readonly RemoteClient _remoteClient;
@@ -24,9 +25,17 @@ namespace LinkUs.CommandLine.Handlers
                 Console.WriteLine($"Failed to load module {commandLine.ModuleName}.");
             }
         }
-        public void Handle(ListModulesCommandLine command)
+        public void Handle(UnloadModuleCommandLine commandLine)
         {
-            var targetId = ClientId.Parse(command.Target);
+            var targetId = ClientId.Parse(commandLine.Target);
+            var isSucceded = _remoteClient.UnLoadModule(targetId, commandLine.ModuleName);
+            if (!isSucceded) {
+                Console.WriteLine($"Failed to load module {commandLine.ModuleName}.");
+            }
+        }
+        public void Handle(ListModulesCommandLine commandLine)
+        {
+            var targetId = ClientId.Parse(commandLine.Target);
             var response = _remoteClient.GetModules(targetId);
             Console.WriteLine(string.Join(Environment.NewLine, response));
         }

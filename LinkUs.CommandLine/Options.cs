@@ -12,6 +12,9 @@ namespace LinkUs.CommandLine
         [VerbOption("load-module", HelpText = "Load a specific module of a client.")]
         public LoadModuleCommandLine LoadModule { get; set; }
 
+        [VerbOption("unload-module", HelpText = "Unload a specific module of a client.")]
+        public UnloadModuleCommandLine UnloadModule { get; set; }
+
         [VerbOption("list-modules", HelpText = "Display the list of the module installed on a client.")]
         public ListModulesCommandLine ListModules { get; set; }
 

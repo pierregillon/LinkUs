@@ -23,7 +23,7 @@ namespace LinkUs.Core.Modules
         public string GetFullPath(string moduleName)
         {
             if (moduleName == null) throw new ArgumentNullException(nameof(moduleName));
-            var fileName = Path.ChangeExtension(moduleName, ".dll");
+            var fileName = moduleName + ".dll";
             return Path.Combine(MODULE_DIRECTORY, fileName);
         }
     }

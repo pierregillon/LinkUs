@@ -11,6 +11,6 @@ namespace LinkUs.Core.Modules
             _moduleName = moduleName;
         }
 
-        public override string Message => $"The module '{_moduleName}' was not loaded.";
+        public override string Message => $"The module '{_moduleName}' is not loaded.";
     }
 }

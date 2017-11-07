@@ -45,6 +45,9 @@ namespace LinkUs.Core.Modules
             if (commandInstance is LoadModule) {
                 return GetModuleCommandHandler().Handle((LoadModule) commandInstance);
             }
+            if (commandInstance is UnloadModule) {
+                return GetModuleCommandHandler().Handle((UnloadModule) commandInstance);
+            }
             throw new Exception("Handler not found");
         }
 
@@ -52,5 +55,6 @@ namespace LinkUs.Core.Modules
         {
             return new ModuleCommandHandler(_moduleManager, _moduleLocator, _packageParser);
         }
+        public void Dispose() { }
     }
 }
