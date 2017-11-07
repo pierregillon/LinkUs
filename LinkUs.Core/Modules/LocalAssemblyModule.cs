@@ -10,12 +10,12 @@ namespace LinkUs.Core.Modules
     public class LocalAssemblyModule : IModule
     {
         private readonly ModuleManager _moduleManager;
-        private readonly ModuleLocator _moduleLocator;
+        private readonly ExternalAssemblyModuleLocator _moduleLocator;
         private readonly PackageParser _packageParser;
 
         public LocalAssemblyModule(
             ModuleManager moduleManager,
-            ModuleLocator moduleLocator,
+            ExternalAssemblyModuleLocator moduleLocator,
             PackageParser packageParser)
         {
             _moduleManager = moduleManager;

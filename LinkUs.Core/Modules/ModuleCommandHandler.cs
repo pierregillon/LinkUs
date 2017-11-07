@@ -10,12 +10,12 @@ namespace LinkUs.Core.Modules
         IHandler<UnloadModule, bool>
     {
         private readonly ModuleManager _moduleManager;
-        private readonly ModuleLocator _moduleLocator;
+        private readonly ExternalAssemblyModuleLocator _moduleLocator;
         private readonly PackageParser _packageParser;
 
         public ModuleCommandHandler(
             ModuleManager moduleManager,
-            ModuleLocator moduleLocator,
+            ExternalAssemblyModuleLocator moduleLocator,
             PackageParser packageParser)
         {
             _moduleManager = moduleManager;
@@ -25,7 +25,7 @@ namespace LinkUs.Core.Modules
 
         public ModuleInformationResponse Handle(ListModules command)
         {
-            var externalAssemblyModules = _moduleLocator.GetAllExternalAssemblyModules().ToList();
+            var externalAssemblyModules = _moduleLocator.GetModules().ToList();
             foreach (var loadedModule in _moduleManager.Modules) {
                 var module = externalAssemblyModules.SingleOrDefault(x => x.Name == loadedModule.Name);
                 if (module != null) {

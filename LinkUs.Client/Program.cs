@@ -14,15 +14,24 @@ namespace LinkUs.Client
 
         static void Main(string[] args)
         {
-            var packageParser = new PackageParser(new JsonSerializer());
+            Thread.Sleep(1000);
             var moduleManager = new ModuleManager();
-            var moduleLocator = new ModuleLocator();
+            LoadModules(moduleManager);
+            ConnectToHostAndProcessCommands(moduleManager);
+        }
+
+        // ----- Internal logics
+        private static void LoadModules(ModuleManager moduleManager)
+        {
+            var packageParser = new PackageParser(new JsonSerializer());
+            var moduleLocator = new ExternalAssemblyModuleLocator();
             moduleManager.Register(new LocalAssemblyModule(moduleManager, moduleLocator, packageParser));
-            foreach (var module in new ModuleAssemblyScanner(packageParser).Scan(".")) {
+            foreach (var module in new ExternalAssemblyModuleScanner(moduleLocator, packageParser).Scan()) {
                 moduleManager.Register(module);
             }
-
-            Thread.Sleep(1000);
+        }
+        private static void ConnectToHostAndProcessCommands(ModuleManager moduleManager)
+        {
             while (true) {
                 var connection = new SocketConnection();
                 if (TryConnectSocketToHost(connection)) {
@@ -39,8 +48,6 @@ namespace LinkUs.Client
                 }
             }
         }
-
-        // ----- Internal logics
         private static bool TryConnectSocketToHost(IConnection connection)
         {
             string host = "127.0.0.1";

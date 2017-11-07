@@ -6,11 +6,11 @@ using LinkUs.Core.Modules.Commands;
 
 namespace LinkUs.Core.Modules
 {
-    public class ModuleLocator
+    public class ExternalAssemblyModuleLocator
     {
         private const string MODULE_DIRECTORY = ".";
 
-        public IEnumerable<ModuleInformation> GetAllExternalAssemblyModules()
+        public IEnumerable<ModuleInformation> GetModules()
         {
             foreach (var filePath in Directory.GetFiles(MODULE_DIRECTORY, "LinkUs.Modules.*.dll")) {
                 var assemblyName = AssemblyName.GetAssemblyName(filePath);

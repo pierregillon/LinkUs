@@ -58,11 +58,11 @@
     <Compile Include="Modules\Commands\ListModules.cs" />
     <Compile Include="Modules\ExternalAssemblyModule.cs" />
     <Compile Include="Modules\LocalAssemblyModule.cs" />
-    <Compile Include="Modules\ModuleAssemblyScanner.cs" />
+    <Compile Include="Modules\ExternalAssemblyModuleScanner.cs" />
     <Compile Include="Modules\ModuleCommandHandler.cs" />
     <Compile Include="Modules\Commands\ModuleInformation.cs" />
     <Compile Include="Modules\Commands\ModuleInformationResponse.cs" />
-    <Compile Include="Modules\ModuleLocator.cs" />
+    <Compile Include="Modules\ExternalAssemblyModuleLocator.cs" />
     <Compile Include="Modules\ModuleManager.cs" />
     <Compile Include="Modules\ModuleNotLoadedException.cs" />
     <Compile Include="PackageParser.cs" />
