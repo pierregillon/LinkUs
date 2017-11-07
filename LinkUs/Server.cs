@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using LinkUs.Core;
+using LinkUs.Core.ClientInformation;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
+using LinkUs.Responses;
 
 namespace LinkUs
 {
@@ -12,7 +14,7 @@ namespace LinkUs
     {
         private readonly PackageRouter _packageRouter;
         private readonly SocketConnectionListener _connectionListener;
-        private readonly List<ClientId> _clients = new List<ClientId>();
+        private readonly IDictionary<ClientId, ClientBasicInformation> _clients = new Dictionary<ClientId, ClientBasicInformation>();
 
         // ----- Constructor
         public Server(IPEndPoint endPoint)
@@ -45,8 +47,11 @@ namespace LinkUs
         }
         private void PackageRouterOnClientConnected(ClientId clientId)
         {
-            WriteLine($"* Client '{clientId}' connected.");
-            _clients.Add(clientId);
+            var transmitter = _packageRouter.GetTransmitter(clientId);
+            var commandDispatcher = new CommandDispatcher(transmitter, new JsonSerializer());
+            var information = commandDispatcher.ExecuteAsync<GetBasicInformation, ClientBasicInformation>(new GetBasicInformation(), clientId, ClientId.Server).Result;
+            _clients.Add(clientId, information);
+            WriteLine($"* Client '{information.MachineName}' connected.");
         }
         private void PackageRouterOnClientDisconnected(ClientId clientId)
         {
@@ -58,17 +63,14 @@ namespace LinkUs
             var jsonSerializer = new JsonSerializer();
             var commandLine = jsonSerializer.Deserialize<MessageDescriptor>(package.Content);
             if (commandLine.CommandName == typeof(ListConnectedClient).Name) {
-                var value = _clients.Select(x => new ConnectedClient() {
-                    Id = x.ToString(),
-                    MachineName = Environment.MachineName,
-                    Ip = "192.168.1.1"
+                var value = _clients.Select(x => new ConnectedClient {
+                    Id = x.Key.ToString(),
+                    MachineName = x.Value.MachineName,
+                    OperatingSystem = x.Value.OperatingSystem,
+                    UserName = x.Value.UserName,
                 }).ToArray();
                 var packageResponse = package.CreateResponsePackage(jsonSerializer.Serialize(value));
                 _packageRouter.SendPackage(packageResponse);
-            }
-            else {
-                var responsePackage = package.CreateResponsePackage(jsonSerializer.Serialize("Invalid command"));
-                _packageRouter.SendPackage(responsePackage);
             }
         }
 

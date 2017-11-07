@@ -1,5 +1,6 @@
 ﻿using System;
 using LinkUs.Core;
+using LinkUs.Responses;
 
 namespace LinkUs.CommandLine.Handlers
 {
@@ -16,7 +17,11 @@ namespace LinkUs.CommandLine.Handlers
         {
             var clients = _commandDispatcher.ExecuteAsync<ListConnectedClient, ConnectedClient[]>(commandLine).Result;
             foreach (var connectedClient in clients) {
-                Console.WriteLine($"{connectedClient.Id}\t{connectedClient.MachineName}\t{connectedClient.Ip}");
+                Console.WriteLine($"{connectedClient.Id}\t" +
+                                  $"{connectedClient.UserName}\t" +
+                                  $"{connectedClient.MachineName}\t" +
+                                  $"{connectedClient.OperatingSystem}\t" +
+                                  $"{connectedClient.PublicIp}");
             }
         }
     }

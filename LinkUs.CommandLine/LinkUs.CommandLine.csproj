@@ -54,7 +54,6 @@
     <Compile Include="Verbs\ListModulesCommandLine.cs" />
     <Compile Include="Handlers\PingCommandLineHandler.cs" />
     <Compile Include="Verbs\ClientTargettedCommandLine.cs" />
-    <Compile Include="CommandDispatcher.cs" />
     <Compile Include="CursorPosition.cs" />
     <Compile Include="Handlers\ModuleCommandHandler.cs" />
     <Compile Include="Verbs\LoadModuleCommandLine.cs" />

@@ -1,8 +1,7 @@
-namespace LinkUs.Responses
+﻿namespace LinkUs.Core.ClientInformation
 {
-    public class ConnectedClient
+    public class ClientBasicInformation
     {
-        public string Id { get; set; }
         public string UserName { get; set; }
         public string MachineName { get; set; }
         public string OperatingSystem { get; set; }

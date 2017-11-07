@@ -1,10 +1,9 @@
 using System;
 using System.Threading.Tasks;
-using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
 
-namespace LinkUs.CommandLine
+namespace LinkUs.Core
 {
     public class CommandDispatcher
     {
@@ -17,10 +16,12 @@ namespace LinkUs.CommandLine
             _serializer = serializer;
         }
 
-        public Task<TResponse> ExecuteAsync<TCommand, TResponse>(TCommand command, ClientId clientId = null)
+        public Task<TResponse> ExecuteAsync<TCommand, TResponse>(TCommand command, ClientId destination = null, ClientId source = null)
         {
-            clientId = clientId ?? ClientId.Server;
-            var commandPackage = new Package(ClientId.Unknown, clientId, _serializer.Serialize(command));
+            destination = destination ?? ClientId.Server;
+            source = source ?? ClientId.Unknown;
+
+            var commandPackage = new Package(source, destination, _serializer.Serialize(command));
 
             var completionSource = new TaskCompletionSource<TResponse>();
             EventHandler<Package> packageReceivedAction = (sender, responsePackage) => {
@@ -47,10 +48,10 @@ namespace LinkUs.CommandLine
                 return task.Result;
             });
         }
-        public void ExecuteAsync<TCommand>(TCommand command, ClientId clientId = null)
+        public void ExecuteAsync<TCommand>(TCommand command, ClientId destination = null)
         {
             var content = _serializer.Serialize(command);
-            var commandPackage = new Package(ClientId.Unknown, clientId, content);
+            var commandPackage = new Package(ClientId.Unknown, destination, content);
             PackageTransmitter.Send(commandPackage);
         }
         //private void SendPackage(Package package)

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Modules.Commands;
 using LinkUs.Core.PingLib;

@@ -1,4 +1,5 @@
 using LinkUs.Core;
+using LinkUs.Responses;
 
 namespace LinkUs.CommandLine
 {

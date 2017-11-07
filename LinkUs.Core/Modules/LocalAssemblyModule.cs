@@ -37,9 +37,6 @@ namespace LinkUs.Core.Modules
             }
 
             var commandInstance = _packageParser.Materialize(commandType, package);
-            if (commandInstance is Ping) {
-                return new PingHandler().Handle((Ping) commandInstance);
-            }
             if (commandInstance is ListModules) {
                 return GetModuleCommandHandler().Handle((ListModules) commandInstance);
             }
@@ -49,7 +46,18 @@ namespace LinkUs.Core.Modules
             if (commandInstance is UnloadModule) {
                 return GetModuleCommandHandler().Handle((UnloadModule) commandInstance);
             }
-            throw new Exception("Handler not found");
+            var handlerType = Assembly
+                .GetExecutingAssembly()
+                .GetTypes()
+                .SingleOrDefault(x => x.GetInterfaces().Any(y=> y.GetGenericArguments().Length != 0 && y.GetGenericArguments()[0] == commandType));
+
+            var handler = Activator.CreateInstance(handlerType);
+            var handle = handlerType
+                .GetMethods()
+                .Where(x => x.Name == "Handle")
+                .Single(x => x.GetParameters()[0].ParameterType == commandType);
+
+            return handle.Invoke(handler, new [] { commandInstance });
         }
 
         private ModuleCommandHandler GetModuleCommandHandler()

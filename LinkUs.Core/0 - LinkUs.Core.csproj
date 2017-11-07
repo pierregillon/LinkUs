@@ -46,6 +46,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientInformation\ClientBasicInformation.cs" />
+    <Compile Include="ClientInformation\GetBasicInformation.cs" />
+    <Compile Include="ClientInformation\GetBasicInformationHandler.cs" />
+    <Compile Include="ClientInformation\NetHelper.cs" />
+    <Compile Include="CommandDispatcher.cs" />
     <Compile Include="Connection\ClientId.cs" />
     <Compile Include="ErrorMessage.cs" />
     <Compile Include="IBus.cs" />
