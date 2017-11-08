@@ -10,5 +10,6 @@ namespace LinkUs.CommandLine.ConsoleLib
         void WriteObjects<T>(IReadOnlyCollection<T> collection, params string[] properties);
         void WriteLine(string message, params object[] args);
         void Write(string message, params object[] args);
+        void NewLine();
     }
 }

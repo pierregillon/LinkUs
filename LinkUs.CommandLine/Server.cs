@@ -21,8 +21,12 @@ namespace LinkUs.CommandLine
             var command = new ListConnectedClient();
             return _commandSender.ExecuteAsync<ListConnectedClient, ConnectedClient[]>(command);
         }
-
         public async Task<ClientId> FindCliendId(string partialClientId)
+        {
+            var client = await GetConnectedClient(partialClientId);
+            return ClientId.Parse(client.Id);
+        }
+        public async Task<ConnectedClient> GetConnectedClient(string partialClientId)
         {
             var clients = await GetConnectedClients();
             var matchingClients = clients.Where(x => x.Id.StartsWith(partialClientId)).ToArray();
@@ -32,7 +36,7 @@ namespace LinkUs.CommandLine
             if (matchingClients.Length > 1) {
                 throw new Exception($"Multiple client are matching '{partialClientId}'.");
             }
-            return ClientId.Parse(matchingClients.Single().Id);
+            return matchingClients.Single();
         }
     }
 }

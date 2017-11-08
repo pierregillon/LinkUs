@@ -7,7 +7,7 @@ namespace LinkUs.CommandLine.ConsoleLib
 {
     public class WindowsConsole : IConsole
     {
-        private const ConsoleColor InfoColor = ConsoleColor.Gray;
+        private const ConsoleColor InfoColor = ConsoleColor.DarkBlue;
         private const ConsoleColor ErrorColor = ConsoleColor.Red;
         private const ConsoleColor WarningColor = ConsoleColor.DarkYellow;
 
@@ -57,6 +57,10 @@ namespace LinkUs.CommandLine.ConsoleLib
         public void Write(string message, params object[] args)
         {
             Console.Write(message, args);
+        }
+        public void NewLine()
+        {
+            Console.WriteLine();
         }
 
         // ----- Utils
