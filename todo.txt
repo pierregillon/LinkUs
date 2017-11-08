@@ -1,10 +1,5 @@
 * send data with fixed size buffer
-* module manager
 * lock on queue for SocketConnection => "exit" on remote shell
 * introduce concept for sending package with command or event.
-* introduct materialiser to instanciate class from json and eventually throw exception (ErrorMessage, ExceptionMessage)
 * download / upload
-* Set Type.FullName in message, easier for deserialization.
 * ILogger in ExternalAssemblyModule to do the Console Printing.
-* change the type port of shellCommand of double in int + remove default constructor of command if possible.
-* Transform CommandDispatcher in Async await pattern
