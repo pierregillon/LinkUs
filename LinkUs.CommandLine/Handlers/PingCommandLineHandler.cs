@@ -1,40 +1,26 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.CommandLine.Verbs;
 using LinkUs.Core;
-using LinkUs.Core.Connection;
 
 namespace LinkUs.CommandLine.Handlers
 {
-    public class PingCommandLineHandler : ICommandLineHandler<PingCommandLine>
+    public class PingCommandLineHandler : PartialClientIdHandler, ICommandLineHandler<PingCommandLine>
     {
         private readonly IConsole _console;
-        private readonly RemoteClient _remoteClient;
-        private readonly Server _server;
+        private readonly RemoteClient _client;
 
-        public PingCommandLineHandler(IConsole console, ICommandSender commandSender)
+        public PingCommandLineHandler(IConsole console, RemoteClient client, Server server) : base(server)
         {
             _console = console;
-            _remoteClient = new RemoteClient(commandSender);
-            _server = new Server(commandSender);
+            _client = client;
         }
 
         public async Task Handle(PingCommandLine commandLine)
         {
-            var clients = await _server.GetConnectedClients();
-            var matchingClients = clients.Where(x => x.Id.StartsWith(commandLine.Target)).ToArray();
-            if (matchingClients.Length == 0) {
-                _console.WriteLineError($"The client '{commandLine.Target}' is not connected.");
-            }
-            else if (matchingClients.Length > 1) {
-                _console.WriteLineError($"Multiple client are matching '{commandLine.Target}'.");
-            }
-            else {
-                var targetId = ClientId.Parse(matchingClients.Single().Id);
-                var pingEllapsedTime = await _remoteClient.Ping(targetId);
-                _console.WriteLine($"Ok. {pingEllapsedTime} ms.");
-            }
+            var targetId = await FindCliendId(commandLine.Target);
+            var pingEllapsedTime = await _client.Ping(targetId);
+            _console.WriteLine($"Ok. {pingEllapsedTime} ms.");
         }
     }
 }

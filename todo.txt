@@ -10,3 +10,4 @@
 * Transform CommandDispatcher in Async await pattern
 * If IpPublic failed?
 * remove ModuleInformationResponse and return direct list<>
+* ignore case for module name.

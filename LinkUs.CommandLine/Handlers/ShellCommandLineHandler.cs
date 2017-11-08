@@ -1,23 +1,21 @@
 ﻿using System.Threading.Tasks;
 using LinkUs.CommandLine.Verbs;
-using LinkUs.Core.Connection;
 
 namespace LinkUs.CommandLine.Handlers
 {
-    public class ShellCommandLineHandler : ICommandLineHandler<ShellCommandLine>
+    public class ShellCommandLineHandler : PartialClientIdHandler, ICommandLineHandler<ShellCommandLine>
     {
         private readonly ConsoleRemoteShellController _remoteShellController;
 
-        public ShellCommandLineHandler(ConsoleRemoteShellController remoteShellController)
+        public ShellCommandLineHandler(ConsoleRemoteShellController remoteShellController, Server server) : base(server)
         {
             _remoteShellController = remoteShellController;
         }
 
-        public Task Handle(ShellCommandLine commandLine)
+        public async Task Handle(ShellCommandLine commandLine)
         {
-            var targetId = ClientId.Parse(commandLine.Target);
+            var targetId = await FindCliendId(commandLine.Target);
             _remoteShellController.SendInputs(targetId);
-            return Task.Delay(0);
         }
     }
 }
