@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.CommandLine.Verbs;
 
 namespace LinkUs.CommandLine.Handlers
@@ -9,11 +10,13 @@ namespace LinkUs.CommandLine.Handlers
         ICommandLineHandler<UnloadModuleCommandLine>,
         ICommandLineHandler<ListModulesCommandLine>
     {
+        private readonly IConsole _console;
         private readonly RemoteClient _remoteClient;
         private readonly Server _server;
 
-        public ModuleCommandHandler(RemoteClient remoteClient, Server server)
+        public ModuleCommandHandler(IConsole console, RemoteClient remoteClient, Server server)
         {
+            _console = console;
             _remoteClient = remoteClient;
             _server = server;
         }
@@ -23,7 +26,7 @@ namespace LinkUs.CommandLine.Handlers
             var targetId = await _server.FindCliendId(commandLine.Target);
             var isSucceded = await _remoteClient.LoadModule(targetId, commandLine.ModuleName);
             if (!isSucceded) {
-                Console.WriteLine($"Failed to load module {commandLine.ModuleName}.");
+                _console.WriteLine($"Failed to load module {commandLine.ModuleName}.");
             }
         }
         public async Task Handle(UnloadModuleCommandLine commandLine)
@@ -31,14 +34,14 @@ namespace LinkUs.CommandLine.Handlers
             var targetId = await _server.FindCliendId(commandLine.Target);
             var isSucceded = await _remoteClient.UnLoadModule(targetId, commandLine.ModuleName);
             if (!isSucceded) {
-                Console.WriteLine($"Failed to load module {commandLine.ModuleName}.");
+                _console.WriteLine($"Failed to load module {commandLine.ModuleName}.");
             }
         }
         public async Task Handle(ListModulesCommandLine commandLine)
         {
             var targetId = await _server.FindCliendId(commandLine.Target);
-            var response = await _remoteClient.GetModules(targetId);
-            Console.WriteLine(string.Join(Environment.NewLine, response));
+            var modules = await _remoteClient.GetModules(targetId);
+            _console.WriteObjects(modules);
         }
     }
 }

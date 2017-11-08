@@ -9,5 +9,4 @@
 * change the type port of shellCommand of double in int + remove default constructor of command if possible.
 * Transform CommandDispatcher in Async await pattern
 * If IpPublic failed?
-* remove ModuleInformationResponse and return direct list<>
 * ignore case for module name.

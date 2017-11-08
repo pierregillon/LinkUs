@@ -26,11 +26,11 @@ namespace LinkUs.CommandLine
             stopWatch.Stop();
             return stopWatch.ElapsedMilliseconds;
         }
-        public async Task<IEnumerable<ModuleInformation>> GetModules(ClientId targetId)
+        public async Task<IReadOnlyCollection<ModuleInformation>> GetModules(ClientId targetId)
         {
             var command = new ListModules();
-            var response = await _commandSender.ExecuteAsync<ListModules, ModuleInformationResponse>(command, targetId);
-            return response.ModuleInformations;
+            var response = await _commandSender.ExecuteAsync<ListModules, ModuleInformation[]>(command, targetId);
+            return response;
         }
         public Task<bool> LoadModule(ClientId target, string moduleName)
         {

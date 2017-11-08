@@ -6,7 +6,7 @@ using LinkUs.Core.Modules.Exceptions;
 namespace LinkUs.Core.Modules
 {
     public class ModuleCommandHandler :
-        IHandler<ListModules, ModuleInformationResponse>,
+        IHandler<ListModules, ModuleInformation[]>,
         IHandler<LoadModule, bool>,
         IHandler<UnloadModule, bool>
     {
@@ -24,7 +24,7 @@ namespace LinkUs.Core.Modules
             _packageParser = packageParser;
         }
 
-        public ModuleInformationResponse Handle(ListModules command)
+        public ModuleInformation[] Handle(ListModules command)
         {
             var externalAssemblyModules = _moduleLocator.GetModules().ToList();
             foreach (var loadedModule in _moduleManager.Modules) {
@@ -33,9 +33,7 @@ namespace LinkUs.Core.Modules
                     module.IsLoaded = true;
                 }
             }
-            return new ModuleInformationResponse {
-                ModuleInformations = externalAssemblyModules
-            };
+            return externalAssemblyModules.ToArray();
         }
 
         public bool Handle(LoadModule request)
