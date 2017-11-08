@@ -32,7 +32,6 @@ namespace LinkUs.CommandLine.Handlers
                     Thread.Sleep(1000);
                 }
             }
-            _console.NewLine();
         }
     }
 }

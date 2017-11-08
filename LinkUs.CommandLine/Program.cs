@@ -50,20 +50,21 @@ namespace LinkUs.CommandLine
         private static void ProcessCommand(IContainer container, string[] arguments)
         {
             var processor = container.GetInstance<ICommandLineProcessor>();
+            var console = container.GetInstance<IConsole>();
             try {
                 processor.Process(arguments).Wait();
             }
             catch (CommandLineProcessingFailed ex) {
-                var console = container.GetInstance<IConsole>();
                 console.Write(ex.Message);
             }
             catch (TargetInvocationException ex) {
-                var console = container.GetInstance<IConsole>();
                 WriteInnerException(console, ex.InnerException);
             }
             catch (Exception ex) {
-                var console = container.GetInstance<IConsole>();
                 WriteInnerException(console, ex);
+            }
+            finally {
+                console.NewLine();
             }
         }
         private static void WhileReadingCommands(Action<string[]> action)
@@ -99,7 +100,7 @@ namespace LinkUs.CommandLine
                     y.ConnectImplementationsToTypesClosing(typeof(ICommandLineHandler<>));
                     y.WithDefaultConventions();
                 });
-        });
+            });
         }
         private static void WriteInnerException(IConsole console, Exception exception)
         {
