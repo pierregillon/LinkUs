@@ -37,6 +37,10 @@
       <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="StructureMap, Version=4.5.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\StructureMap.4.5.2\lib\net45\StructureMap.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -47,10 +51,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConsoleExt.cs" />
+    <Compile Include="CommandLineProcessingFailed.cs" />
+    <Compile Include="CommandLineProcessor.cs" />
+    <Compile Include="ConsoleLib\WindowsConsole.cs" />
+    <Compile Include="ConsoleLib\IConsole.cs" />
     <Compile Include="Handlers\ListConnectedClientsCommandLineHandler.cs" />
     <Compile Include="Handlers\ShellCommandLineHandler.cs" />
     <Compile Include="Handlers\StringExtension.cs" />
+    <Compile Include="ICommandLineProcessor.cs" />
     <Compile Include="RemoteClient.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="Verbs\ListModulesCommandLine.cs" />

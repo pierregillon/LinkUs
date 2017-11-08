@@ -3,36 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using LinkUs.CommandLine.Handlers;
 
-namespace LinkUs.CommandLine
+namespace LinkUs.CommandLine.ConsoleLib
 {
-    public static class ConsoleExt
+    public class WindowsConsole : IConsole
     {
         private const ConsoleColor InfoColor = ConsoleColor.Gray;
         private const ConsoleColor ErrorColor = ConsoleColor.Red;
         private const ConsoleColor WarningColor = ConsoleColor.DarkYellow;
 
-        public static void WriteInfo(string message, params object[] parameters)
+        // ----- Public methods
+        public void WriteLineInfo(string message, params object[] parameters)
         {
             WriteWithColor(string.Format(message, parameters), InfoColor);
         }
-        public static void WriteError(string message, params object[] parameters)
+        public void WriteLineError(string message, params object[] parameters)
         {
             WriteWithColor(string.Format(message, parameters), ErrorColor);
         }
-        public static void WriteWarning(string message, params object[] parameters)
+        public void WriteLineWarning(string message, params object[] parameters)
         {
             WriteWithColor(string.Format(message, parameters), WarningColor);
         }
-
-        private static void WriteWithColor(string message, ConsoleColor color)
-        {
-            var previousColor = Console.ForegroundColor;
-            Console.ForegroundColor = color;
-            Console.WriteLine(message);
-            Console.ForegroundColor = previousColor;
-        }
-
-        public static void WriteObjects<T>(IReadOnlyCollection<T> list, params string[] properties)
+        public void WriteObjects<T>(IReadOnlyCollection<T> list, params string[] properties)
         {
             if (list.Any() == false) {
                 return;
@@ -57,6 +49,23 @@ namespace LinkUs.CommandLine
                 }
                 Console.WriteLine();
             }
+        }
+        public void WriteLine(string message, params object[] args)
+        {
+            Console.WriteLine(message, args);
+        }
+        public void Write(string message, params object[] args)
+        {
+            Console.Write(message, args);
+        }
+
+        // ----- Utils
+        private void WriteWithColor(string message, ConsoleColor color)
+        {
+            var previousColor = Console.ForegroundColor;
+            Console.ForegroundColor = color;
+            Console.WriteLine(message);
+            Console.ForegroundColor = previousColor;
         }
     }
 }

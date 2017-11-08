@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.Core;
 using LinkUs.Responses;
 
@@ -8,11 +9,13 @@ namespace LinkUs.CommandLine.Handlers
 {
     public class ListConnectedClientsCommandLineHandler : IHandler<ListConnectedClient>
     {
+        private readonly IConsole _console;
         private readonly CommandDispatcher _commandDispatcher;
 
         // ----- Constructor
-        public ListConnectedClientsCommandLineHandler(CommandDispatcher commandDispatcher)
+        public ListConnectedClientsCommandLineHandler(IConsole console, CommandDispatcher commandDispatcher)
         {
+            _console = console;
             _commandDispatcher = commandDispatcher;
         }
 
@@ -21,7 +24,7 @@ namespace LinkUs.CommandLine.Handlers
         {
             var clients = _commandDispatcher.ExecuteAsync<ListConnectedClient, ConnectedClient[]>(commandLine).Result.ToList();
             ReduceHashId(clients);
-            ConsoleExt.WriteObjects(clients);
+            _console.WriteObjects(clients);
         }
 
         // ----- Utils

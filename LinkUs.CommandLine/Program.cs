@@ -2,11 +2,12 @@
 using System.Linq;
 using System.Reflection;
 using CommandLine;
-using CommandLine.Text;
+using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.Core;
 using LinkUs.Core.ClientInformation;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
+using StructureMap;
 
 namespace LinkUs.CommandLine
 {
@@ -14,91 +15,102 @@ namespace LinkUs.CommandLine
     {
         static void Main(string[] arguments)
         {
-            if (arguments.Any() == false) {
-                var connection = CreateConnection();
-                while (true) {
-                    Console.Write("> ");
-                    var command = Console.ReadLine();
-                    if (string.IsNullOrEmpty(command) == false) {
-                        if (command == "exit") {
-                            break;
-                        }
-                        var commandArguments = command.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
-                        ParseArguments(commandArguments, connection);
-                    }
-                }
-                connection.Close();
+            var container = BuildContainer();
+            if (arguments != null && arguments.Any()) {
+                ExecuteSingleCommand(container, arguments);
             }
             else {
-                var connection = CreateConnection();
-                ParseArguments(arguments, connection);
-                connection.Close();
-            }
-        }
-        private static void ParseArguments(string[] commandArguments, IConnection connection)
-        {
-            var options = new Options();
-            string invokedVerb = null;
-            object invokedVerbInstance = null;
-            if (!Parser.Default.ParseArguments(commandArguments, options, (verb, subOptions) => {
-                invokedVerb = verb;
-                invokedVerbInstance = subOptions;
-            })) {
-                Console.WriteLine(HelpText.AutoBuild(options, invokedVerb));
-            }
-            else {
-                ExecuteCommand(connection, invokedVerbInstance);
+                ExecuteMultipleCommands(container);
             }
         }
 
         // ----- Internal logics
-        private static void ExecuteCommand(IConnection connection, object commandLine)
+        private static void ExecuteSingleCommand(IContainer container, string[] arguments)
         {
+            var connection = ConnectToServer(container);
             try {
-                var commandDispatcher = GetCommandDispatcher(connection);
-                var commandLineType = commandLine.GetType();
-                var commandLineHandlerType =
-                    Assembly.GetExecutingAssembly()
-                        .GetTypes()
-                        .SingleOrDefault(x => x.GetInterfaces().Contains(typeof(IHandler<>).MakeGenericType(commandLineType)));
-                if (commandLineHandlerType == null) {
-                    throw new Exception("No handler found for the command");
-                }
-
-                var commandLineHandler = Activator.CreateInstance(commandLineHandlerType, commandDispatcher);
-                var handleMethod = commandLineHandlerType
-                    .GetMethods()
-                    .Where(x => x.Name == "Handle")
-                    .Single(x => x.GetParameters()[0].ParameterType == commandLineType);
-                handleMethod.Invoke(commandLineHandler, new[] {commandLine});
+                ProcessCommand(container, arguments);
+            }
+            finally {
+                connection.Close();
+            }
+        }
+        private static void ExecuteMultipleCommands(IContainer container)
+        {
+            var connection = ConnectToServer(container);
+            try {
+                WhileReadingCommands(args => {
+                    ProcessCommand(container, args);
+                });
+            }
+            finally {
+                connection.Close();
+            }
+        }
+        private static void ProcessCommand(IContainer container, string[] arguments)
+        {
+            var processor = container.GetInstance<ICommandLineProcessor>();
+            try {
+                processor.Process(arguments);
+            }
+            catch (CommandLineProcessingFailed ex) {
+                var console = container.GetInstance<IConsole>();
+                console.Write(ex.Message);
             }
             catch (TargetInvocationException ex) {
-                WriteInnerException(ex.InnerException);
+                var console = container.GetInstance<IConsole>();
+                WriteInnerException(console, ex.InnerException);
+            }
+        }
+        private static void WhileReadingCommands(Action<string[]> action)
+        {
+            while (true) {
+                Console.Write("> ");
+                var command = Console.ReadLine();
+                if (string.IsNullOrEmpty(command) == false) {
+                    if (command == "exit") {
+                        break;
+                    }
+                    var commandArguments = command.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+                    action(commandArguments);
+                }
             }
         }
 
         // ----- Utils
-        private static CommandDispatcher GetCommandDispatcher(IConnection connection)
+        private static Container BuildContainer()
         {
-            var packageTransmitter = new PackageTransmitter(connection);
-            return new CommandDispatcher(packageTransmitter, new JsonSerializer());
+            return new Container(configuration => {
+                configuration.For<ICommandLineProcessor>().Use<CommandLineProcessor>();
+                configuration.For<CommandDispatcher>();
+                configuration.For<IConsole>().Use<WindowsConsole>();
+                configuration.For<ISerializer>().Use<JsonSerializer>();
+                configuration.For<Parser>().Use(Parser.Default);
+
+                configuration.Scan(y => {
+                    y.TheCallingAssembly();
+                    y.AddAllTypesOf(typeof(IHandler<>));
+                    y.WithDefaultConventions();
+                });
+            });
         }
-        private static void WriteInnerException(Exception exception)
+        private static void WriteInnerException(IConsole console, Exception exception)
         {
             if (exception is AggregateException) {
-                WriteInnerException(((AggregateException) exception).InnerException);
+                WriteInnerException(console, ((AggregateException) exception).InnerException);
             }
             else {
-                ConsoleExt.WriteError(exception.Message);
+                console.WriteLineError(exception.Message);
             }
         }
-        private static IConnection CreateConnection()
+        private static IConnection ConnectToServer(IContainer container)
         {
-            string host = "127.0.0.1";
-            int port = 9000;
+            var host = "127.0.0.1";
+            var port = 9000;
             var connection = new SocketConnection();
             connection.Connect(host, port);
-            var commandDispatcher = GetCommandDispatcher(connection);
+            container.Inject(typeof(IConnection), connection);
+            var commandDispatcher = container.GetInstance<CommandDispatcher>();
             commandDispatcher.ExecuteAsync(new SetStatus {Status = "Consumer"});
             return connection;
         }

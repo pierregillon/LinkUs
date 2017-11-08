@@ -8,3 +8,4 @@
 * ILogger in ExternalAssemblyModule to do the Console Printing.
 * change the type port of shellCommand of double in int + remove default constructor of command if possible.
 * Transform CommandDispatcher in Async await pattern
+* If IpPublic failed?
