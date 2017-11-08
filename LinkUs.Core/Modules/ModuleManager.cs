@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LinkUs.Core.Modules.Exceptions;
@@ -28,7 +29,7 @@ namespace LinkUs.Core.Modules
         }
         public IModule GetModule(string moduleName)
         {
-            return _modules.SingleOrDefault(x => x.Name == moduleName);
+            return _modules.SingleOrDefault(x => string.Equals(x.Name, moduleName, StringComparison.CurrentCultureIgnoreCase));
         }
     }
 }
