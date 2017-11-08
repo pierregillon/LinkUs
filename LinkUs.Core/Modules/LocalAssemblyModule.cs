@@ -4,7 +4,6 @@ using System.Reflection;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Modules.Commands;
 using LinkUs.Core.Modules.Exceptions;
-using LinkUs.Core.PingLib;
 
 namespace LinkUs.Core.Modules
 {
@@ -13,7 +12,12 @@ namespace LinkUs.Core.Modules
         private readonly ModuleManager _moduleManager;
         private readonly ExternalAssemblyModuleLocator _moduleLocator;
         private readonly PackageParser _packageParser;
+        private readonly Type[] _assemblyTypes;
 
+        // ----- Properties
+        public string Name => GetType().Assembly.GetName().Name;
+
+        // ----- Constructor
         public LocalAssemblyModule(
             ModuleManager moduleManager,
             ExternalAssemblyModuleLocator moduleLocator,
@@ -22,14 +26,16 @@ namespace LinkUs.Core.Modules
             _moduleManager = moduleManager;
             _moduleLocator = moduleLocator;
             _packageParser = packageParser;
+
+            _assemblyTypes = Assembly
+                .GetExecutingAssembly()
+                .GetTypes();
         }
 
-        public string Name => GetType().Assembly.GetName().Name;
+        // ----- Public method
         public object Process(string commandName, Package package, IBus bus)
         {
-            var commandType = Assembly
-                .GetExecutingAssembly()
-                .GetTypes()
+            var commandType = _assemblyTypes
                 .SingleOrDefault(x => x.Name == commandName);
 
             if (commandType == null) {
@@ -46,10 +52,8 @@ namespace LinkUs.Core.Modules
             if (commandInstance is UnloadModule) {
                 return GetModuleCommandHandler().Handle((UnloadModule) commandInstance);
             }
-            var handlerType = Assembly
-                .GetExecutingAssembly()
-                .GetTypes()
-                .SingleOrDefault(x => x.GetInterfaces().Any(y=> y.GetGenericArguments().Length != 0 && y.GetGenericArguments()[0] == commandType));
+            var handlerType = _assemblyTypes
+                .SingleOrDefault(x => x.GetInterfaces().Any(y => y.GetGenericArguments().Length != 0 && y.GetGenericArguments()[0] == commandType));
 
             var handler = Activator.CreateInstance(handlerType);
             var handle = handlerType
@@ -57,13 +61,14 @@ namespace LinkUs.Core.Modules
                 .Where(x => x.Name == "Handle")
                 .Single(x => x.GetParameters()[0].ParameterType == commandType);
 
-            return handle.Invoke(handler, new [] { commandInstance });
+            return handle.Invoke(handler, new[] {commandInstance});
         }
+        public void Dispose() { }
 
+        // ----- Internal logic
         private ModuleCommandHandler GetModuleCommandHandler()
         {
             return new ModuleCommandHandler(_moduleManager, _moduleLocator, _packageParser);
         }
-        public void Dispose() { }
     }
 }

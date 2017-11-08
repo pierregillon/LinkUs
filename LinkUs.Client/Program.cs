@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net.Sockets;
 using System.Threading;
 using LinkUs.Core;
 using LinkUs.Core.ClientInformation;
@@ -11,76 +10,63 @@ namespace LinkUs.Client
 {
     class Program
     {
-        private static readonly ManualResetEvent ManualResetEvent = new ManualResetEvent(false);
+        static Program()
+        {
+            Ioc.Instance.RegisterSingle<ModuleManager>();
+            Ioc.Instance.Register<RequestProcessor>();
+            Ioc.Instance.Register<PackageParser>();
+            Ioc.Instance.Register<PackageTransmitter>();
+            Ioc.Instance.Register<PackageProcessor>();
+            Ioc.Instance.Register<ISerializer, JsonSerializer>();
+            Ioc.Instance.Register<ExternalAssemblyModuleLocator>();
+            Ioc.Instance.Register<ExternalAssemblyModuleScanner>();
+            Ioc.Instance.Register<ServerBrowser>();
+            Ioc.Instance.Register<ICommandSender, CommandSender>();
+        }
 
         static void Main(string[] args)
         {
-            Thread.Sleep(1000);
-            var moduleManager = new ModuleManager();
-            LoadModules(moduleManager);
-            ConnectToHostAndProcessCommands(moduleManager);
+            LoadModules();
+            FindHostAndProcessRequests();
         }
 
         // ----- Internal logics
-        private static void LoadModules(ModuleManager moduleManager)
+        private static void LoadModules()
         {
-            var packageParser = new PackageParser(new JsonSerializer());
-            var moduleLocator = new ExternalAssemblyModuleLocator();
-            moduleManager.Register(new LocalAssemblyModule(moduleManager, moduleLocator, packageParser));
-            foreach (var module in new ExternalAssemblyModuleScanner(moduleLocator, packageParser).Scan()) {
-                moduleManager.Register(module);
-            }
+            var moduleManager = Ioc.Instance.GetInstance<ModuleManager>();
+            moduleManager.LoadModules();
         }
-        private static void ConnectToHostAndProcessCommands(ModuleManager moduleManager)
+        private static void FindHostAndProcessRequests()
         {
             while (true) {
-                var connection = new SocketConnection();
-                if (TryConnectSocketToHost(connection)) {
-                    try {
-                        ListenCommandsFromConnection(connection, moduleManager);
-                        Thread.Sleep(1000);
-                    }
-                    catch (Exception ex) {
-                        Console.WriteLine(ex);
-                    }
+                var connection = FindAvailableHost();
+                try {
+                    ProcessRequests();
                 }
-                else {
-                    Thread.Sleep(1000);
+                catch (Exception ex) {
+                    Console.WriteLine(ex);
                 }
+                finally {
+                    connection.Close();
+                    Ioc.Instance.UnregisterSingle<IConnection>();
+                }
+                Thread.Sleep(1000);
             }
         }
-        private static bool TryConnectSocketToHost(IConnection connection)
+        private static IConnection FindAvailableHost()
         {
-            string host = "127.0.0.1";
-            int port = 9000;
+            var serverBrowser = Ioc.Instance.GetInstance<ServerBrowser>();
+            var connection = serverBrowser.SearchAvailableHost();
+            Ioc.Instance.RegisterSingle(connection);
+            return connection;
+        }
+        private static void ProcessRequests()
+        {
+            var commandSender = Ioc.Instance.GetInstance<ICommandSender>();
+            commandSender.ExecuteAsync(new SetStatus {Status = "Provider"});
 
-            try {
-                Console.Write($"* Try to connect to host {host} on port {port} ... ");
-                connection.Connect(host, port);
-                Console.WriteLine("[SUCCESS]");
-                return true;
-            }
-            catch (SocketException) {
-                Console.WriteLine("[FAILED]");
-                return false;
-            }
-        }
-        private static void ListenCommandsFromConnection(IConnection connection, ModuleManager moduleManager)
-        {
-            var packageTransmitter = new PackageTransmitter(connection);
-            var jsonSerializer = new JsonSerializer();
-            var packageProcessor = new PackageProcessor(packageTransmitter, jsonSerializer, new PackageParser(new JsonSerializer()), moduleManager);
-            packageTransmitter.PackageReceived += (sender, package) => {
-                Console.WriteLine(package);
-                packageProcessor.Process(package);
-            };
-            packageTransmitter.Closed += (sender, eventArgs) => {
-                ManualResetEvent.Set();
-            };
-            var commandDispatcher = new CommandSender(packageTransmitter, jsonSerializer);
-            commandDispatcher.ExecuteAsync(new SetStatus {Status = "Provider"});
-            ManualResetEvent.WaitOne();
-            packageTransmitter.Close();
+            var requestProcessor = Ioc.Instance.GetInstance<RequestProcessor>();
+            requestProcessor.ProcessRequests();
         }
     }
 }

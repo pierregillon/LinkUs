@@ -3,3 +3,4 @@
 * introduce concept for sending package with command or event.
 * download / upload
 * ILogger in ExternalAssemblyModule to do the Console Printing.
+* Request frequently the basic information to keep information up to date.
