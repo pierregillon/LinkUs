@@ -56,7 +56,6 @@
     <Compile Include="ConsoleLib\WindowsConsole.cs" />
     <Compile Include="ConsoleLib\IConsole.cs" />
     <Compile Include="Handlers\ListConnectedClientsCommandLineHandler.cs" />
-    <Compile Include="Handlers\PartialClientIdHandler.cs" />
     <Compile Include="Handlers\ShellCommandLineHandler.cs" />
     <Compile Include="Handlers\StringExtension.cs" />
     <Compile Include="ICommandLineHandler.cs" />

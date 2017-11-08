@@ -1,5 +1,8 @@
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using LinkUs.Core;
+using LinkUs.Core.Connection;
 using LinkUs.Responses;
 
 namespace LinkUs.CommandLine
@@ -17,6 +20,19 @@ namespace LinkUs.CommandLine
         {
             var command = new ListConnectedClient();
             return _commandSender.ExecuteAsync<ListConnectedClient, ConnectedClient[]>(command);
+        }
+
+        public async Task<ClientId> FindCliendId(string partialClientId)
+        {
+            var clients = await GetConnectedClients();
+            var matchingClients = clients.Where(x => x.Id.StartsWith(partialClientId)).ToArray();
+            if (matchingClients.Length == 0) {
+                throw new Exception($"The client '{partialClientId}' is not connected.");
+            }
+            if (matchingClients.Length > 1) {
+                throw new Exception($"Multiple client are matching '{partialClientId}'.");
+            }
+            return ClientId.Parse(matchingClients.Single().Id);
         }
     }
 }
