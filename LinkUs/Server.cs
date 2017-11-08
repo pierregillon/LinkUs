@@ -78,6 +78,7 @@ namespace LinkUs
                         MachineName = x.Value.MachineName,
                         OperatingSystem = x.Value.OperatingSystem,
                         UserName = x.Value.UserName,
+                        PublicIp = x.Value.PublicIp
                     })
                     .ToArray();
                 var packageResponse = package.CreateResponsePackage(jsonSerializer.Serialize(value));
