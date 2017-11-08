@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Modules.Commands;
@@ -9,39 +10,37 @@ namespace LinkUs.CommandLine
 {
     public class RemoteClient
     {
-        private readonly CommandDispatcher _commandDispatcher;
+        private readonly ICommandSender _commandSender;
 
-        public RemoteClient(CommandDispatcher commandDispatcher)
+        public RemoteClient(ICommandSender commandSender)
         {
-            _commandDispatcher = commandDispatcher;
+            _commandSender = commandSender;
         }
 
-        public long Ping(ClientId target)
+        public async Task<long> Ping(ClientId target)
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var pingCommand = new Ping();
-            _commandDispatcher.ExecuteAsync<Ping, PingOk>(pingCommand, target).Wait();
+            await _commandSender.ExecuteAsync<Ping, PingOk>(pingCommand, target);
             stopWatch.Stop();
             return stopWatch.ElapsedMilliseconds;
         }
-        public IEnumerable<ModuleInformation> GetModules(ClientId targetId)
+        public async Task<IEnumerable<ModuleInformation>> GetModules(ClientId targetId)
         {
             var command = new ListModules();
-            var response = _commandDispatcher.ExecuteAsync<ListModules, ModuleInformationResponse>(command, targetId).Result;
+            var response = await _commandSender.ExecuteAsync<ListModules, ModuleInformationResponse>(command, targetId);
             return response.ModuleInformations;
         }
-        public bool LoadModule(ClientId target, string moduleName)
+        public Task<bool> LoadModule(ClientId target, string moduleName)
         {
             var command = new LoadModule(moduleName);
-            var isSucceded = _commandDispatcher.ExecuteAsync<LoadModule, bool>(command, target).Result;
-            return isSucceded;
+            return _commandSender.ExecuteAsync<LoadModule, bool>(command, target);
         }
-        public bool UnLoadModule(ClientId target, string moduleName)
+        public Task<bool> UnLoadModule(ClientId target, string moduleName)
         {
             var command = new UnloadModule(moduleName);
-            var isSucceded = _commandDispatcher.ExecuteAsync<UnloadModule, bool>(command, target).Result;
-            return isSucceded;
+            return _commandSender.ExecuteAsync<UnloadModule, bool>(command, target);
         }
     }
 }

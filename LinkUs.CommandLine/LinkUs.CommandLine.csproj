@@ -58,6 +58,7 @@
     <Compile Include="Handlers\ListConnectedClientsCommandLineHandler.cs" />
     <Compile Include="Handlers\ShellCommandLineHandler.cs" />
     <Compile Include="Handlers\StringExtension.cs" />
+    <Compile Include="ICommandLineHandler.cs" />
     <Compile Include="ICommandLineProcessor.cs" />
     <Compile Include="RemoteClient.cs" />
     <Compile Include="Server.cs" />

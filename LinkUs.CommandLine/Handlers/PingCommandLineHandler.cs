@@ -1,5 +1,5 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.CommandLine.Verbs;
 using LinkUs.Core;
@@ -7,22 +7,22 @@ using LinkUs.Core.Connection;
 
 namespace LinkUs.CommandLine.Handlers
 {
-    public class PingCommandLineHandler : IHandler<PingCommandLine>
+    public class PingCommandLineHandler : ICommandLineHandler<PingCommandLine>
     {
         private readonly IConsole _console;
         private readonly RemoteClient _remoteClient;
         private readonly Server _server;
 
-        public PingCommandLineHandler(IConsole console, CommandDispatcher commandDispatcher)
+        public PingCommandLineHandler(IConsole console, ICommandSender commandSender)
         {
             _console = console;
-            _remoteClient = new RemoteClient(commandDispatcher);
-            _server = new Server(commandDispatcher);
+            _remoteClient = new RemoteClient(commandSender);
+            _server = new Server(commandSender);
         }
 
-        public void Handle(PingCommandLine commandLine)
+        public async Task Handle(PingCommandLine commandLine)
         {
-            var clients = _server.GetConnectedClients();
+            var clients = await _server.GetConnectedClients();
             var matchingClients = clients.Where(x => x.Id.StartsWith(commandLine.Target)).ToArray();
             if (matchingClients.Length == 0) {
                 _console.WriteLineError($"The client '{commandLine.Target}' is not connected.");
@@ -32,7 +32,7 @@ namespace LinkUs.CommandLine.Handlers
             }
             else {
                 var targetId = ClientId.Parse(matchingClients.Single().Id);
-                var pingEllapsedTime = _remoteClient.Ping(targetId);
+                var pingEllapsedTime = await _remoteClient.Ping(targetId);
                 _console.WriteLine($"Ok. {pingEllapsedTime} ms.");
             }
         }

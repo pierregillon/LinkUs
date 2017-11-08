@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using LinkUs.CommandLine.Verbs;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
@@ -6,37 +7,37 @@ using LinkUs.Core.Connection;
 namespace LinkUs.CommandLine.Handlers
 {
     public class ModuleCommandHandler :
-        IHandler<LoadModuleCommandLine>,
-        IHandler<UnloadModuleCommandLine>,
-        IHandler<ListModulesCommandLine>
+        ICommandLineHandler<LoadModuleCommandLine>,
+        ICommandLineHandler<UnloadModuleCommandLine>,
+        ICommandLineHandler<ListModulesCommandLine>
     {
         private readonly RemoteClient _remoteClient;
 
-        public ModuleCommandHandler(CommandDispatcher commandDispatcher)
+        public ModuleCommandHandler(ICommandSender commandSender)
         {
-            _remoteClient = new RemoteClient(commandDispatcher);
+            _remoteClient = new RemoteClient(commandSender);
         }
 
-        public void Handle(LoadModuleCommandLine commandLine)
+        public async Task Handle(LoadModuleCommandLine commandLine)
         {
             var target = ClientId.Parse(commandLine.Target);
-            var isSucceded = _remoteClient.LoadModule(target, commandLine.ModuleName);
+            var isSucceded = await _remoteClient.LoadModule(target, commandLine.ModuleName);
             if (!isSucceded) {
                 Console.WriteLine($"Failed to load module {commandLine.ModuleName}.");
             }
         }
-        public void Handle(UnloadModuleCommandLine commandLine)
+        public async Task Handle(UnloadModuleCommandLine commandLine)
         {
             var targetId = ClientId.Parse(commandLine.Target);
-            var isSucceded = _remoteClient.UnLoadModule(targetId, commandLine.ModuleName);
+            var isSucceded = await _remoteClient.UnLoadModule(targetId, commandLine.ModuleName);
             if (!isSucceded) {
                 Console.WriteLine($"Failed to load module {commandLine.ModuleName}.");
             }
         }
-        public void Handle(ListModulesCommandLine commandLine)
+        public async Task Handle(ListModulesCommandLine commandLine)
         {
             var targetId = ClientId.Parse(commandLine.Target);
-            var response = _remoteClient.GetModules(targetId);
+            var response = await _remoteClient.GetModules(targetId);
             Console.WriteLine(string.Join(Environment.NewLine, response));
         }
     }

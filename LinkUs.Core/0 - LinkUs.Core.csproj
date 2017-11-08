@@ -51,10 +51,11 @@
     <Compile Include="ClientInformation\GetBasicInformationHandler.cs" />
     <Compile Include="ClientInformation\NetHelper.cs" />
     <Compile Include="ClientInformation\SetStatus.cs" />
-    <Compile Include="CommandDispatcher.cs" />
+    <Compile Include="CommandSender.cs" />
     <Compile Include="Connection\ClientId.cs" />
     <Compile Include="ErrorMessage.cs" />
     <Compile Include="IBus.cs" />
+    <Compile Include="ICommandSender.cs" />
     <Compile Include="IHandler.cs" />
     <Compile Include="MessageDescriptor.cs" />
     <Compile Include="Modules\Commands\LoadModule.cs" />

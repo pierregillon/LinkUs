@@ -1,24 +1,23 @@
-﻿using LinkUs.CommandLine.Verbs;
-using LinkUs.Core;
+﻿using System.Threading.Tasks;
+using LinkUs.CommandLine.Verbs;
 using LinkUs.Core.Connection;
-using LinkUs.Core.Json;
 
 namespace LinkUs.CommandLine.Handlers
 {
-    public class ShellCommandLineHandler:IHandler<ShellCommandLine>
+    public class ShellCommandLineHandler : ICommandLineHandler<ShellCommandLine>
     {
-        private readonly CommandDispatcher _commandDispatcher;
+        private readonly ConsoleRemoteShellController _remoteShellController;
 
-        public ShellCommandLineHandler(CommandDispatcher commandDispatcher)
+        public ShellCommandLineHandler(ConsoleRemoteShellController remoteShellController)
         {
-            _commandDispatcher = commandDispatcher;
+            _remoteShellController = remoteShellController;
         }
 
-        public void Handle(ShellCommandLine commandLine)
+        public Task Handle(ShellCommandLine commandLine)
         {
             var targetId = ClientId.Parse(commandLine.Target);
-            var driver = new ConsoleRemoteShellController(_commandDispatcher, targetId, new JsonSerializer());
-            driver.SendInputs();
+            _remoteShellController.SendInputs(targetId);
+            return Task.Delay(0);
         }
     }
 }

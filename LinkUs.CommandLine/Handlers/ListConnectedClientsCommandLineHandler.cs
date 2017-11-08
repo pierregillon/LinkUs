@@ -1,30 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.Core;
 using LinkUs.Responses;
 
 namespace LinkUs.CommandLine.Handlers
 {
-    public class ListConnectedClientsCommandLineHandler : IHandler<ListConnectedClient>
+    public class ListConnectedClientsCommandLineHandler : ICommandLineHandler<ListConnectedClient>
     {
         private readonly IConsole _console;
-        private readonly CommandDispatcher _commandDispatcher;
+        private readonly ICommandSender _commandSender;
 
         // ----- Constructor
-        public ListConnectedClientsCommandLineHandler(IConsole console, CommandDispatcher commandDispatcher)
+        public ListConnectedClientsCommandLineHandler(IConsole console, ICommandSender commandSender)
         {
             _console = console;
-            _commandDispatcher = commandDispatcher;
+            _commandSender = commandSender;
         }
 
         // ----- Public methods
-        public void Handle(ListConnectedClient commandLine)
+        public async Task Handle(ListConnectedClient commandLine)
         {
-            var clients = _commandDispatcher.ExecuteAsync<ListConnectedClient, ConnectedClient[]>(commandLine).Result.ToList();
-            ReduceHashId(clients);
-            _console.WriteObjects(clients);
+            var clients = await _commandSender.ExecuteAsync<ListConnectedClient, ConnectedClient[]>(commandLine);
+            var clientList = clients.ToList();
+            ReduceHashId(clientList);
+            _console.WriteObjects(clientList);
         }
 
         // ----- Utils

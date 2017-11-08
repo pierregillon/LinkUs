@@ -77,7 +77,7 @@ namespace LinkUs.Client
             packageTransmitter.Closed += (sender, eventArgs) => {
                 ManualResetEvent.Set();
             };
-            var commandDispatcher = new CommandDispatcher(packageTransmitter, jsonSerializer);
+            var commandDispatcher = new CommandSender(packageTransmitter, jsonSerializer);
             commandDispatcher.ExecuteAsync(new SetStatus {Status = "Provider"});
             ManualResetEvent.WaitOne();
             packageTransmitter.Close();

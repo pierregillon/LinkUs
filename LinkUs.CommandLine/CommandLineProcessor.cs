@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using CommandLine;
 using CommandLine.Text;
 using LinkUs.CommandLine.ConsoleLib;
@@ -22,12 +23,12 @@ namespace LinkUs.CommandLine
         }
 
         // ----- Public methods
-        public void Process(string[] arguments)
+        public Task Process(string[] arguments)
         {
             if (arguments == null) throw new ArgumentNullException(nameof(arguments));
 
             var commandLine = ParseArguments(arguments);
-            ExecuteCommand(commandLine);
+            return ExecuteCommand(commandLine);
         }
         private object ParseArguments(string[] arguments)
         {
@@ -45,13 +46,14 @@ namespace LinkUs.CommandLine
         }
 
         // ----- Internal logic
-        private void ExecuteCommand(object commandLine)
+        private Task ExecuteCommand(object commandLine)
         {
             var commandLineType = commandLine.GetType();
-            var handlerContract = typeof(IHandler<>).MakeGenericType(commandLineType);
+            var handlerContract = typeof(ICommandLineHandler<>).MakeGenericType(commandLineType);
             var handler = _container.GetInstance(handlerContract);
             var handleMethod = GetHandleMethod(handlerContract, commandLineType);
-            handleMethod.Invoke(handler, new[] {commandLine});
+            var task = (Task)handleMethod.Invoke(handler, new[] {commandLine});
+            return task;
         }
         private static MethodInfo GetHandleMethod(Type handlerType, Type commandLineType)
         {

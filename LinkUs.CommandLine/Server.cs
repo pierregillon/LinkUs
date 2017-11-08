@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using LinkUs.Core;
 using LinkUs.Responses;
 
@@ -5,17 +6,17 @@ namespace LinkUs.CommandLine
 {
     public class Server
     {
-        private readonly CommandDispatcher _commandDispatcher;
+        private readonly ICommandSender _commandSender;
 
-        public Server(CommandDispatcher commandDispatcher)
+        public Server(ICommandSender commandSender)
         {
-            _commandDispatcher = commandDispatcher;
+            _commandSender = commandSender;
         }
 
-        public ConnectedClient[] GetConnectedClients()
+        public Task<ConnectedClient[]> GetConnectedClients()
         {
             var command = new ListConnectedClient();
-            return _commandDispatcher.ExecuteAsync<ListConnectedClient, ConnectedClient[]>(command).Result;
+            return _commandSender.ExecuteAsync<ListConnectedClient, ConnectedClient[]>(command);
         }
     }
 }

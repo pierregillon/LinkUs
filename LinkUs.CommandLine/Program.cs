@@ -51,7 +51,7 @@ namespace LinkUs.CommandLine
         {
             var processor = container.GetInstance<ICommandLineProcessor>();
             try {
-                processor.Process(arguments);
+                processor.Process(arguments).Wait();
             }
             catch (CommandLineProcessingFailed ex) {
                 var console = container.GetInstance<IConsole>();
@@ -60,6 +60,10 @@ namespace LinkUs.CommandLine
             catch (TargetInvocationException ex) {
                 var console = container.GetInstance<IConsole>();
                 WriteInnerException(console, ex.InnerException);
+            }
+            catch (Exception ex) {
+                var console = container.GetInstance<IConsole>();
+                WriteInnerException(console, ex);
             }
         }
         private static void WhileReadingCommands(Action<string[]> action)
@@ -81,18 +85,21 @@ namespace LinkUs.CommandLine
         private static Container BuildContainer()
         {
             return new Container(configuration => {
+                configuration.For<IConnection>().Singleton();
+                configuration.For<PackageTransmitter>();
+                configuration.For<ICommandSender>().Use<CommandSender>();
                 configuration.For<ICommandLineProcessor>().Use<CommandLineProcessor>();
-                configuration.For<CommandDispatcher>();
                 configuration.For<IConsole>().Use<WindowsConsole>();
                 configuration.For<ISerializer>().Use<JsonSerializer>();
                 configuration.For<Parser>().Use(Parser.Default);
 
                 configuration.Scan(y => {
                     y.TheCallingAssembly();
-                    y.AddAllTypesOf(typeof(IHandler<>));
+                    y.AddAllTypesOf(typeof(ICommandLineHandler<>));
+                    y.ConnectImplementationsToTypesClosing(typeof(ICommandLineHandler<>));
                     y.WithDefaultConventions();
                 });
-            });
+        });
         }
         private static void WriteInnerException(IConsole console, Exception exception)
         {
@@ -110,7 +117,7 @@ namespace LinkUs.CommandLine
             var connection = new SocketConnection();
             connection.Connect(host, port);
             container.Inject(typeof(IConnection), connection);
-            var commandDispatcher = container.GetInstance<CommandDispatcher>();
+            var commandDispatcher = container.GetInstance<CommandSender>();
             commandDispatcher.ExecuteAsync(new SetStatus {Status = "Consumer"});
             return connection;
         }

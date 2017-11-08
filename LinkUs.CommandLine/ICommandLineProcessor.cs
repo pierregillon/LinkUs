@@ -1,7 +1,9 @@
+using System.Threading.Tasks;
+
 namespace LinkUs.CommandLine
 {
     public interface ICommandLineProcessor
     {
-        void Process(string[] arguments);
+        Task Process(string[] arguments);
     }
 }
