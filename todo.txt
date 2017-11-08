@@ -4,3 +4,4 @@
 * download / upload
 * ILogger in ExternalAssemblyModule to do the Console Printing.
 * Request frequently the basic information to keep information up to date.
+* remove -Exception at the end of custom exception name

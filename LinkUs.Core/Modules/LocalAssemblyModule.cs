@@ -35,8 +35,7 @@ namespace LinkUs.Core.Modules
         // ----- Public method
         public object Process(string commandName, Package package, IBus bus)
         {
-            var commandType = _assemblyTypes
-                .SingleOrDefault(x => x.Name == commandName);
+            var commandType = _assemblyTypes.SingleOrDefault(x => x.Name == commandName);
 
             if (commandType == null) {
                 throw new UnknownCommandException(commandName, Name);
@@ -52,8 +51,10 @@ namespace LinkUs.Core.Modules
             if (commandInstance is UnloadModule) {
                 return GetModuleCommandHandler().Handle((UnloadModule) commandInstance);
             }
-            var handlerType = _assemblyTypes
-                .SingleOrDefault(x => x.GetInterfaces().Any(y => y.GetGenericArguments().Length != 0 && y.GetGenericArguments()[0] == commandType));
+            var handlerType = _assemblyTypes.SingleOrDefault(
+                x => x.GetInterfaces()
+                    .Any(y => y.GetGenericArguments().Length != 0 &&
+                              y.GetGenericArguments()[0] == commandType));
 
             var handler = Activator.CreateInstance(handlerType);
             var handle = handlerType

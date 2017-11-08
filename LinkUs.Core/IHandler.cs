@@ -4,9 +4,4 @@ namespace LinkUs.Core
     {
         TResponse Handle(TRequest request);
     }
-
-    public interface IHandler<in TRequest>
-    {
-        void Handle(TRequest commandLine);
-    }
 }

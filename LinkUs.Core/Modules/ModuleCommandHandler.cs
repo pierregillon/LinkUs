@@ -46,7 +46,7 @@ namespace LinkUs.Core.Modules
             if (File.Exists(filePath) == false) {
                 throw new ModuleNotInstalledOnClientException(request.ModuleName);
             }
-            var externalAssemblyModule = new ExternalAssemblyModule(_packageParser, filePath);
+            var externalAssemblyModule = new ExternalAssemblyModule(new AssemblyHandlerScanner(), _packageParser, filePath);
             _moduleManager.Register(externalAssemblyModule);
             return true;
         }

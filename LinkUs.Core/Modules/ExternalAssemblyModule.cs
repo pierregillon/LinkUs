@@ -14,13 +14,16 @@ namespace LinkUs.Core.Modules
         private readonly PackageParser _packageParser;
         private readonly AppDomain _moduleDomain;
         private readonly AssemblyName _assemblyName;
-        private readonly IDictionary<string, MaterializationInfo> _info = new ConcurrentDictionary<string, MaterializationInfo>();
+        private readonly IDictionary<string, MaterializationInfo> _materializationInfos;
 
         public string Path { get; }
         public string Name => _assemblyName.Name;
 
         // ----- Constructors
-        public ExternalAssemblyModule(PackageParser packageParser, string filePath)
+        public ExternalAssemblyModule(
+            AssemblyHandlerScanner assemblyHandlerScanner, 
+            PackageParser packageParser, 
+            string filePath)
         {
             _packageParser = packageParser;
 
@@ -30,17 +33,7 @@ namespace LinkUs.Core.Modules
 
             try {
                 var assembly = LoadAssembly();
-                var moduleType = GetModuleClassFromAssembly(assembly);
-                var handlers = GetHandlers(moduleType);
-                foreach (var handler in handlers) {
-                    foreach (var methodInfo in handler.GetMethods().Where(x => x.Name == "Handle")) {
-                        var parameterType = methodInfo.GetParameters()[0].ParameterType;
-                        _info.Add(parameterType.Name, new MaterializationInfo {
-                            CommandType = parameterType,
-                            HandlerType = handler
-                        });
-                    }
-                }
+                _materializationInfos = assemblyHandlerScanner.Scan(assembly);
             }
             catch (Exception) {
                 AppDomain.Unload(_moduleDomain);
@@ -49,20 +42,21 @@ namespace LinkUs.Core.Modules
         }
 
         // ----- Public methods
-        public void Dispose()
-        {
-            AppDomain.Unload(_moduleDomain);
-            _info.Clear();
-        }
         public object Process(string commandName, Package package, IBus bus)
         {
             MaterializationInfo materializationInfo;
-            if (_info.TryGetValue(commandName, out materializationInfo) == false) {
+            if (_materializationInfos.TryGetValue(commandName, out materializationInfo) == false) {
                 throw new UnknownCommandException(commandName, Name);
             }
-            var handlerInstance = CreateHandlerInstance(materializationInfo.HandlerType, bus);
+
+            var handlerInstance = CreateHandler(materializationInfo, bus);
             var command = _packageParser.Materialize(materializationInfo.CommandType, package);
-            return CallHandleMethod(handlerInstance, command);
+            return materializationInfo.HandleMethod.Invoke(handlerInstance, new[] {command});
+        }
+        public void Dispose()
+        {
+            AppDomain.Unload(_moduleDomain);
+            _materializationInfos.Clear();
         }
 
         // ----- Internal logics
@@ -73,60 +67,24 @@ namespace LinkUs.Core.Modules
             AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomainOnAssemblyResolve;
             return assembly;
         }
-        private static Type GetModuleClassFromAssembly(Assembly assembly)
-        {
-            var moduleType = assembly.GetTypes().FirstOrDefault(x => x.Name == "Module");
-            if (moduleType == null) {
-                throw new Exception($"The assembly '{assembly.GetName().Name}' is not a valid module. 'Module' class was not found.");
-            }
-            return moduleType;
-        }
-        private static IEnumerable<Type> GetHandlers(Type moduleType)
-        {
-            var module = Activator.CreateInstance(moduleType);
-            var methodName = "GetHandlers";
-            var method = moduleType.GetMethod(methodName);
-            if (method == null) {
-                throw new Exception($"Method '{methodName}' not found on the Module class.");
-            }
-            return (IEnumerable<Type>) method.Invoke(module, new object[0]);
-        }
-        private static object CreateHandlerInstance(Type handlerType, IBus bus)
+        public object CreateHandler(MaterializationInfo materializationInfo, IBus bus)
         {
             object handlerInstance;
-            var handlerConstructor = handlerType.GetConstructors().First();
+            var handlerConstructor = materializationInfo.HandlerType.GetConstructors().First();
             var parameters = handlerConstructor.GetParameters();
             if (parameters.Length == 0) {
-                handlerInstance = Activator.CreateInstance(handlerType);
+                handlerInstance = Activator.CreateInstance(materializationInfo.HandlerType);
             }
             else if (parameters.Length == 1) {
                 if (parameters.Single().ParameterType != typeof(object)) {
-                    throw new Exception($"The constructor parameter of '{handlerType.Name}' should be 'object' type.");
+                    throw new Exception($"The constructor parameter of '{materializationInfo.HandlerType.Name}' should be 'object' type.");
                 }
-                handlerInstance = Activator.CreateInstance(handlerType, bus);
+                handlerInstance = Activator.CreateInstance(materializationInfo.HandlerType, bus);
             }
             else {
-                throw new Exception($"To many parameters for the class '{handlerType.Name}'. Cannot instanciate.");
+                throw new Exception($"To many parameters for the class '{materializationInfo.HandlerType.Name}'. Cannot instanciate.");
             }
             return handlerInstance;
-        }
-        private static object CallHandleMethod(object handlerInstance, object messageInstance)
-        {
-            var handle = handlerInstance
-                .GetType()
-                .GetMethods()
-                .SingleOrDefault(x => x.Name == "Handle" && x.GetParameters()[0].ParameterType == messageInstance.GetType());
-
-            if (handle == null) {
-                throw new Exception("Unable to find the handle method.");
-            }
-            if (handle.ReturnType != typeof(void)) {
-                return handle.Invoke(handlerInstance, new[] {messageInstance});
-            }
-            else {
-                handle.Invoke(handlerInstance, new[] {messageInstance});
-                return null;
-            }
         }
 
         // ----- Event callbacks

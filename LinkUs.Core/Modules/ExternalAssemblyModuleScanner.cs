@@ -22,7 +22,7 @@ namespace LinkUs.Core.Modules
                 Console.Write($"* Loading module {moduleInfo.Name} \t ");
                 var fullPath = _moduleLocator.GetFullPath(moduleInfo.Name);
                 try {
-                    var module = new ExternalAssemblyModule(_packageParser, fullPath);
+                    var module = new ExternalAssemblyModule(new AssemblyHandlerScanner(), _packageParser, fullPath);
                     loadedModules.Add(module);
                     Console.WriteLine("[OK]");
                 }

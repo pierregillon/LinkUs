@@ -12,16 +12,18 @@ namespace LinkUs.Client
     {
         static Program()
         {
-            Ioc.Instance.RegisterSingle<ModuleManager>();
-            Ioc.Instance.Register<RequestProcessor>();
-            Ioc.Instance.Register<PackageParser>();
-            Ioc.Instance.Register<PackageTransmitter>();
-            Ioc.Instance.Register<PackageProcessor>();
-            Ioc.Instance.Register<ISerializer, JsonSerializer>();
-            Ioc.Instance.Register<ExternalAssemblyModuleLocator>();
-            Ioc.Instance.Register<ExternalAssemblyModuleScanner>();
-            Ioc.Instance.Register<ServerBrowser>();
-            Ioc.Instance.Register<ICommandSender, CommandSender>();
+            var ioc = Ioc.Instance;
+            ioc.RegisterSingle<ModuleManager>();
+            ioc.Register<RequestProcessor>();
+            ioc.Register<PackageParser>();
+            ioc.Register<PackageTransmitter>();
+            ioc.Register<PackageProcessor>();
+            ioc.Register<ISerializer, JsonSerializer>();
+            ioc.Register<ExternalAssemblyModuleLocator>();
+            ioc.Register<ExternalAssemblyModuleScanner>();
+            ioc.Register<ServerBrowser>();
+            ioc.Register<ICommandSender, CommandSender>();
+            ioc.Register<AssemblyHandlerScanner>();
         }
 
         static void Main(string[] args)

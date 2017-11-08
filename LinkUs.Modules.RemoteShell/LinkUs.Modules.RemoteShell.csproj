@@ -42,7 +42,6 @@
   <ItemGroup>
     <Compile Include="IBus.cs" />
     <Compile Include="IHandler.cs" />
-    <Compile Include="Module.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\KillShell.cs" />
     <Compile Include="Commands\SendInputToShell.cs" />

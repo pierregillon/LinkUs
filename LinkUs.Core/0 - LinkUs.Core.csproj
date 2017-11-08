@@ -58,6 +58,7 @@
     <Compile Include="ICommandSender.cs" />
     <Compile Include="IHandler.cs" />
     <Compile Include="MessageDescriptor.cs" />
+    <Compile Include="Modules\AssemblyHandlerScanner.cs" />
     <Compile Include="Modules\Commands\LoadModule.cs" />
     <Compile Include="Modules\Commands\UnloadModule.cs" />
     <Compile Include="Modules\Exceptions\ModuleException.cs" />
@@ -67,6 +68,7 @@
     <Compile Include="Modules\LocalAssemblyModule.cs" />
     <Compile Include="Modules\ExternalAssemblyModuleScanner.cs" />
     <Compile Include="Modules\Exceptions\ModuleAlreadyLoadedException.cs" />
+    <Compile Include="Modules\MaterializationInfo.cs" />
     <Compile Include="Modules\ModuleCommandHandler.cs" />
     <Compile Include="Modules\ModuleInformation.cs" />
     <Compile Include="Modules\ExternalAssemblyModuleLocator.cs" />
