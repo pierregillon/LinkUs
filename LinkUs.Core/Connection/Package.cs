@@ -5,8 +5,6 @@ namespace LinkUs.Core.Connection
 {
     public class Package
     {
-        private static readonly UTF8Encoding Encoding = new UTF8Encoding();
-
         public TransactionId TransactionId { get; set; } = TransactionId.New();
         public ClientId Source { get; private set; }
         public ClientId Destination { get; }
@@ -42,7 +40,7 @@ namespace LinkUs.Core.Connection
         }
         public override string ToString()
         {
-            return TransactionId + "|" + Source + "|" + Destination + "|" + Encoding.GetString(Content);
+            return TransactionId + "|" + Source + "|" + Destination + "|" + Content.Length + " bytes";
         }
 
         // ----- Utils

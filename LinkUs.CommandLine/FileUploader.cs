@@ -13,6 +13,8 @@ namespace LinkUs.CommandLine
         private readonly ICommandSender _commandSender;
         private readonly ClientId _clientId;
 
+        public int Pourcentage { get; private set; }
+
         public FileUploader(
             ICommandSender commandSender,
             ClientId clientId)
@@ -32,6 +34,8 @@ namespace LinkUs.CommandLine
             };
             var startedEvent = await _commandSender.ExecuteAsync<StartFileUpload, FileDownloaderStarted>(command, _clientId);
             var buffer = new byte[1024];
+            var totalBytesTransferred = 0;
+            var lastPourcentage = 0;
             using (var stream = File.OpenRead(sourceFilePath)) {
                 int bytesReadCount;
                 do {
@@ -47,6 +51,8 @@ namespace LinkUs.CommandLine
                             Buffer = buffer
                         };
                         await _commandSender.ExecuteAsync<SendNextFileData, bool>(sendCommand, _clientId);
+                        totalBytesTransferred += bytesReadCount;
+                        Pourcentage = (int)(totalBytesTransferred * 100 / command.Length);
                     }
                 } while (bytesReadCount != 0);
             }

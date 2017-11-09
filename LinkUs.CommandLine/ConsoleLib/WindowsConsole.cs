@@ -62,6 +62,10 @@ namespace LinkUs.CommandLine.ConsoleLib
         {
             Console.WriteLine();
         }
+        public void MoveCursorLeft(int length)
+        {
+            Console.CursorLeft -= length;
+        }
 
         // ----- Utils
         private void WriteWithColor(string message, ConsoleColor color)

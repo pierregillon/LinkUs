@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.CommandLine.Verbs;
@@ -23,10 +24,14 @@ namespace LinkUs.CommandLine.Handlers
         {
             var client = await _server.GetConnectedClient(commandLine.Target);
             var uploader = _remoteClient.GetFileUploader(ClientId.Parse(client.Id));
-            //uploader.Progress += avancement => _console.Write(avancement);
             _console.WriteLine("Upload started.");
-            await uploader.UploadAsync(commandLine.SourceFilePath, commandLine.DestinationFilePath);
-            _console.WriteLine($"{Path.GetFileName(commandLine.SourceFilePath)} has been uploaded to server.");
+            var task = uploader.UploadAsync(commandLine.SourceFilePath, commandLine.DestinationFilePath);
+            while (task.Wait(500) == false) {
+                _console.MoveCursorLeft(0);
+                _console.Write($"Progress: {uploader.Pourcentage}%");
+            }
+            _console.WriteLine("Progress: 100%");
+            _console.WriteLine($"'{Path.GetFileName(commandLine.SourceFilePath)}' has been correctly uploaded to client '{client.MachineName}' at location '{commandLine.DestinationFilePath}'.");
         }
     }
 }

@@ -59,7 +59,7 @@
     <Compile Include="FileTransfert\Events\FileDownloaderEnded.cs" />
     <Compile Include="FileTransfert\Events\FileDownloaderStarted.cs" />
     <Compile Include="FileTransfert\Commands\SendNextFileData.cs" />
-    <Compile Include="FileTransfert\UploadHandler.cs" />
+    <Compile Include="FileTransfert\UploadCommandHandler.cs" />
     <Compile Include="IBus.cs" />
     <Compile Include="ICommandSender.cs" />
     <Compile Include="IHandler.cs" />

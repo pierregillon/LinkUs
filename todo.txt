@@ -8,4 +8,4 @@
 * retain -target in file to simplify command.
 * make a server class that returns remoteClient. (commandline)
 * admin mode for app, need to write to c:\
-* before the download/upload, create the file to verify if user has the correct right.
+* The message size for uploading/downloading is huge because of UTF8 conversion. Find something to reduce the size (before compression)

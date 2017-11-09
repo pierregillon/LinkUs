@@ -8,7 +8,7 @@ using LinkUs.Core.FileTransfert.Events;
 
 namespace LinkUs.Core.FileTransfert
 {
-    public class UploadHandler :
+    public class UploadCommandHandler :
         IHandler<StartFileUpload, FileDownloaderStarted>,
         IHandler<SendNextFileData, bool>,
         IHandler<EndFileUpload, FileDownloaderEnded>
