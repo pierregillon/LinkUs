@@ -10,63 +10,54 @@ namespace LinkUs.Core.FileTransfert
 {
     public class UploadHandler :
         IHandler<StartFileUpload, FileDownloaderStarted>,
-        IHandler<SendNextFileData, bool>
+        IHandler<SendNextFileData, bool>,
+        IHandler<EndFileUpload, FileDownloaderEnded>
     {
-        private readonly IBus _bus;
-        private static readonly IDictionary<Guid, FileDownloader> Downloaders = new ConcurrentDictionary<Guid, FileDownloader>();
-
-        public UploadHandler(IBus bus)
-        {
-            _bus = bus;
-        }
+        private static readonly IDictionary<Guid, Stream> FileStreams = new ConcurrentDictionary<Guid, Stream>();
 
         public FileDownloaderStarted Handle(StartFileUpload command)
         {
+            if (File.Exists(command.DestinationFilePath)) {
+                File.Delete(command.DestinationFilePath);
+            }
             var newId = Guid.NewGuid();
-            Downloaders.Add(newId, new FileDownloader(command.DestinationFilePath, command.Length));
+            FileStreams.Add(newId, File.Open(command.DestinationFilePath, FileMode.Append));
             return new FileDownloaderStarted {Id = newId};
         }
 
         public bool Handle(SendNextFileData command)
         {
-            FileDownloader downloader;
-            if (Downloaders.TryGetValue(command.Id, out downloader) == false) {
-                throw new Exception($"Unable to use the file data, downloader with id '{command.Id}' does not exist.");
+            var fileStream = GetFileStream(command.Id);
+            try {
+                fileStream.Write(command.Buffer, 0, command.Buffer.Length);
+                return true;
             }
-            downloader.AppendData(command.Buffer);
-            if (downloader.IsFinished()) {
-                _bus.Send(new FileDownloaderEnded {Id = command.Id});
-                Downloaders.Remove(command.Id);
-            }
-            return true;
-        }
-    }
-
-    public class FileDownloader
-    {
-        private readonly string _destinationFilePath;
-        private readonly long _length;
-
-        public FileDownloader(string destinationFilePath, long length)
-        {
-            _destinationFilePath = destinationFilePath;
-            _length = length;
-
-            if (File.Exists(destinationFilePath)) {
-                File.Delete(destinationFilePath);
+            catch (Exception) {
+                fileStream.Close();
+                fileStream.Dispose();
+                FileStreams.Remove(command.Id);
+                throw;
             }
         }
 
-        public void AppendData(byte[] buffer)
+        public FileDownloaderEnded Handle(EndFileUpload command)
         {
-            using (var stream = File.Open(_destinationFilePath, FileMode.Append)) {
-                stream.Write(buffer, 0, buffer.Length);
+            Stream fileStream;
+            if (FileStreams.TryGetValue(command.Id, out fileStream)) {
+                fileStream.Close();
+                fileStream.Dispose();
+                FileStreams.Remove(command.Id);
             }
+            return new FileDownloaderEnded {Id = command.Id};
         }
 
-        public bool IsFinished()
+        private static Stream GetFileStream(Guid id)
         {
-            return new FileInfo(_destinationFilePath).Length == _length;
+            Stream fileStream;
+            if (FileStreams.TryGetValue(id, out fileStream) == false) {
+                throw new Exception($"Unable to use the file data, downloader with id '{id}' does not exist.");
+            }
+            return fileStream;
         }
     }
 }

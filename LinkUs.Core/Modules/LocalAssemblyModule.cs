@@ -53,12 +53,6 @@ namespace LinkUs.Core.Modules
             if (commandInstance is UnloadModule) {
                 return GetModuleCommandHandler().Handle((UnloadModule) commandInstance);
             }
-            if (commandInstance is StartFileUpload) {
-                return new UploadHandler(bus).Handle((StartFileUpload)commandInstance);
-            }
-            if (commandInstance is SendNextFileData) {
-                return new UploadHandler(bus).Handle((SendNextFileData)commandInstance);
-            }
             var handlerType = _assemblyTypes.SingleOrDefault(
                 x => x.GetInterfaces()
                     .Any(y => y.GetGenericArguments().Length != 0 &&

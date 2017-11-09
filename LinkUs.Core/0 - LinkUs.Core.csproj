@@ -54,6 +54,7 @@
     <Compile Include="CommandSender.cs" />
     <Compile Include="Connection\ClientId.cs" />
     <Compile Include="ErrorMessage.cs" />
+    <Compile Include="FileTransfert\Commands\EndFileUpload.cs" />
     <Compile Include="FileTransfert\Commands\StartFileUpload.cs" />
     <Compile Include="FileTransfert\Events\FileDownloaderEnded.cs" />
     <Compile Include="FileTransfert\Events\FileDownloaderStarted.cs" />

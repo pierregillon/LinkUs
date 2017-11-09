@@ -37,29 +37,22 @@ namespace LinkUs.CommandLine
                 do {
                     bytesReadCount = await stream.ReadAsync(buffer, 0, buffer.Length);
                     if (bytesReadCount != 0) {
-                        if (bytesReadCount == buffer.Length) {
-                            var command2 = new SendNextFileData {
-                                Id = startedEvent.Id,
-                                Buffer = buffer
-                            };
-                            _commandSender.ExecuteAsync(command2, _clientId);
-                        }
-                        else {
+                        if (bytesReadCount != buffer.Length) {
                             var endBuffer = new byte[bytesReadCount];
                             Buffer.BlockCopy(buffer, 0, endBuffer, 0, bytesReadCount);
-                            var command2 = new SendNextFileData
-                            {
-                                Id = startedEvent.Id,
-                                Buffer = endBuffer
-                            };
-                            _commandSender.ExecuteAsync(command2, _clientId);
+                            buffer = endBuffer;
                         }
-                        
+                        var sendCommand = new SendNextFileData {
+                            Id = startedEvent.Id,
+                            Buffer = buffer
+                        };
+                        await _commandSender.ExecuteAsync<SendNextFileData, bool>(sendCommand, _clientId);
                     }
                 } while (bytesReadCount != 0);
             }
 
-            await _commandSender.Receive<FileDownloaderEnded>(_clientId, @event => @event.Id == startedEvent.Id);
+            var endCommand = new EndFileUpload() {Id = startedEvent.Id};
+            await _commandSender.ExecuteAsync<EndFileUpload, FileDownloaderEnded>(endCommand, _clientId);
         }
     }
 }
