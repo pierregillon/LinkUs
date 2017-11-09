@@ -73,7 +73,7 @@ namespace LinkUs
                 WriteLine($"* Client '{information.MachineName}' connected.");
             }
             else if (commandLine.CommandName == typeof(ListConnectedClient).Name) {
-                var value = _clients.Select(x => new ConnectedClient {
+                var value = _clients.Select(x => new ConnectedClient() {
                         Id = x.Key.ToString(),
                         MachineName = x.Value.MachineName,
                         OperatingSystem = x.Value.OperatingSystem,

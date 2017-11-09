@@ -54,6 +54,11 @@
     <Compile Include="CommandSender.cs" />
     <Compile Include="Connection\ClientId.cs" />
     <Compile Include="ErrorMessage.cs" />
+    <Compile Include="FileTransfert\Commands\StartFileUpload.cs" />
+    <Compile Include="FileTransfert\Events\FileDownloaderEnded.cs" />
+    <Compile Include="FileTransfert\Events\FileDownloaderStarted.cs" />
+    <Compile Include="FileTransfert\Commands\SendNextFileData.cs" />
+    <Compile Include="FileTransfert\UploadHandler.cs" />
     <Compile Include="IBus.cs" />
     <Compile Include="ICommandSender.cs" />
     <Compile Include="IHandler.cs" />
@@ -97,6 +102,7 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

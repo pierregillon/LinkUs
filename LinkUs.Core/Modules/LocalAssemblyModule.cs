@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Reflection;
 using LinkUs.Core.Connection;
+using LinkUs.Core.FileTransfert;
+using LinkUs.Core.FileTransfert.Commands;
 using LinkUs.Core.Modules.Commands;
 using LinkUs.Core.Modules.Exceptions;
 
@@ -50,6 +52,12 @@ namespace LinkUs.Core.Modules
             }
             if (commandInstance is UnloadModule) {
                 return GetModuleCommandHandler().Handle((UnloadModule) commandInstance);
+            }
+            if (commandInstance is StartFileUpload) {
+                return new UploadHandler(bus).Handle((StartFileUpload)commandInstance);
+            }
+            if (commandInstance is SendNextFileData) {
+                return new UploadHandler(bus).Handle((SendNextFileData)commandInstance);
             }
             var handlerType = _assemblyTypes.SingleOrDefault(
                 x => x.GetInterfaces()

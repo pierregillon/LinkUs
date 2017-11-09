@@ -42,5 +42,10 @@ namespace LinkUs.CommandLine
             var command = new UnloadModule(moduleName);
             return _commandSender.ExecuteAsync<UnloadModule, bool>(command, target);
         }
+        public FileUploader GetFileUploader(ClientId target)
+        {
+            return new FileUploader(_commandSender, target);
+        }
+
     }
 }

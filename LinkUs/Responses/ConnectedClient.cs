@@ -1,3 +1,11 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using LinkUs.Core;
+using LinkUs.Core.Connection;
+using LinkUs.Core.FileTransfert.Commands;
+using LinkUs.Core.FileTransfert.Events;
+
 namespace LinkUs.Responses
 {
     public class ConnectedClient

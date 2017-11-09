@@ -31,6 +31,11 @@ namespace LinkUs.Core.Json
                 return SimpleJson.DeserializeObject(json, type);
             }
         }
+        public bool IsPrimitifMessage(byte[] content)
+        {
+            var json = Encoding.UTF8.GetString(content);
+            return json.First() != '{';
+        }
         public T Deserialize<T>(byte[] result)
         {
             return (T) Deserialize(result, typeof(T));

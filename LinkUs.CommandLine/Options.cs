@@ -23,5 +23,8 @@ namespace LinkUs.CommandLine
 
         [VerbOption("shell", HelpText = "Start a remote shell on client.")]
         public ShellCommandLine Shell { get; set; }
+
+        [VerbOption("upload", HelpText = "Upload a file on client.")]
+        public UploadCommandLine Upload { get; set; }
     }
 }

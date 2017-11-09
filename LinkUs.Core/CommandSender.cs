@@ -55,5 +55,38 @@ namespace LinkUs.Core
             var commandPackage = new Package(ClientId.Unknown, destination, content);
             PackageTransmitter.Send(commandPackage);
         }
+        public Task Receive<TResponse>(ClientId @from, Predicate<TResponse> predicate)
+        {
+            @from = @from ?? ClientId.Server;
+            var completionSource = new TaskCompletionSource<TResponse>();
+
+            EventHandler<Package> packageReceivedAction = (sender, package) => {
+                if (!Equals(package.Source, @from)) {
+                    return;
+                }
+                if (_serializer.IsPrimitifMessage(package.Content)) {
+                    return;
+                }
+                try {
+                    var messageDescriptor = _serializer.Deserialize<MessageDescriptor>(package.Content);
+                    if (messageDescriptor.CommandName == typeof(TResponse).Name) {
+                        var response = _serializer.Deserialize<TResponse>(package.Content);
+                        if (predicate(response)) {
+                            completionSource.SetResult(response);
+                        }
+                    }
+                }
+                catch (Exception ex) {
+                    completionSource.SetException(ex);
+                }
+            };
+
+            PackageTransmitter.PackageReceived += packageReceivedAction;
+
+            return completionSource.Task.ContinueWith(task => {
+                PackageTransmitter.PackageReceived -= packageReceivedAction;
+                return task.Result;
+            });
+        }
     }
 }

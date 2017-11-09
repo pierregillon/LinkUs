@@ -36,24 +36,24 @@ namespace LinkUs.Core.Modules
             return externalAssemblyModules.ToArray();
         }
 
-        public bool Handle(LoadModule request)
+        public bool Handle(LoadModule command)
         {
-            var module = _moduleManager.GetModule(request.ModuleName);
+            var module = _moduleManager.GetModule(command.ModuleName);
             if (module != null) {
-                throw new ModuleAlreadyLoadedException(request.ModuleName);
+                throw new ModuleAlreadyLoadedException(command.ModuleName);
             }
-            var filePath = _moduleLocator.GetFullPath(request.ModuleName);
+            var filePath = _moduleLocator.GetFullPath(command.ModuleName);
             if (File.Exists(filePath) == false) {
-                throw new ModuleNotInstalledOnClientException(request.ModuleName);
+                throw new ModuleNotInstalledOnClientException(command.ModuleName);
             }
             var externalAssemblyModule = new ExternalAssemblyModule(new AssemblyHandlerScanner(), _packageParser, filePath);
             _moduleManager.Register(externalAssemblyModule);
             return true;
         }
 
-        public bool Handle(UnloadModule request)
+        public bool Handle(UnloadModule command)
         {
-            var module = _moduleManager.FindModule(request.ModuleName);
+            var module = _moduleManager.FindModule(command.ModuleName);
             module.Dispose();
             _moduleManager.Unregister(module);
             return true;

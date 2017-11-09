@@ -5,3 +5,7 @@
 * ILogger in ExternalAssemblyModule to do the Console Printing.
 * Request frequently the basic information to keep information up to date.
 * remove -Exception at the end of custom exception name
+* retain -target in file to simplify command.
+* make a server class that returns remoteClient. (commandline)
+* admin mode for app, need to write to c:\
+* before the download/upload, create the file to verify if user has the correct right.

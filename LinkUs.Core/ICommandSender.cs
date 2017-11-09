@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using LinkUs.Core.Connection;
 
@@ -7,5 +8,6 @@ namespace LinkUs.Core
     {
         Task<TResponse> ExecuteAsync<TCommand, TResponse>(TCommand command, ClientId destination = null, ClientId source = null);
         void ExecuteAsync<TCommand>(TCommand command, ClientId destination = null);
+        Task Receive<T>(ClientId @from, Predicate<T> predicate);
     }
 }
