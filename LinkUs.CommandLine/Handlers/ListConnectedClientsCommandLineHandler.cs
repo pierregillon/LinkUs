@@ -11,19 +11,19 @@ namespace LinkUs.CommandLine.Handlers
     public class ListConnectedClientsCommandLineHandler : ICommandLineHandler<ListConnectedClient>
     {
         private readonly IConsole _console;
-        private readonly ICommandSender _commandSender;
+        private readonly Server _server;
 
         // ----- Constructor
-        public ListConnectedClientsCommandLineHandler(IConsole console, ICommandSender commandSender)
+        public ListConnectedClientsCommandLineHandler(IConsole console, Server server)
         {
             _console = console;
-            _commandSender = commandSender;
+            _server = server;
         }
 
         // ----- Public methods
         public async Task Handle(ListConnectedClient commandLine)
         {
-            var clients = await _commandSender.ExecuteAsync<ListConnectedClient, ConnectedClient[]>(commandLine);
+            var clients = await _server.GetConnectedClients();
             var clientList = clients.ToList();
             ReduceHashId(clientList);
             _console.WriteObjects(clientList);

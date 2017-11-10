@@ -1,4 +1,4 @@
-namespace LinkUs.CommandLine.Handlers
+namespace LinkUs.CommandLine.ConsoleLib
 {
     public static class StringExtension
     {

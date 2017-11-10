@@ -5,6 +5,7 @@ using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Modules.Commands;
 using LinkUs.Core.PingLib;
+using LinkUs.Responses;
 
 namespace LinkUs.CommandLine
 {
@@ -12,40 +13,44 @@ namespace LinkUs.CommandLine
     {
         private readonly ICommandSender _commandSender;
 
-        public RemoteClient(ICommandSender commandSender)
+        public ClientId Id { get; }
+        public ConnectedClient Information { get; }
+
+        public RemoteClient(ICommandSender commandSender, ConnectedClient information)
         {
+            Id = ClientId.Parse(information.Id);
+            Information = information;
             _commandSender = commandSender;
         }
 
-        public async Task<long> Ping(ClientId target)
+        public async Task<long> Ping()
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var pingCommand = new Ping();
-            await _commandSender.ExecuteAsync<Ping, PingOk>(pingCommand, target);
+            await _commandSender.ExecuteAsync<Ping, PingOk>(pingCommand, Id);
             stopWatch.Stop();
             return stopWatch.ElapsedMilliseconds;
         }
-        public async Task<IReadOnlyCollection<ModuleInformation>> GetModules(ClientId targetId)
+        public async Task<IReadOnlyCollection<ModuleInformation>> GetModules()
         {
             var command = new ListModules();
-            var response = await _commandSender.ExecuteAsync<ListModules, ModuleInformation[]>(command, targetId);
+            var response = await _commandSender.ExecuteAsync<ListModules, ModuleInformation[]>(command, Id);
             return response;
         }
-        public Task<bool> LoadModule(ClientId target, string moduleName)
+        public Task<bool> LoadModule(string moduleName)
         {
             var command = new LoadModule(moduleName);
-            return _commandSender.ExecuteAsync<LoadModule, bool>(command, target);
+            return _commandSender.ExecuteAsync<LoadModule, bool>(command, Id);
         }
-        public Task<bool> UnLoadModule(ClientId target, string moduleName)
+        public Task<bool> UnLoadModule(string moduleName)
         {
             var command = new UnloadModule(moduleName);
-            return _commandSender.ExecuteAsync<UnloadModule, bool>(command, target);
+            return _commandSender.ExecuteAsync<UnloadModule, bool>(command, Id);
         }
-        public FileUploader GetFileUploader(ClientId target)
+        public FileUploader GetFileUploader()
         {
-            return new FileUploader(_commandSender, target);
+            return new FileUploader(_commandSender, Id);
         }
-
     }
 }

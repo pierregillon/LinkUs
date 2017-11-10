@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using LinkUs.Core;
@@ -11,22 +12,27 @@ namespace LinkUs.CommandLine
     {
         private readonly ICommandSender _commandSender;
 
+        // ----- Constructor
         public Server(ICommandSender commandSender)
         {
             _commandSender = commandSender;
         }
 
-        public Task<ConnectedClient[]> GetConnectedClients()
+        // ----- Public methods
+        public async Task<IReadOnlyCollection<ConnectedClient>> GetConnectedClients()
         {
             var command = new ListConnectedClient();
-            return _commandSender.ExecuteAsync<ListConnectedClient, ConnectedClient[]>(command);
+            var connectedClients = await _commandSender.ExecuteAsync<ListConnectedClient, ConnectedClient[]>(command);
+            return connectedClients;
         }
-        public async Task<ClientId> FindCliendId(string partialClientId)
+        public async Task<RemoteClient> FindRemoteClient(string partialClientId)
         {
-            var client = await GetConnectedClient(partialClientId);
-            return ClientId.Parse(client.Id);
+            var clientInformation = await GetConnectedClient(partialClientId);
+            return new RemoteClient(_commandSender, clientInformation);
         }
-        public async Task<ConnectedClient> GetConnectedClient(string partialClientId)
+
+        // ----- Utils
+        private async Task<ConnectedClient> GetConnectedClient(string partialClientId)
         {
             var clients = await GetConnectedClients();
             var matchingClients = clients.Where(x => x.Id.StartsWith(partialClientId)).ToArray();

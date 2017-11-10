@@ -58,7 +58,7 @@
     <Compile Include="FileUploader.cs" />
     <Compile Include="Handlers\ListConnectedClientsCommandLineHandler.cs" />
     <Compile Include="Handlers\ShellCommandLineHandler.cs" />
-    <Compile Include="Handlers\StringExtension.cs" />
+    <Compile Include="ConsoleLib\StringExtension.cs" />
     <Compile Include="Handlers\UploadCommandLineHandler.cs" />
     <Compile Include="ICommandLineHandler.cs" />
     <Compile Include="ICommandLineProcessor.cs" />

@@ -47,21 +47,26 @@ namespace LinkUs.CommandLine
         // ----- Callbacks
         private void PackageTransmitterOnPackageReceived(object sender, Package package)
         {
-            var command = _serializer.Deserialize<MessageDescriptor>(package.Content);
-            if (command.CommandName == typeof(ShellOutputReceived).Name) {
-                var response = _serializer.Deserialize<ShellOutputReceived>(package.Content);
-                if (response.ProcessId != _processId) return;
-                Console.Write(response.Output);
-                _lastCursorPosition = new CursorPosition {
-                    Left = Console.CursorLeft,
-                    Top = Console.CursorTop
-                };
+            try {
+                var command = _serializer.Deserialize<MessageDescriptor>(package.Content);
+                if (command.CommandName == typeof(ShellOutputReceived).Name) {
+                    var response = _serializer.Deserialize<ShellOutputReceived>(package.Content);
+                    if (response.ProcessId != _processId) return;
+                    Console.Write(response.Output);
+                    _lastCursorPosition = new CursorPosition {
+                        Left = Console.CursorLeft,
+                        Top = Console.CursorTop
+                    };
+                }
+                else if (command.CommandName == typeof(ShellEnded).Name) {
+                    var response = _serializer.Deserialize<ShellEnded>(package.Content);
+                    if (response.ProcessId != _processId) return;
+                    Console.Write($"Process ended, exit code: {response.ExitCode}. Press any key to continue.");
+                    _remoteShellIsActive = false;
+                }
             }
-            else if (command.CommandName == typeof(ShellEnded).Name) {
-                var response = _serializer.Deserialize<ShellEnded>(package.Content);
-                if (response.ProcessId != _processId) return;
-                Console.Write($"Process ended, exit code: {response.ExitCode}. Press any key to continue.");
-                _remoteShellIsActive = false;
+            catch (Exception ex) {
+                Console.WriteLine(ex);
             }
         }
 
