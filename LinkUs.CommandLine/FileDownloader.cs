@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
@@ -30,16 +31,20 @@ namespace LinkUs.CommandLine
             };
             var startedEvent = await _commandSender.ExecuteAsync<StartFileDownload, FileUploaderStarted>(command, _clientId);
 
-            var totalBytesTransferred = 0;
-            using (var stream = File.OpenWrite(localDestinationFilePath)) {
-                while (totalBytesTransferred != startedEvent.TotalLength) {
-                    var nextDataReceived = await _commandSender.Receive<SendNextFileData>(_clientId, data => data.Id == startedEvent.Id);
-                    stream.Write(nextDataReceived.Buffer, 0, nextDataReceived.Buffer.Length);
-                    totalBytesTransferred += nextDataReceived.Buffer.Length;
-                    Pourcentage = (int) (totalBytesTransferred * 100 / startedEvent.TotalLength);
+            var writingTask = Task.Factory.StartNew(() => {
+                var totalBytesTransferred = 0;
+                using (var stream = File.OpenWrite(localDestinationFilePath)) {
+                    while (totalBytesTransferred != startedEvent.TotalLength) {
+                        var nextDataReceived = _commandSender.Receive<SendNextFileData>(_clientId, data => data.Id == startedEvent.Id).Result;
+                        stream.Write(nextDataReceived.Buffer, 0, nextDataReceived.Buffer.Length);
+                        totalBytesTransferred += nextDataReceived.Buffer.Length;
+                        Pourcentage = (int) (totalBytesTransferred * 100 / startedEvent.TotalLength);
+                    }
                 }
-            }
-            await _commandSender.Receive<FileUploaderEnded>(_clientId, data => data.Id == startedEvent.Id);
+            });
+            Thread.Sleep(500);
+            _commandSender.ExecuteAsync(new ReadToReceiveFileData() {Id = startedEvent.Id}, _clientId);
+            await writingTask;
         }
     }
 }
