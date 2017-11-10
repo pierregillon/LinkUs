@@ -14,8 +14,7 @@ namespace LinkUs.Core.Modules
             foreach (var handlerType in handlers) {
                 var handleMethods = handlerType
                     .GetMethods()
-                    .Where(x => x.Name == "Handle")
-                    .Where(x=> x.ReturnType != typeof(void));
+                    .Where(x => x.Name == "Handle");
 
                 foreach (var methodInfo in handleMethods) {
                     var parameters = methodInfo.GetParameters();
