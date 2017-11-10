@@ -35,7 +35,6 @@ namespace LinkUs.CommandLine
             var startedEvent = await _commandSender.ExecuteAsync<StartFileUpload, FileDownloaderStarted>(command, _clientId);
             var buffer = new byte[1024];
             var totalBytesTransferred = 0;
-            var lastPourcentage = 0;
             using (var stream = File.OpenRead(sourceFilePath)) {
                 int bytesReadCount;
                 do {

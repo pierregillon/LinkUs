@@ -55,7 +55,7 @@ namespace LinkUs.Core
             var commandPackage = new Package(ClientId.Unknown, destination, content);
             PackageTransmitter.Send(commandPackage);
         }
-        public Task Receive<TResponse>(ClientId @from, Predicate<TResponse> predicate)
+        public Task<TResponse> Receive<TResponse>(ClientId @from, Predicate<TResponse> predicate)
         {
             @from = @from ?? ClientId.Server;
             var completionSource = new TaskCompletionSource<TResponse>();
@@ -87,6 +87,12 @@ namespace LinkUs.Core
                 PackageTransmitter.PackageReceived -= packageReceivedAction;
                 return task.Result;
             });
+        }
+        public void AnswerAsync<T>(T message, Package package)
+        {
+            var content = _serializer.Serialize(message);
+            var commandPackage = package.CreateResponsePackage(content);
+            PackageTransmitter.Send(commandPackage);
         }
     }
 }

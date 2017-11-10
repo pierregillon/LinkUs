@@ -62,9 +62,13 @@ namespace LinkUs.CommandLine.ConsoleLib
         {
             Console.WriteLine();
         }
-        public void MoveCursorLeft(int length)
+        public void MoveCursorLeftBack(int length)
         {
             Console.CursorLeft -= length;
+        }
+        public void SetCursorLeft(int left)
+        {
+            Console.CursorLeft = left;
         }
 
         // ----- Utils

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using LinkUs.Core.Connection;
@@ -58,7 +59,16 @@ namespace LinkUs.Core.Modules
                     .Any(y => y.GetGenericArguments().Length != 0 &&
                               y.GetGenericArguments()[0] == commandType));
 
-            var handler = Activator.CreateInstance(handlerType);
+
+            object handler;
+            var parametersInfo = handlerType.GetConstructors()[0].GetParameters();
+            if (parametersInfo.Length == 1 && parametersInfo[0].ParameterType == typeof(IBus)) {
+                handler = Activator.CreateInstance(handlerType, bus);
+            }
+            else {
+                handler = Activator.CreateInstance(handlerType);
+            }
+
             var handle = handlerType
                 .GetMethods()
                 .Where(x => x.Name == "Handle")

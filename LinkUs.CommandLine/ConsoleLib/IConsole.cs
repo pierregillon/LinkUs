@@ -11,6 +11,7 @@ namespace LinkUs.CommandLine.ConsoleLib
         void WriteLine(string message, params object[] args);
         void Write(string message, params object[] args);
         void NewLine();
-        void MoveCursorLeft(int length);
+        void MoveCursorLeftBack(int length);
+        void SetCursorLeft(int left);
     }
 }

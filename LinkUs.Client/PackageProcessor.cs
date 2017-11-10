@@ -9,19 +9,19 @@ namespace LinkUs.Client
 {
     public class PackageProcessor
     {
-        private readonly PackageTransmitter _transmitter;
+        private readonly ICommandSender _commandSender;
         private readonly ISerializer _serializer;
         private readonly PackageParser _packageParser;
         private readonly ModuleManager _moduleManager;
 
         // ----- Constructors
         public PackageProcessor(
-            PackageTransmitter transmitter,
+            ICommandSender commandSender,
             ISerializer serializer,
             PackageParser packageParser,
             ModuleManager moduleManager)
         {
-            _transmitter = transmitter;
+            _commandSender = commandSender;
             _serializer = serializer;
             _packageParser = packageParser;
             _moduleManager = moduleManager;
@@ -33,7 +33,7 @@ namespace LinkUs.Client
             try {
                 var messageDescriptor = _packageParser.GetCommandDescription(package);
                 var module = _moduleManager.FindModule(messageDescriptor.AssemblyName);
-                var bus = new DedicatedBus(_transmitter, package.Source, _serializer);
+                var bus = new DedicatedBus(_commandSender, package);
                 var response = module.Process(messageDescriptor.CommandName, package, bus);
                 if (response != null) {
                     Answer(package, response);
@@ -53,9 +53,7 @@ namespace LinkUs.Client
         // ----- Internal logics
         private void Answer(Package package, object response)
         {
-            var bytes = _serializer.Serialize(response);
-            var responsePackage = package.CreateResponsePackage(bytes);
-            _transmitter.Send(responsePackage);
+            _commandSender.AnswerAsync(response, package);
         }
     }
 }

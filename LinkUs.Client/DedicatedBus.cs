@@ -6,22 +6,26 @@ namespace LinkUs.Client
 {
     public class DedicatedBus : IBus
     {
-        private readonly PackageTransmitter _transmitter;
-        private readonly ClientId _target;
-        private readonly ISerializer _serializer;
+        private readonly ICommandSender _commandSender;
+        private readonly Package _package;
 
-        public DedicatedBus(PackageTransmitter transmitter, ClientId target, ISerializer serializer)
+        public DedicatedBus(ICommandSender commandSender, Package package)
         {
-            _transmitter = transmitter;
-            _target = target;
-            _serializer = serializer;
+            _commandSender = commandSender;
+            _package = package;
         }
 
-        public void Send(object message)
+        public void Answer<TCommand>(TCommand message)
         {
-            var data = _serializer.Serialize(message);
-            var package = new Package(ClientId.Unknown, _target, data);
-            _transmitter.Send(package);
+            _commandSender.AnswerAsync(message, _package);
+        }
+        public void Send<TCommand>(TCommand message)
+        {
+            _commandSender.ExecuteAsync(message, _package.Source);
+        }
+        public TResponse Send<TCommand, TResponse>(TCommand command)
+        {
+            return _commandSender.ExecuteAsync<TCommand, TResponse>(command, _package.Source).Result;
         }
     }
 }

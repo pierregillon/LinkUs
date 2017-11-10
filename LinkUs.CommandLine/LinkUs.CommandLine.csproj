@@ -55,11 +55,14 @@
     <Compile Include="CommandLineProcessor.cs" />
     <Compile Include="ConsoleLib\WindowsConsole.cs" />
     <Compile Include="ConsoleLib\IConsole.cs" />
+    <Compile Include="FileDownloader.cs" />
     <Compile Include="FileUploader.cs" />
+    <Compile Include="Verbs\DownloadFileCommandLine.cs" />
+    <Compile Include="Handlers\DownloadFileCommandLineHandler.cs" />
     <Compile Include="Handlers\ListConnectedClientsCommandLineHandler.cs" />
     <Compile Include="Handlers\ShellCommandLineHandler.cs" />
     <Compile Include="ConsoleLib\StringExtension.cs" />
-    <Compile Include="Handlers\UploadCommandLineHandler.cs" />
+    <Compile Include="Handlers\UploadFileCommandLineHandler.cs" />
     <Compile Include="ICommandLineHandler.cs" />
     <Compile Include="ICommandLineProcessor.cs" />
     <Compile Include="RemoteClient.cs" />
@@ -77,7 +80,7 @@
     <Compile Include="ConsoleRemoteShellController.cs" />
     <Compile Include="Verbs\ShellCommandLine.cs" />
     <Compile Include="Verbs\UnloadModuleCommandLine.cs" />
-    <Compile Include="Verbs\UploadCommandLine.cs" />
+    <Compile Include="Verbs\UploadFileCommandLine.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

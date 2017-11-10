@@ -2,13 +2,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using LinkUs.Core.FileTransfert.Commands;
 using LinkUs.Core.FileTransfert.Events;
 
 namespace LinkUs.Core.FileTransfert
 {
-    public class UploadCommandHandler :
+    public class UploadFileCommandHandler :
         IHandler<StartFileUpload, FileDownloaderStarted>,
         IHandler<SendNextFileData, bool>,
         IHandler<EndFileUpload, FileDownloaderEnded>

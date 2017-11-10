@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
+using LinkUs.Core.FileTransfert.Events;
 using LinkUs.Core.Modules.Commands;
 using LinkUs.Core.PingLib;
 using LinkUs.Responses;
@@ -51,6 +53,10 @@ namespace LinkUs.CommandLine
         public FileUploader GetFileUploader()
         {
             return new FileUploader(_commandSender, Id);
+        }
+        public FileDownloader GetFileDownloader()
+        {
+            return new FileDownloader(_commandSender, Id);
         }
     }
 }
