@@ -9,11 +9,11 @@ namespace LinkUs
         {
             var server = new Server(new IPEndPoint(IPAddress.Any, 9000));
             server.Start();
-            WriteLine("* Server started. Waiting for incoming connections.");
+            WriteLine("Server started. Waiting for incoming connections.");
             while (Console.ReadLine() != "exit") { }
-            WriteLine("* Closing connections...");
+            WriteLine("Closing connections...");
             server.Stop();
-            WriteLine("* Server shutdown.");
+            WriteLine("Server shutdown.");
         }
 
         // ----- Utils

@@ -40,7 +40,11 @@ namespace LinkUs.Core.Connection
         }
         public override string ToString()
         {
-            return TransactionId + "|" + Source + "|" + Destination + "|" + Content.Length + " bytes";
+            return
+                TransactionId + "|" +
+                Source.ToShortString() + "|" +
+                Destination.ToShortString() + "|" +
+                Content.Length + " bytes";
         }
 
         // ----- Utils

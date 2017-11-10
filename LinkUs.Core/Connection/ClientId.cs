@@ -21,6 +21,10 @@ namespace LinkUs.Core.Connection
         {
             return _internalId.ToString();
         }
+        public string ToShortString()
+        {
+            return ToString().Substring(0, 6);
+        }
         public override bool Equals(object obj)
         {
             if (obj is ClientId) {

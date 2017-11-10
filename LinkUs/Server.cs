@@ -47,11 +47,11 @@ namespace LinkUs
         }
         private void PackageRouterOnClientConnected(ClientId clientId)
         {
-            WriteLine($"* Client '{clientId}' connected.");
+            WriteLine($"Server process : Client '{clientId}' connected.");
         }
         private void PackageRouterOnClientDisconnected(ClientId clientId)
         {
-            WriteLine($"* Client '{clientId}' disconnected.");
+            WriteLine($"Server process : Client '{clientId}' disconnected.");
         }
         private void PackageRouterOnTargettedServerPackageReceived(Package package)
         {
@@ -70,7 +70,7 @@ namespace LinkUs
             else if (commandLine.CommandName == typeof(ClientBasicInformation).Name) {
                 var information = jsonSerializer.Deserialize<ClientBasicInformation>(package.Content);
                 _clients.Add(package.Source, information);
-                WriteLine($"* Client '{information.MachineName}' connected.");
+                WriteLine($"Server process : Client {package.Source.ToShortString()} updated its information.");
             }
             else if (commandLine.CommandName == typeof(ListConnectedClient).Name) {
                 var value = _clients.Select(x => new ConnectedClient() {

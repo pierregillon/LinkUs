@@ -44,7 +44,7 @@ namespace LinkUs
             var packageTransmitter = (PackageTransmitter) sender;
             var clientId = _activeTransmitter.Single(x => x.Value == packageTransmitter).Key;
             package.ChangeSource(clientId);
-            ProcessPackage(package);
+            Route(package);
         }
         private void PackageTransmitterOnClosed(object sender, EventArgs eventArgs)
         {
@@ -55,10 +55,10 @@ namespace LinkUs
         }
 
         // ----- Internal logics
-        private void ProcessPackage(Package package)
+        private void Route(Package package)
         {
+            Console.WriteLine($"[{DateTime.Now}] Package routed : {package}");
             if (!Equals(package.Destination, ClientId.Server)) {
-                Console.WriteLine($"* Package routed {package}");
                 SendPackage(package);
             }
             else if (Equals(package.Source, package.Destination)) {
