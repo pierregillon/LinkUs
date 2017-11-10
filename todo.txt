@@ -6,7 +6,6 @@
 * Request frequently the basic information to keep information up to date.
 * remove -Exception at the end of custom exception name
 * retain -target in file to simplify command.
-* make a server class that returns remoteClient. (commandline)
 * admin mode for app, need to write to c:\
 * The message size for uploading/downloading is huge because of UTF8 conversion. Find something to reduce the size (before compression)
 * Send command without return result. (underlying sync call with byte result)
