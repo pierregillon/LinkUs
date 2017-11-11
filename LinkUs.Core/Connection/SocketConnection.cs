@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 
@@ -8,8 +7,8 @@ namespace LinkUs.Core.Connection
     public class SocketConnection : IConnection
     {
         private readonly Socket _socket;
-        private readonly Queue<SocketAsyncEventArgs> _receiveSocketOperations = new Queue<SocketAsyncEventArgs>();
-        private readonly Queue<SocketAsyncEventArgs> _sendSocketOperations = new Queue<SocketAsyncEventArgs>();
+        private readonly SemaphoredQueue<SocketAsyncEventArgs> _receiveSocketOperations = new SemaphoredQueue<SocketAsyncEventArgs>();
+        private readonly SemaphoredQueue<SocketAsyncEventArgs> _sendSocketOperations = new SemaphoredQueue<SocketAsyncEventArgs>();
 
         public event Action<byte[]> DataReceived;
         public event Action<int> DataSent;
@@ -93,13 +92,33 @@ namespace LinkUs.Core.Connection
         {
             var metadata = (Metadata) receiveSocketEventArgs.UserToken;
             if (metadata.PackageLength == 0) {
-                //todo : manage the case when we don't have enough byte for the size!
-                Buffer.BlockCopy(bytesTransferred, 0, metadata.PackageLengthBytes, 0, metadata.PackageLengthBytes.Length);
-                metadata.PackageLength = BitConverter.ToInt32(metadata.PackageLengthBytes, 0);
-                if (metadata.PackageLength <= 0 || metadata.PackageLength > 100000) {
-                    throw new Exception("Invalid length");
+                var remainingBytesCountForPackageLength = metadata.PackageLengthBytes.Length - metadata.PackageLengthReceivedBytesCount;
+                if (bytesTransferred.Length >= remainingBytesCountForPackageLength) {
+                    Buffer.BlockCopy(
+                        bytesTransferred,
+                        0,
+                        metadata.PackageLengthBytes,
+                        metadata.PackageLengthReceivedBytesCount,
+                        remainingBytesCountForPackageLength);
+
+                    metadata.PackageLength = BitConverter.ToInt32(metadata.PackageLengthBytes, 0);
+                    if (metadata.PackageLength <= 0 || metadata.PackageLength > 100000) {
+                        throw new Exception("Invalid length");
+                    }
+                    metadata.Buffers.Add(bytesTransferred.Skip(remainingBytesCountForPackageLength).ToArray());
                 }
-                metadata.Buffers.Add(bytesTransferred.Skip(metadata.PackageLengthBytes.Length).ToArray());
+                else {
+                    Buffer.BlockCopy(
+                        bytesTransferred,
+                        0,
+                        metadata.PackageLengthBytes,
+                        metadata.PackageLengthReceivedBytesCount,
+                        bytesTransferred.Length);
+
+                    metadata.PackageLengthReceivedBytesCount += bytesTransferred.Length;
+                    StartReceiveData(receiveSocketEventArgs);
+                    return;
+                }
             }
             else {
                 metadata.Buffers.Add(bytesTransferred);
