@@ -53,10 +53,11 @@
     <Compile Include="ClientInformation\SetStatus.cs" />
     <Compile Include="CommandSender.cs" />
     <Compile Include="Connection\ClientId.cs" />
+    <Compile Include="Connection\SemaphoredQueue.cs" />
     <Compile Include="ErrorMessage.cs" />
     <Compile Include="FileTransfert\Commands\EndFileDownload.cs" />
     <Compile Include="FileTransfert\Commands\EndFileUpload.cs" />
-    <Compile Include="FileTransfert\Commands\ReadToReceiveFileData.cs" />
+    <Compile Include="FileTransfert\Commands\ReadyToReceiveFileData.cs" />
     <Compile Include="FileTransfert\DownloadFileCommandHandler.cs" />
     <Compile Include="FileTransfert\Events\FileUploaderEnded.cs" />
     <Compile Include="FileTransfert\Events\FileUploaderStarted.cs" />

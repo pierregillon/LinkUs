@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
+using LinkUs.Core.FileTransfert.Commands;
 using LinkUs.Core.FileTransfert.Events;
 using LinkUs.Core.Modules.Commands;
 using LinkUs.Core.PingLib;

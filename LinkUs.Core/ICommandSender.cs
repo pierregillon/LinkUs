@@ -10,5 +10,6 @@ namespace LinkUs.Core
         void ExecuteAsync<TCommand>(TCommand command, ClientId destination = null);
         Task<T> Receive<T>(ClientId @from, Predicate<T> predicate);
         void AnswerAsync<T>(T message, Package package);
+        CommandStream<T> BuildStream<T>(Predicate<T> predicate);
     }
 }

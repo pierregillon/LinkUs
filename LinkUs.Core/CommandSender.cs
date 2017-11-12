@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
@@ -60,7 +63,8 @@ namespace LinkUs.Core
             @from = @from ?? ClientId.Server;
             var completionSource = new TaskCompletionSource<TResponse>();
 
-            EventHandler<Package> packageReceivedAction = (sender, package) => {
+            EventHandler<Package> packageReceivedAction = null;
+            packageReceivedAction = (sender, package) => {
                 if (!Equals(package.Source, @from)) {
                     return;
                 }
@@ -84,7 +88,6 @@ namespace LinkUs.Core
             PackageTransmitter.PackageReceived += packageReceivedAction;
 
             return completionSource.Task.ContinueWith(task => {
-                PackageTransmitter.PackageReceived -= packageReceivedAction;
                 return task.Result;
             });
         }
@@ -93,6 +96,55 @@ namespace LinkUs.Core
             var content = _serializer.Serialize(message);
             var commandPackage = package.CreateResponsePackage(content);
             PackageTransmitter.Send(commandPackage);
+        }
+        public CommandStream<T> BuildStream<T>(Predicate<T> predicate)
+        {
+            return new CommandStream<T>(PackageTransmitter, _serializer);
+        }
+    }
+
+    public class CommandStream<T>
+    {
+        private readonly PackageTransmitter _transmitter;
+        private readonly ISerializer _serializer;
+        private readonly ConcurrentQueue<T> _values = new ConcurrentQueue<T>();
+        private bool _ended;
+
+        public CommandStream(PackageTransmitter transmitter, ISerializer serializer)
+        {
+            _transmitter = transmitter;
+            _serializer = serializer;
+        }
+
+        public void Start()
+        {
+            _transmitter.PackageReceived += TransmitterOnPackageReceived;
+        }
+        public IEnumerable<T> GetData()
+        {
+            while (!_ended || _values.Count != 0) {
+                T value;
+                if (_values.TryDequeue(out value)) {
+                    yield return value;
+                }
+            }
+        }
+        public void End()
+        {
+            _transmitter.PackageReceived -= TransmitterOnPackageReceived;
+            _ended = true;
+        }
+
+        private void TransmitterOnPackageReceived(object o, Package package)
+        {
+            if (_serializer.IsPrimitifMessage(package.Content)) {
+                return;
+            }
+            var messageDescriptor = _serializer.Deserialize<MessageDescriptor>(package.Content);
+            if (messageDescriptor.CommandName == typeof(T).Name) {
+                var response = _serializer.Deserialize<T>(package.Content);
+                _values.Enqueue(response);
+            }
         }
     }
 }

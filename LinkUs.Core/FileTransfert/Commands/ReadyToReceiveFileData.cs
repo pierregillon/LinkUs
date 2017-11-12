@@ -2,7 +2,7 @@ using System;
 
 namespace LinkUs.Core.FileTransfert.Commands
 {
-    public class ReadToReceiveFileData
+    public class ReadyToReceiveFileData
     {
         public Guid Id { get; set; }
     }

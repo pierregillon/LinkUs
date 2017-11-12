@@ -11,9 +11,9 @@ namespace LinkUs.Core.FileTransfert
 {
     public class DownloadFileCommandHandler :
         IHandler<StartFileDownload>,
-        IHandler<ReadToReceiveFileData>
+        IHandler<ReadyToReceiveFileData>
     {
-        private static IDictionary<Guid, Stream> Streams = new ConcurrentDictionary<Guid, Stream>();
+        private static readonly IDictionary<Guid, Stream> Streams = new ConcurrentDictionary<Guid, Stream>();
         private readonly IBus _bus;
 
         public DownloadFileCommandHandler(IBus bus)
@@ -32,7 +32,7 @@ namespace LinkUs.Core.FileTransfert
             _bus.Answer(new FileUploaderStarted {Id = id, TotalLength = stream.Length});
         }
 
-        public void Handle(ReadToReceiveFileData command)
+        public void Handle(ReadyToReceiveFileData command)
         {
             Stream stream;
             if (Streams.TryGetValue(command.Id, out stream) == false) {
@@ -56,6 +56,8 @@ namespace LinkUs.Core.FileTransfert
                 });
             }
             stream.Close();
+            Streams.Remove(command.Id);
+            _bus.Answer(new FileUploaderEnded() {Id = command.Id});
         }
     }
 }

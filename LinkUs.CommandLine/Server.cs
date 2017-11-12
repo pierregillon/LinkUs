@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
+using LinkUs.Core.FileTransfert.Commands;
 using LinkUs.Responses;
 
 namespace LinkUs.CommandLine

@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
@@ -29,22 +28,31 @@ namespace LinkUs.CommandLine
             var command = new StartFileDownload {
                 SourceFilePath = remoteSourceFilePath
             };
-            var startedEvent = await _commandSender.ExecuteAsync<StartFileDownload, FileUploaderStarted>(command, _clientId);
 
-            var writingTask = Task.Factory.StartNew(() => {
-                var totalBytesTransferred = 0;
-                using (var stream = File.OpenWrite(localDestinationFilePath)) {
-                    while (totalBytesTransferred != startedEvent.TotalLength) {
-                        var nextDataReceived = _commandSender.Receive<SendNextFileData>(_clientId, data => data.Id == startedEvent.Id).Result;
-                        stream.Write(nextDataReceived.Buffer, 0, nextDataReceived.Buffer.Length);
-                        totalBytesTransferred += nextDataReceived.Buffer.Length;
-                        Pourcentage = (int) (totalBytesTransferred * 100 / startedEvent.TotalLength);
-                    }
+            var startedEvent = await _commandSender.ExecuteAsync<StartFileDownload, FileUploaderStarted>(command, _clientId);
+            var dataStream = _commandSender.BuildStream<SendNextFileData>(data => data.Id == startedEvent.Id);
+            dataStream.Start();
+
+            _commandSender.ExecuteAsync(new ReadyToReceiveFileData {Id = startedEvent.Id}, _clientId);
+
+            var endedEventTask =_commandSender
+                .Receive<FileUploaderEnded>(_clientId, @event => @event.Id == startedEvent.Id)
+                .ContinueWith(x => dataStream.End());
+
+            var totalBytesTransferred = 0;
+            using (var stream = File.OpenWrite(localDestinationFilePath)) {
+                foreach (var sendNextFileData in dataStream.GetData()) {
+                    stream.Write(sendNextFileData.Buffer, 0, sendNextFileData.Buffer.Length);
+                    totalBytesTransferred += sendNextFileData.Buffer.Length;
+                    Pourcentage = (int) (totalBytesTransferred * 100 / startedEvent.TotalLength);
                 }
-            });
-            Thread.Sleep(500);
-            _commandSender.ExecuteAsync(new ReadToReceiveFileData() {Id = startedEvent.Id}, _clientId);
-            await writingTask;
+            }
+
+            await endedEventTask;
+
+            if (totalBytesTransferred != startedEvent.TotalLength) {
+                throw new Exception("The total amount of bytes received is not correct, file must be corrupted.");
+            }
         }
     }
 }

@@ -13,3 +13,4 @@
 * Deserialization with typeof(TCommand) to replace with command.GetType() => let dev to serialize partial data .
 * Rename file transfert event/command 
 * dont use handler with return type, only void, and pass IBus systematically to interact with host process.
+* stream of command concept
