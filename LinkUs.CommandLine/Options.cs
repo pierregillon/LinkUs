@@ -1,5 +1,6 @@
 using CommandLine;
 using LinkUs.CommandLine.Verbs;
+using LinkUs.Commands;
 using LinkUs.Core;
 
 namespace LinkUs.CommandLine

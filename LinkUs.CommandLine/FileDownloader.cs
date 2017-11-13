@@ -29,14 +29,14 @@ namespace LinkUs.CommandLine
                 SourceFilePath = remoteSourceFilePath
             };
 
-            var startedEvent = await _commandSender.ExecuteAsync<StartFileDownload, FileUploaderStarted>(command, _clientId);
-            var dataStream = _commandSender.BuildStream<SendNextFileData>(data => data.Id == startedEvent.Id);
+            var startedEvent = await _commandSender.ExecuteAsync<StartFileDownload, FileDownloadStarted>(command, _clientId);
+            var dataStream = _commandSender.BuildStream<SendNextFileData>(data => data.FileId == startedEvent.FileId);
             dataStream.Start();
 
-            _commandSender.ExecuteAsync(new ReadyToReceiveFileData {Id = startedEvent.Id}, _clientId);
+            _commandSender.ExecuteAsync(new ReadyToReceiveFileData {FileId = startedEvent.FileId}, _clientId);
 
             var endedEventTask =_commandSender
-                .Receive<FileUploaderEnded>(_clientId, @event => @event.Id == startedEvent.Id)
+                .Receive<FileDownloadEnded>(_clientId, @event => @event.FileId == startedEvent.FileId)
                 .ContinueWith(x => dataStream.End());
 
             var totalBytesTransferred = 0;

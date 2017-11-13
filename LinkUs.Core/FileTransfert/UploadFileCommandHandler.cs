@@ -8,25 +8,25 @@ using LinkUs.Core.FileTransfert.Events;
 namespace LinkUs.Core.FileTransfert
 {
     public class UploadFileCommandHandler :
-        IHandler<StartFileUpload, FileDownloaderStarted>,
+        IHandler<StartFileUpload, FileUploadStarted>,
         IHandler<SendNextFileData, bool>,
-        IHandler<EndFileUpload, FileDownloaderEnded>
+        IHandler<EndFileUpload, FileUploadEnded>
     {
         private static readonly IDictionary<Guid, Stream> FileStreams = new ConcurrentDictionary<Guid, Stream>();
 
-        public FileDownloaderStarted Handle(StartFileUpload command)
+        public FileUploadStarted Handle(StartFileUpload command)
         {
             if (File.Exists(command.DestinationFilePath)) {
                 File.Delete(command.DestinationFilePath);
             }
             var newId = Guid.NewGuid();
             FileStreams.Add(newId, File.Open(command.DestinationFilePath, FileMode.Append));
-            return new FileDownloaderStarted {Id = newId};
+            return new FileUploadStarted {FileId = newId};
         }
 
         public bool Handle(SendNextFileData command)
         {
-            var fileStream = GetFileStream(command.Id);
+            var fileStream = GetFileStream(command.FileId);
             try {
                 fileStream.Write(command.Buffer, 0, command.Buffer.Length);
                 return true;
@@ -34,20 +34,20 @@ namespace LinkUs.Core.FileTransfert
             catch (Exception) {
                 fileStream.Close();
                 fileStream.Dispose();
-                FileStreams.Remove(command.Id);
+                FileStreams.Remove(command.FileId);
                 throw;
             }
         }
 
-        public FileDownloaderEnded Handle(EndFileUpload command)
+        public FileUploadEnded Handle(EndFileUpload command)
         {
             Stream fileStream;
-            if (FileStreams.TryGetValue(command.Id, out fileStream)) {
+            if (FileStreams.TryGetValue(command.FileId, out fileStream)) {
                 fileStream.Close();
                 fileStream.Dispose();
-                FileStreams.Remove(command.Id);
+                FileStreams.Remove(command.FileId);
             }
-            return new FileDownloaderEnded {Id = command.Id};
+            return new FileUploadEnded {FileId = command.FileId};
         }
 
         private static Stream GetFileStream(Guid id)

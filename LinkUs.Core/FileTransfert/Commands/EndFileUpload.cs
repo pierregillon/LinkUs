@@ -2,8 +2,8 @@ using System;
 
 namespace LinkUs.Core.FileTransfert.Commands
 {
-    public class EndFileUpload
+    public class EndFileUpload : IFilePointer
     {
-        public Guid Id { get; set; }
+        public Guid FileId { get; set; }
     }
 }

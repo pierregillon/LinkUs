@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using LinkUs.CommandLine.ConsoleLib;
+using LinkUs.Commands;
 using LinkUs.Core;
 using LinkUs.Responses;
 

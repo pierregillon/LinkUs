@@ -2,9 +2,9 @@
 
 namespace LinkUs.Core.FileTransfert.Commands
 {
-    public class SendNextFileData
+    public class SendNextFileData : IFilePointer
     {
-        public Guid Id { get; set; }
+        public Guid FileId { get; set; }
         public byte[] Buffer { get; set; }
     }
 }

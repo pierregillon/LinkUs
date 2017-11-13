@@ -14,3 +14,5 @@
 * Rename file transfert event/command 
 * dont use handler with return type, only void, and pass IBus systematically to interact with host process.
 * stream of command concept
+* when exception during upload/download, remove the stream from references to avoid infinite lock
+* when client not responding for a period of time during the Receive/Stream, free resource and throw exception.

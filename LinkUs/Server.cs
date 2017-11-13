@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using LinkUs.Commands;
 using LinkUs.Core;
 using LinkUs.Core.ClientInformation;
 using LinkUs.Core.Connection;

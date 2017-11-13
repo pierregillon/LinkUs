@@ -1,4 +1,4 @@
-﻿namespace LinkUs.Core.Modules.Commands
+﻿namespace LinkUs.Core.Modules
 {
     public class ModuleInformation
     {

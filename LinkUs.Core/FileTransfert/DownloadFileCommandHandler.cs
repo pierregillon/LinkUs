@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using LinkUs.Core.FileTransfert.Commands;
 using LinkUs.Core.FileTransfert.Events;
 using LinkUs.Modules.RemoteShell;
@@ -13,7 +12,7 @@ namespace LinkUs.Core.FileTransfert
         IHandler<StartFileDownload>,
         IHandler<ReadyToReceiveFileData>
     {
-        private static readonly IDictionary<Guid, Stream> Streams = new ConcurrentDictionary<Guid, Stream>();
+        private static readonly IDictionary<Guid, Stream> OpenedStreams = new ConcurrentDictionary<Guid, Stream>();
         private readonly IBus _bus;
 
         public DownloadFileCommandHandler(IBus bus)
@@ -28,15 +27,15 @@ namespace LinkUs.Core.FileTransfert
             }
             var id = Guid.NewGuid();
             var stream = File.Open(command.SourceFilePath, FileMode.Open);
-            Streams.Add(id, stream);
-            _bus.Answer(new FileUploaderStarted {Id = id, TotalLength = stream.Length});
+            OpenedStreams.Add(id, stream);
+            _bus.Answer(new FileDownloadStarted {FileId = id, TotalLength = stream.Length});
         }
 
         public void Handle(ReadyToReceiveFileData command)
         {
             Stream stream;
-            if (Streams.TryGetValue(command.Id, out stream) == false) {
-                throw new Exception($"Unable to find the stream with id '{command.Id}'.");
+            if (OpenedStreams.TryGetValue(command.FileId, out stream) == false) {
+                throw new Exception($"Unable to find the stream with id '{command.FileId}'.");
             }
 
             var buffer = new byte[1024];
@@ -51,13 +50,13 @@ namespace LinkUs.Core.FileTransfert
                     buffer = endBuffer;
                 }
                 _bus.Send(new SendNextFileData {
-                    Id = command.Id,
+                    FileId = command.FileId,
                     Buffer = buffer
                 });
             }
             stream.Close();
-            Streams.Remove(command.Id);
-            _bus.Answer(new FileUploaderEnded() {Id = command.Id});
+            OpenedStreams.Remove(command.FileId);
+            _bus.Answer(new FileDownloadEnded() {FileId = command.FileId});
         }
     }
 }

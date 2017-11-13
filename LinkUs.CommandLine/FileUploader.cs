@@ -32,7 +32,7 @@ namespace LinkUs.CommandLine
                 DestinationFilePath = destinationFilePath,
                 Length = new FileInfo(sourceFilePath).Length
             };
-            var startedEvent = await _commandSender.ExecuteAsync<StartFileUpload, FileDownloaderStarted>(command, _clientId);
+            var startedEvent = await _commandSender.ExecuteAsync<StartFileUpload, FileUploadStarted>(command, _clientId);
             var buffer = new byte[1024];
             var totalBytesTransferred = 0;
             using (var stream = File.OpenRead(sourceFilePath)) {
@@ -46,7 +46,7 @@ namespace LinkUs.CommandLine
                             buffer = endBuffer;
                         }
                         var sendCommand = new SendNextFileData {
-                            Id = startedEvent.Id,
+                            FileId = startedEvent.FileId,
                             Buffer = buffer
                         };
                         await _commandSender.ExecuteAsync<SendNextFileData, bool>(sendCommand, _clientId);
@@ -56,8 +56,8 @@ namespace LinkUs.CommandLine
                 } while (bytesReadCount != 0);
             }
 
-            var endCommand = new EndFileUpload() {Id = startedEvent.Id};
-            await _commandSender.ExecuteAsync<EndFileUpload, FileDownloaderEnded>(endCommand, _clientId);
+            var endCommand = new EndFileUpload() {FileId = startedEvent.FileId};
+            await _commandSender.ExecuteAsync<EndFileUpload, FileUploadEnded>(endCommand, _clientId);
         }
     }
 }
