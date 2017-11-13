@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
+using LinkUs.CommandLine.FileTransferts;
 using LinkUs.CommandLine.Handlers;
 
 namespace LinkUs.CommandLine.ConsoleLib
@@ -70,6 +74,25 @@ namespace LinkUs.CommandLine.ConsoleLib
         {
             Console.CursorLeft = left;
         }
+        public void WriteProgress(Task task, IProgressable progressable)
+        {
+            try {
+                var watch = new Stopwatch();
+                watch.Start();
+                while (task.Wait(500) == false) {
+                    SetCursorLeft(0);
+                    WriteProgress(progressable.Pourcentage, watch.Elapsed);
+                }
+                watch.Stop();
+                SetCursorLeft(0);
+                WriteProgress(progressable.Pourcentage, watch.Elapsed);
+                NewLine();
+            }
+            catch (Exception) {
+                SetCursorLeft(0);
+                throw;
+            }
+        }
 
         // ----- Utils
         private void WriteWithColor(string message, ConsoleColor color)
@@ -78,6 +101,10 @@ namespace LinkUs.CommandLine.ConsoleLib
             Console.ForegroundColor = color;
             Console.WriteLine(message);
             Console.ForegroundColor = previousColor;
+        }
+        private void WriteProgress(int pourcentage, TimeSpan ellapsed)
+        {
+            Write($"Progress: {pourcentage.ToString().PadLeft(3)}%\t{ellapsed:hh\\:mm\\:ss}");
         }
     }
 }

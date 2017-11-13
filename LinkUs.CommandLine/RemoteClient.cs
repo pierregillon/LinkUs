@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using LinkUs.CommandLine.FileTransferts;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
 using LinkUs.Core.FileTransfert.Commands;

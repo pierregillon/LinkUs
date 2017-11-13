@@ -55,8 +55,9 @@
     <Compile Include="CommandLineProcessor.cs" />
     <Compile Include="ConsoleLib\WindowsConsole.cs" />
     <Compile Include="ConsoleLib\IConsole.cs" />
-    <Compile Include="FileDownloader.cs" />
-    <Compile Include="FileUploader.cs" />
+    <Compile Include="FileTransferts\FileDownloader.cs" />
+    <Compile Include="FileTransferts\FileUploader.cs" />
+    <Compile Include="FileTransferts\IProgressable.cs" />
     <Compile Include="Verbs\DownloadFileCommandLine.cs" />
     <Compile Include="Handlers\DownloadFileCommandLineHandler.cs" />
     <Compile Include="Handlers\ListConnectedClientsCommandLineHandler.cs" />

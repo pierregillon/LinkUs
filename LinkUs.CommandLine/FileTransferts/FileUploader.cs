@@ -6,9 +6,9 @@ using LinkUs.Core.Connection;
 using LinkUs.Core.FileTransfert.Commands;
 using LinkUs.Core.FileTransfert.Events;
 
-namespace LinkUs.CommandLine
+namespace LinkUs.CommandLine.FileTransferts
 {
-    public class FileUploader
+    public class FileUploader : IProgressable
     {
         private readonly ICommandSender _commandSender;
         private readonly ClientId _clientId;

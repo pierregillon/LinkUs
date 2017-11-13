@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using LinkUs.CommandLine.FileTransferts;
 
 namespace LinkUs.CommandLine.ConsoleLib
 {
@@ -13,5 +15,6 @@ namespace LinkUs.CommandLine.ConsoleLib
         void NewLine();
         void MoveCursorLeftBack(int length);
         void SetCursorLeft(int left);
+        void WriteProgress(Task task, IProgressable progressable);
     }
 }

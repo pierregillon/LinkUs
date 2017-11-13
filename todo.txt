@@ -17,3 +17,4 @@
 * when exception during upload/download, remove the stream from references to avoid infinite lock
 * when client not responding for a period of time during the Receive/Stream, free resource and throw exception.
 * Ellapsed time for upload/download.
+* use of the stream for shell command line handler.
