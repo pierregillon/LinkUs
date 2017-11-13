@@ -1,7 +1,7 @@
 using System;
+using System.Reflection;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
-using LinkUs.Core.Json;
 using LinkUs.Core.Modules;
 using LinkUs.Core.Modules.Exceptions;
 
@@ -10,19 +10,16 @@ namespace LinkUs.Client
     public class PackageProcessor
     {
         private readonly ICommandSender _commandSender;
-        private readonly ISerializer _serializer;
         private readonly PackageParser _packageParser;
         private readonly ModuleManager _moduleManager;
 
         // ----- Constructors
         public PackageProcessor(
             ICommandSender commandSender,
-            ISerializer serializer,
             PackageParser packageParser,
             ModuleManager moduleManager)
         {
             _commandSender = commandSender;
-            _serializer = serializer;
             _packageParser = packageParser;
             _moduleManager = moduleManager;
         }
@@ -45,8 +42,11 @@ namespace LinkUs.Client
             catch (ModuleException ex) {
                 Answer(package, new ErrorMessage(ex.Message));
             }
+            catch (TargetInvocationException ex) {
+                Answer(package, new ErrorMessage(ex.InnerException));
+            }
             catch (Exception ex) {
-                Answer(package, new ErrorMessage(ex.ToString()));
+                Answer(package, new ErrorMessage(ex));
             }
         }
 

@@ -28,36 +28,55 @@ namespace LinkUs.CommandLine
             if (File.Exists(sourceFilePath) == false) {
                 throw new Exception($"Unable to start the upload: the file path '{sourceFilePath}' is invalid.");
             }
-            var command = new StartFileUpload {
+            var startCommand = new StartFileUpload {
                 DestinationFilePath = destinationFilePath,
                 Length = new FileInfo(sourceFilePath).Length
             };
-            var startedEvent = await _commandSender.ExecuteAsync<StartFileUpload, FileUploadStarted>(command, _clientId);
-            var buffer = new byte[1024];
+            var startedEvent = await _commandSender.ExecuteAsync<StartFileUpload, FileUploadStarted>(startCommand, _clientId);
+            await SendSourceFile(sourceFilePath, startedEvent.FileId, startCommand.Length);
+            var endCommand = new EndFileUpload { FileId = startedEvent.FileId };
+            await _commandSender.ExecuteAsync<EndFileUpload, FileUploadEnded>(endCommand, _clientId);
+        }
+
+        private async Task SendSourceFile(string sourceFilePath, Guid fileId, long fileLength)
+        {
             var totalBytesTransferred = 0;
+            await ForEachFileRead(sourceFilePath, async buffer => {
+                await SendNextFileDataCommand(fileId, buffer);
+                totalBytesTransferred += buffer.Length;
+                Pourcentage = (int) (totalBytesTransferred * 100 / fileLength);
+            });
+        }
+
+        private async Task ForEachFileRead(string sourceFilePath, Func<byte[], Task> action)
+        {
+            var buffer = new byte[1024];
             using (var stream = File.OpenRead(sourceFilePath)) {
                 int bytesReadCount;
                 do {
                     bytesReadCount = await stream.ReadAsync(buffer, 0, buffer.Length);
                     if (bytesReadCount != 0) {
-                        if (bytesReadCount != buffer.Length) {
-                            var endBuffer = new byte[bytesReadCount];
-                            Buffer.BlockCopy(buffer, 0, endBuffer, 0, bytesReadCount);
-                            buffer = endBuffer;
-                        }
-                        var sendCommand = new SendNextFileData {
-                            FileId = startedEvent.FileId,
-                            Buffer = buffer
-                        };
-                        await _commandSender.ExecuteAsync<SendNextFileData, bool>(sendCommand, _clientId);
-                        totalBytesTransferred += bytesReadCount;
-                        Pourcentage = (int)(totalBytesTransferred * 100 / command.Length);
+                        await action(GetExactDataBuffer(bytesReadCount, buffer));
                     }
                 } while (bytesReadCount != 0);
             }
-
-            var endCommand = new EndFileUpload() {FileId = startedEvent.FileId};
-            await _commandSender.ExecuteAsync<EndFileUpload, FileUploadEnded>(endCommand, _clientId);
+        }
+        private static byte[] GetExactDataBuffer(int bytesReadCount, byte[] buffer)
+        {
+            if (bytesReadCount != buffer.Length) {
+                var endBuffer = new byte[bytesReadCount];
+                Buffer.BlockCopy(buffer, 0, endBuffer, 0, bytesReadCount);
+                buffer = endBuffer;
+            }
+            return buffer;
+        }
+        private async Task SendNextFileDataCommand(Guid fileId, byte[] buffer)
+        {
+            var sendCommand = new SendNextFileData {
+                FileId = fileId,
+                Buffer = buffer
+            };
+            await _commandSender.ExecuteAsync<SendNextFileData, bool>(sendCommand, _clientId);
         }
     }
 }

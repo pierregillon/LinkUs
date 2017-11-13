@@ -58,13 +58,18 @@ namespace LinkUs.Core
             var commandPackage = new Package(ClientId.Unknown, destination, content);
             PackageTransmitter.Send(commandPackage);
         }
-        public Task<TResponse> Receive<TResponse>(ClientId @from, Predicate<TResponse> predicate)
+        public Task<TResponse> Receive<TResponse>(ClientId @from, Predicate<TResponse> predicate, CancellationToken token)
         {
             @from = @from ?? ClientId.Server;
             var completionSource = new TaskCompletionSource<TResponse>();
 
             EventHandler<Package> packageReceivedAction = null;
             packageReceivedAction = (sender, package) => {
+                if (token.IsCancellationRequested) {
+                    PackageTransmitter.PackageReceived -= packageReceivedAction;
+                    completionSource.SetCanceled();
+                    return;
+                }
                 if (!Equals(package.Source, @from)) {
                     return;
                 }
@@ -88,8 +93,9 @@ namespace LinkUs.Core
             PackageTransmitter.PackageReceived += packageReceivedAction;
 
             return completionSource.Task.ContinueWith(task => {
+                PackageTransmitter.PackageReceived -= packageReceivedAction;
                 return task.Result;
-            });
+            }, token);
         }
         public void AnswerAsync<T>(T message, Package package)
         {
@@ -109,6 +115,7 @@ namespace LinkUs.Core
         private readonly ISerializer _serializer;
         private readonly ConcurrentQueue<T> _values = new ConcurrentQueue<T>();
         private bool _ended;
+        private Exception _lastError;
 
         public CommandStream(PackageTransmitter transmitter, ISerializer serializer)
         {
@@ -128,6 +135,10 @@ namespace LinkUs.Core
                     yield return value;
                 }
             }
+
+            if (_lastError != null) {
+                throw _lastError;
+            }
         }
         public void End()
         {
@@ -137,13 +148,19 @@ namespace LinkUs.Core
 
         private void TransmitterOnPackageReceived(object o, Package package)
         {
-            if (_serializer.IsPrimitifMessage(package.Content)) {
-                return;
+            try {
+                if (_serializer.IsPrimitifMessage(package.Content)) {
+                    return;
+                }
+                var messageDescriptor = _serializer.Deserialize<MessageDescriptor>(package.Content);
+                if (messageDescriptor.CommandName == typeof(T).Name) {
+                    var response = _serializer.Deserialize<T>(package.Content);
+                    _values.Enqueue(response);
+                }
             }
-            var messageDescriptor = _serializer.Deserialize<MessageDescriptor>(package.Content);
-            if (messageDescriptor.CommandName == typeof(T).Name) {
-                var response = _serializer.Deserialize<T>(package.Content);
-                _values.Enqueue(response);
+            catch (Exception ex) {
+                _lastError = ex;
+                End();
             }
         }
     }

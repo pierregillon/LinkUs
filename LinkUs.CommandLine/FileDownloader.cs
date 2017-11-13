@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
@@ -25,33 +26,42 @@ namespace LinkUs.CommandLine
             if (File.Exists(localDestinationFilePath)) {
                 File.Delete(localDestinationFilePath);
             }
-            var command = new StartFileDownload {
-                SourceFilePath = remoteSourceFilePath
-            };
 
-            var startedEvent = await _commandSender.ExecuteAsync<StartFileDownload, FileDownloadStarted>(command, _clientId);
-            var dataStream = _commandSender.BuildStream<SendNextFileData>(data => data.FileId == startedEvent.FileId);
-            dataStream.Start();
+            var cancellationToken = new CancellationTokenSource();
 
-            _commandSender.ExecuteAsync(new ReadyToReceiveFileData {FileId = startedEvent.FileId}, _clientId);
+            try {
+                var command = new StartFileDownload {
+                    SourceFilePath = remoteSourceFilePath
+                };
 
-            var endedEventTask =_commandSender
-                .Receive<FileDownloadEnded>(_clientId, @event => @event.FileId == startedEvent.FileId)
-                .ContinueWith(x => dataStream.End());
+                var startedEvent = await _commandSender.ExecuteAsync<StartFileDownload, FileDownloadStarted>(command, _clientId);
+                var dataStream = _commandSender.BuildStream<SendNextFileData>(data => data.FileId == startedEvent.FileId);
+                dataStream.Start();
 
-            var totalBytesTransferred = 0;
-            using (var stream = File.OpenWrite(localDestinationFilePath)) {
-                foreach (var sendNextFileData in dataStream.GetData()) {
-                    stream.Write(sendNextFileData.Buffer, 0, sendNextFileData.Buffer.Length);
-                    totalBytesTransferred += sendNextFileData.Buffer.Length;
-                    Pourcentage = (int) (totalBytesTransferred * 100 / startedEvent.TotalLength);
+                _commandSender.ExecuteAsync(new ReadyToReceiveFileData { FileId = startedEvent.FileId }, _clientId);
+
+                var endedEventTask = _commandSender
+                    .Receive<FileDownloadEnded>(_clientId, @event => @event.FileId == startedEvent.FileId, cancellationToken.Token)
+                    .ContinueWith(x => dataStream.End(), cancellationToken.Token);
+
+                var totalBytesTransferred = 0;
+                using (var stream = File.OpenWrite(localDestinationFilePath)) {
+                    foreach (var sendNextFileData in dataStream.GetData()) {
+                        stream.Write(sendNextFileData.Buffer, 0, sendNextFileData.Buffer.Length);
+                        totalBytesTransferred += sendNextFileData.Buffer.Length;
+                        Pourcentage = (int) (totalBytesTransferred * 100 / startedEvent.TotalLength);
+                    }
+                }
+
+                await endedEventTask;
+
+                if (totalBytesTransferred != startedEvent.TotalLength) {
+                    throw new Exception("The total amount of bytes received is not correct, file must be corrupted.");
                 }
             }
-
-            await endedEventTask;
-
-            if (totalBytesTransferred != startedEvent.TotalLength) {
-                throw new Exception("The total amount of bytes received is not correct, file must be corrupted.");
+            catch (Exception) {
+                cancellationToken.Cancel();
+                throw;
             }
         }
     }

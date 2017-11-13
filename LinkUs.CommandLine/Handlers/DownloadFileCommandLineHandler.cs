@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.CommandLine.Verbs;
@@ -21,14 +22,21 @@ namespace LinkUs.CommandLine.Handlers
             var client = await _server.FindRemoteClient(commandLine.Target);
             var downloader = client.GetFileDownloader();
             _console.WriteLine("Download started.");
-            var task = downloader.DownloadAsync(commandLine.RemoteSourceFilePath, commandLine.LocalDestinationFilePath);
-            while (task.Wait(500) == false) {
+
+            try {
+                var task = downloader.DownloadAsync(commandLine.RemoteSourceFilePath, commandLine.LocalDestinationFilePath);
+                while (task.Wait(500) == false) {
+                    _console.SetCursorLeft(0);
+                    _console.Write($"Progress: {downloader.Pourcentage}%");
+                }
                 _console.SetCursorLeft(0);
-                _console.Write($"Progress: {downloader.Pourcentage}%");
+                _console.WriteLine("Progress: 100%");
+                _console.WriteLine($"'{Path.GetFileName(commandLine.RemoteSourceFilePath)}' has been correctly downloaded from client '{client.Information.MachineName}' at location '{commandLine.LocalDestinationFilePath}'.");
             }
-            _console.SetCursorLeft(0);
-            _console.WriteLine("Progress: 100%");
-            _console.WriteLine($"'{Path.GetFileName(commandLine.RemoteSourceFilePath)}' has been correctly downloaded from client '{client.Information.MachineName}' at location '{commandLine.LocalDestinationFilePath}'.");
+            catch (Exception) {
+                _console.SetCursorLeft(0);
+                throw;
+            }
         }
     }
 }
