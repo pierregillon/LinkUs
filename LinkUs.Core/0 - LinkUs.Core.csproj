@@ -99,7 +99,7 @@
     <Compile Include="Connection\IConnectionListener.cs" />
     <Compile Include="Json\ISerializer.cs" />
     <Compile Include="Json\JsonSerializer.cs" />
-    <Compile Include="Connection\Metadata.cs" />
+    <Compile Include="Connection\BytesTransfertProtocol.cs" />
     <Compile Include="Connection\Package.cs" />
     <Compile Include="Connection\PackageTransmitter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -36,14 +36,10 @@ namespace LinkUs.Core.Connection
         public void SendAsync(byte[] data)
         {
             var sendSocketEventArgs = _sendSocketOperations.Dequeue();
-            var metadata = (Metadata) sendSocketEventArgs.UserToken;
-            var fullData = new byte[metadata.PackageLengthBytes.Length + data.Length];
-            metadata.PackageLengthBytes = BitConverter.GetBytes(data.Length);
-            Buffer.BlockCopy(metadata.PackageLengthBytes, 0, fullData, 0, metadata.PackageLengthBytes.Length);
-            Buffer.BlockCopy(data, 0, fullData, metadata.PackageLengthBytes.Length, data.Length);
-
+            var protocol = (BytesTransfertProtocol) sendSocketEventArgs.UserToken;
+            var dataToSend = protocol.Transform(data);
             sendSocketEventArgs.AcceptSocket = _socket;
-            sendSocketEventArgs.SetBuffer(fullData, 0, fullData.Length);
+            sendSocketEventArgs.SetBuffer(dataToSend, 0, dataToSend.Length);
             StartSendData(sendSocketEventArgs);
         }
         public void Close()
@@ -90,63 +86,44 @@ namespace LinkUs.Core.Connection
         }
         private void ProcessBytesTransferred(SocketAsyncEventArgs receiveSocketEventArgs, byte[] bytesTransferred)
         {
-            var metadata = (Metadata) receiveSocketEventArgs.UserToken;
-            if (metadata.PackageLength == 0) {
-                var remainingBytesCountForPackageLength = metadata.PackageLengthBytes.Length - metadata.PackageLengthReceivedBytesCount;
-                if (bytesTransferred.Length >= remainingBytesCountForPackageLength) {
-                    Buffer.BlockCopy(
-                        bytesTransferred,
-                        0,
-                        metadata.PackageLengthBytes,
-                        metadata.PackageLengthReceivedBytesCount,
-                        remainingBytesCountForPackageLength);
-
-                    metadata.PackageLength = BitConverter.ToInt32(metadata.PackageLengthBytes, 0);
-                    if (metadata.PackageLength <= 0 || metadata.PackageLength > 100000) {
-                        throw new Exception("Invalid length");
-                    }
-                    metadata.Buffers.Add(bytesTransferred.Skip(remainingBytesCountForPackageLength).ToArray());
-                }
-                else {
-                    Buffer.BlockCopy(
-                        bytesTransferred,
-                        0,
-                        metadata.PackageLengthBytes,
-                        metadata.PackageLengthReceivedBytesCount,
-                        bytesTransferred.Length);
-
-                    metadata.PackageLengthReceivedBytesCount += bytesTransferred.Length;
-                    StartReceiveData(receiveSocketEventArgs);
-                    return;
-                }
-            }
-            else {
-                metadata.Buffers.Add(bytesTransferred);
+            var protocol = (BytesTransfertProtocol) receiveSocketEventArgs.UserToken;
+            var usedToProcessHeaderBytesCount = protocol.ProcessHeader(bytesTransferred);
+            if (usedToProcessHeaderBytesCount == bytesTransferred.Length) {
+                StartReceiveData(receiveSocketEventArgs);
+                return;
             }
 
-            var allBytesReceivedCount = metadata.Buffers.Select(x => x.Length).Sum(x => x);
-            if (allBytesReceivedCount == metadata.PackageLength) {
-                DataReceived?.Invoke(metadata.Buffers.SelectMany(x => x).ToArray());
-                metadata.Reset();
+            var messageBytes = ReduceBuffer(bytesTransferred, usedToProcessHeaderBytesCount);
+            var usedToProcessMessageBytesCount = protocol.ProcessMessage(messageBytes, DataReceived);
+
+            var remainingBytesCountToProcess = bytesTransferred.Length - usedToProcessHeaderBytesCount - usedToProcessMessageBytesCount;
+            if (remainingBytesCountToProcess == 0) {
                 StartReceiveData(receiveSocketEventArgs);
             }
-            else if (allBytesReceivedCount < metadata.PackageLength) {
-                StartReceiveData(receiveSocketEventArgs);
-            }
-            else {
-                var allData = metadata.Buffers.SelectMany(x => x).ToArray();
-                var exactData = allData.Take(metadata.PackageLength).ToArray();
-                DataReceived?.Invoke(exactData);
-                metadata.Reset();
-
-                var surplusData = allData.Skip(exactData.Length).ToArray();
+            else if (remainingBytesCountToProcess > 0) {
+                var surplusData = bytesTransferred.Skip(usedToProcessHeaderBytesCount + usedToProcessMessageBytesCount).ToArray();
                 ProcessBytesTransferred(receiveSocketEventArgs, surplusData);
             }
+            else {
+                throw new Exception("Cannot have a number of byte to process < 0.");
+            }
+        }
+        private static byte[] ReduceBuffer(byte[] bytesTransferred, int usedToProcessHeaderBytesCount)
+        {
+            byte[] buffer;
+            if (usedToProcessHeaderBytesCount == 0) {
+                buffer = bytesTransferred;
+            }
+            else {
+                var dataToProcess = bytesTransferred.Skip(usedToProcessHeaderBytesCount).ToArray();
+                buffer = dataToProcess;
+            }
+            return buffer;
         }
         private void RecycleReceiveArgs(SocketAsyncEventArgs receiveSocketEventArgs)
         {
             receiveSocketEventArgs.AcceptSocket = null;
-            ((Metadata) receiveSocketEventArgs.UserToken).Reset();
+            ((BytesTransfertProtocol) receiveSocketEventArgs.UserToken).Reset();
             _receiveSocketOperations.Enqueue(receiveSocketEventArgs);
         }
 
@@ -190,7 +167,7 @@ namespace LinkUs.Core.Connection
         private void RecycleSendSocket(SocketAsyncEventArgs args)
         {
             args.AcceptSocket = null;
-            ((Metadata) args.UserToken).Reset();
+            ((BytesTransfertProtocol) args.UserToken).Reset();
             _sendSocketOperations.Enqueue(args);
         }
 
@@ -217,14 +194,14 @@ namespace LinkUs.Core.Connection
                 var args = new SocketAsyncEventArgs();
                 args.Completed += ReceiveEventCompleted;
                 args.SetBuffer(new byte[1024], 0, 1024);
-                args.UserToken = new Metadata();
+                args.UserToken = new BytesTransfertProtocol();
                 _receiveSocketOperations.Enqueue(args);
             }
 
             for (int i = 0; i < 10; i++) {
                 var args = new SocketAsyncEventArgs();
                 args.Completed += SendEventCompleted;
-                args.UserToken = new Metadata();
+                args.UserToken = new BytesTransfertProtocol();
                 _sendSocketOperations.Enqueue(args);
             }
         }
