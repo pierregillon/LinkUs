@@ -22,9 +22,9 @@ namespace LinkUs.CommandLine.Handlers
             var client = await _server.FindRemoteClient(commandLine.Target);
             var uploader = client.GetFileUploader();
             _console.WriteLine("Upload started.");
-            var task = uploader.UploadAsync(commandLine.SourceFilePath, commandLine.DestinationFilePath);
+            var task = uploader.UploadAsync(commandLine.LocalSourceFilePath, commandLine.RemoteDestinationFilePath);
             _console.WriteProgress(task, uploader);
-            _console.WriteLine($"'{Path.GetFileName(commandLine.SourceFilePath)}' has been correctly uploaded to client '{client.Information.MachineName}' at location '{commandLine.DestinationFilePath}'.");
+            _console.WriteLine($"'{Path.GetFullPath(commandLine.LocalSourceFilePath)}' has been correctly uploaded to client '{client.Information.MachineName}' at location '{commandLine.RemoteDestinationFilePath}'.");
         }
     }
 }

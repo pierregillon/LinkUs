@@ -24,7 +24,7 @@ namespace LinkUs.CommandLine.Handlers
             _console.WriteLine("Download started.");
             var task = downloader.DownloadAsync(commandLine.RemoteSourceFilePath, commandLine.LocalDestinationFilePath);
             _console.WriteProgress(task, downloader);
-            _console.WriteLine($"'{Path.GetFileName(commandLine.RemoteSourceFilePath)}' has been correctly downloaded from client '{client.Information.MachineName}' at location '{commandLine.LocalDestinationFilePath}'.");
+            _console.WriteLine($"'{Path.GetFileName(commandLine.RemoteSourceFilePath)}' has been correctly downloaded from client '{client.Information.MachineName}' at location '{Path.GetFullPath(commandLine.LocalDestinationFilePath)}'.");
         }
     }
 }

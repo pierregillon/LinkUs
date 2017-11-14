@@ -10,8 +10,6 @@
 * Send command without return result. (underlying sync call with byte result)
 * upload with directory path as destination.
 * Deserialization with typeof(TCommand) to replace with command.GetType() => let dev to serialize partial data .
-* Rename file transfert event/command 
 * dont use handler with return type, only void, and pass IBus systematically to interact with host process.
 * when client not responding for a period of time during the Receive/Stream, free resource and throw exception.
-* Ellapsed time for upload/download.
 * use of the stream for shell command line handler.
