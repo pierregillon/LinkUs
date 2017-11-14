@@ -81,12 +81,12 @@ namespace LinkUs.Core.Connection
 
             var bytesTransferredCount = receiveSocketEventArgs.BytesTransferred;
             if (bytesTransferredCount == 0) {
-                StartReceiveData(receiveSocketEventArgs);
+                CloseSocket(receiveSocketEventArgs.AcceptSocket);
+                RecycleReceiveArgs(receiveSocketEventArgs);
+                return;
             }
-            else {
-                var bytesTransferred = receiveSocketEventArgs.Buffer.Take(bytesTransferredCount).ToArray();
-                ProcessBytesTransferred(receiveSocketEventArgs, bytesTransferred);
-            }
+            var bytesTransferred = receiveSocketEventArgs.Buffer.Take(bytesTransferredCount).ToArray();
+            ProcessBytesTransferred(receiveSocketEventArgs, bytesTransferred);
         }
         private void ProcessBytesTransferred(SocketAsyncEventArgs receiveSocketEventArgs, byte[] bytesTransferred)
         {

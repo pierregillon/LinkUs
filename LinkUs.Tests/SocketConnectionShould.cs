@@ -26,7 +26,7 @@ namespace LinkUs.Tests
             };
 
             // Actions
-            var message = new[] {(byte) 1, (byte) 2, (byte) 3};
+            var message = new[] { (byte) 1, (byte) 2, (byte) 3 };
             connectedSockets.Client.SendAsync(message);
 
             // Asserts
@@ -51,8 +51,8 @@ namespace LinkUs.Tests
             };
 
             // Actions
-            var message1 = new[] {(byte) 1, (byte) 2, (byte) 3};
-            var message2 = new[] {(byte) 4, (byte) 5, (byte) 6};
+            var message1 = new[] { (byte) 1, (byte) 2, (byte) 3 };
+            var message2 = new[] { (byte) 4, (byte) 5, (byte) 6 };
 
             connectedSockets.Client.SendAsync(message1);
             connectedSockets.Client.SendAsync(message2);
@@ -81,9 +81,9 @@ namespace LinkUs.Tests
             };
 
             // Actions
-            var message1 = new[] {(byte) 1, (byte) 2, (byte) 3};
-            var message2 = new[] {(byte) 4, (byte) 5, (byte) 6};
-            var message3 = new[] {(byte) 7, (byte) 8, (byte) 9};
+            var message1 = new[] { (byte) 1, (byte) 2, (byte) 3 };
+            var message2 = new[] { (byte) 4, (byte) 5, (byte) 6 };
+            var message3 = new[] { (byte) 7, (byte) 8, (byte) 9 };
 
             connectedSockets.Client.SendAsync(message1);
             connectedSockets.Client.SendAsync(message2);
@@ -111,7 +111,7 @@ namespace LinkUs.Tests
             };
 
             // Actions
-            var message = new[] {(byte) 1, (byte) 2, (byte) 3};
+            var message = new[] { (byte) 1, (byte) 2, (byte) 3 };
             var length = BitConverter.GetBytes(message.Length);
             var fullMessage = new byte[message.Length + length.Length];
             Buffer.BlockCopy(length, 0, fullMessage, 0, length.Length);
@@ -137,7 +137,7 @@ namespace LinkUs.Tests
             };
 
             // Actions
-            var message = new[] {(byte) 1, (byte) 2, (byte) 3};
+            var message = new[] { (byte) 1, (byte) 2, (byte) 3 };
             var length = BitConverter.GetBytes(message.Length);
             var fullMessage = new byte[message.Length + length.Length];
             Buffer.BlockCopy(length, 0, fullMessage, 0, length.Length);
@@ -168,13 +168,53 @@ namespace LinkUs.Tests
             };
 
             // Actions
-            var message = new[] {(byte) 3, (byte) 0, (byte) 0, (byte) 0, (byte) 1, (byte) 2, (byte) 3};
+            var message = new[] { (byte) 3, (byte) 0, (byte) 0, (byte) 0, (byte) 1, (byte) 2, (byte) 3 };
             connectedSockets.Client.Send(message.Take(2).ToArray());
             connectedSockets.Client.Send(message.Skip(2).ToArray());
 
             // Asserts
             manualSetEvent.WaitOne();
             Check.That(dataReceived).ContainsExactly(message.Skip(4));
+        }
+
+        [Fact]
+        public void disconnection_processed_by_connected_host_should_raise_disconnect_event()
+        {
+            // Actor
+            var manualSetEvent = new ManualResetEvent(false);
+            var disconnected = false;
+            var connectedSockets = GetConnectedSockets();
+            connectedSockets.Server.Closed += () => {
+                disconnected = true;
+                manualSetEvent.Set();
+            };
+
+            // Action
+            connectedSockets.Client.Close();
+
+            // Asserts
+            manualSetEvent.WaitOne(50);
+            Check.That(disconnected).IsTrue();
+        }
+
+        [Fact]
+        public void disconnection_processed_by_self_should_raise_disconnect_event()
+        {
+            // Actor
+            var manualSetEvent = new ManualResetEvent(false);
+            var disconnected = false;
+            var connectedSockets = GetConnectedSockets();
+            connectedSockets.Server.Closed += () => {
+                disconnected = true;
+                manualSetEvent.Set();
+            };
+
+            // Action
+            connectedSockets.Server.Close();
+
+            // Asserts
+            manualSetEvent.WaitOne(50);
+            Check.That(disconnected).IsTrue();
         }
 
         // ----- Utils
@@ -194,7 +234,7 @@ namespace LinkUs.Tests
             while (server == null) {
                 Thread.Sleep(10);
             }
-            return new ConnectedSocketConnectionSample {Client = client, Server = server};
+            return new ConnectedSocketConnectionSample { Client = client, Server = server };
         }
         private ConnectedSocketSample GetConnectedSockets()
         {
@@ -212,7 +252,7 @@ namespace LinkUs.Tests
             while (server == null) {
                 Thread.Sleep(10);
             }
-            return new ConnectedSocketSample {Client = client, Server = server};
+            return new ConnectedSocketSample { Client = client, Server = server };
         }
     }
 
