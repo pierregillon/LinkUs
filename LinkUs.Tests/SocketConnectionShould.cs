@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using LinkUs.Core;
 using LinkUs.Core.Connection;
+using LinkUs.Tests.Helpers;
 using NFluent;
 using Xunit;
 
@@ -13,212 +12,176 @@ namespace LinkUs.Tests
 {
     public class SocketConnectionShould
     {
-        [Fact]
-        public void transfert_simple_data()
-        {
-            // Actors
-            var manualSetEvent = new ManualResetEvent(false);
-            var dataReceivedList = new List<byte[]>();
-            var connectedSockets = GetConnectedSocketConnections();
-            connectedSockets.Server.DataReceived += data => {
-                dataReceivedList.Add(data);
-                manualSetEvent.Set();
-            };
-
-            // Actions
-            var message = new[] { (byte) 1, (byte) 2, (byte) 3 };
-            connectedSockets.Client.SendAsync(message);
-
-            // Asserts
-            manualSetEvent.WaitOne();
-            Check.That(dataReceivedList).HasSize(1);
-            Check.That(dataReceivedList[0]).ContainsExactly(message);
-            connectedSockets.Close();
-        }
+        private readonly byte[] A_MESSAGE = { 1, 2, 3 };
+        private readonly byte[] ANOTHER_MESSAGE = { 4, 5, 6 };
 
         [Fact]
-        public void double_send_are_correctly_read_by_fast_absorption()
+        public void transfert_simple_message_to_another_connection()
         {
-            // Actors
-            var manualSetEvent = new ManualResetEvent(false);
-            var dataReceivedList = new List<byte[]>();
-            var connectedSockets = GetConnectedSocketConnections();
-            connectedSockets.Server.DataReceived += data => {
-                dataReceivedList.Add(data);
-                if (dataReceivedList.Count == 2) {
-                    manualSetEvent.Set();
-                }
-            };
+            using (var interconnectedConnections = Get2InterconnectedSocketConnections()) {
+                // Actors
+                var dataReceivedList = new List<byte[]>();
+                interconnectedConnections.Client1.DataReceived += data => {
+                    dataReceivedList.Add(data);
+                    interconnectedConnections.SetOperationCompleted();
+                };
 
-            // Actions
-            var message1 = new[] { (byte) 1, (byte) 2, (byte) 3 };
-            var message2 = new[] { (byte) 4, (byte) 5, (byte) 6 };
+                // Actions
+                interconnectedConnections.Client2.SendAsync(A_MESSAGE);
 
-            connectedSockets.Client.SendAsync(message1);
-            connectedSockets.Client.SendAsync(message2);
-
-            // Asserts
-            manualSetEvent.WaitOne();
-            Check.That(dataReceivedList).HasSize(2);
-            Check.That(dataReceivedList[0]).ContainsExactly(message1);
-            Check.That(dataReceivedList[1]).ContainsExactly(message2);
-            connectedSockets.Close();
-        }
-
-        [Fact]
-        public void merge_send_when_processing_previous_one()
-        {
-            // Actors
-            var manualSetEvent = new ManualResetEvent(false);
-            var dataReceivedList = new List<byte[]>();
-            var connectedSockets = GetConnectedSocketConnections();
-            connectedSockets.Server.DataReceived += data => {
-                dataReceivedList.Add(data);
-                Thread.Sleep(100); // wait for processing, merging 2nd and 3rd messages
-                if (dataReceivedList.Count == 3) {
-                    manualSetEvent.Set();
-                }
-            };
-
-            // Actions
-            var message1 = new[] { (byte) 1, (byte) 2, (byte) 3 };
-            var message2 = new[] { (byte) 4, (byte) 5, (byte) 6 };
-            var message3 = new[] { (byte) 7, (byte) 8, (byte) 9 };
-
-            connectedSockets.Client.SendAsync(message1);
-            connectedSockets.Client.SendAsync(message2);
-            connectedSockets.Client.SendAsync(message3);
-
-            // Asserts
-            manualSetEvent.WaitOne();
-            Check.That(dataReceivedList).HasSize(3);
-            Check.That(dataReceivedList[0]).ContainsExactly(message1);
-            Check.That(dataReceivedList[1]).ContainsExactly(message2);
-            Check.That(dataReceivedList[2]).ContainsExactly(message3);
-            connectedSockets.Close();
-        }
-
-        [Fact]
-        public void receive_data_following_length_then_message()
-        {
-            // Actors
-            var manualSetEvent = new ManualResetEvent(false);
-            var dataReceived = new byte[0];
-            var connectedSockets = GetConnectedSockets();
-            connectedSockets.Server.DataReceived += data => {
-                dataReceived = data;
-                manualSetEvent.Set();
-            };
-
-            // Actions
-            var message = new[] { (byte) 1, (byte) 2, (byte) 3 };
-            var length = BitConverter.GetBytes(message.Length);
-            var fullMessage = new byte[message.Length + length.Length];
-            Buffer.BlockCopy(length, 0, fullMessage, 0, length.Length);
-            Buffer.BlockCopy(message, 0, fullMessage, length.Length, message.Length);
-
-            connectedSockets.Client.Send(fullMessage);
-
-            // Asserts
-            manualSetEvent.WaitOne();
-            Check.That(dataReceived).ContainsExactly(message);
-        }
-
-        [Fact]
-        public void receive_data_following_length_then_message_slowly()
-        {
-            // Actors
-            var manualSetEvent = new ManualResetEvent(false);
-            var dataReceived = new byte[0];
-            var connectedSockets = GetConnectedSockets();
-            connectedSockets.Server.DataReceived += data => {
-                dataReceived = data;
-                manualSetEvent.Set();
-            };
-
-            // Actions
-            var message = new[] { (byte) 1, (byte) 2, (byte) 3 };
-            var length = BitConverter.GetBytes(message.Length);
-            var fullMessage = new byte[message.Length + length.Length];
-            Buffer.BlockCopy(length, 0, fullMessage, 0, length.Length);
-            Buffer.BlockCopy(message, 0, fullMessage, length.Length, message.Length);
-
-            var aByte = new byte[1];
-            for (int i = 0; i < fullMessage.Length; i++) {
-                Buffer.BlockCopy(fullMessage, i, aByte, 0, 1);
-                connectedSockets.Client.Send(aByte);
-                Thread.Sleep(10);
+                // Asserts
+                interconnectedConnections.WaitForOperation();
+                Check.That(dataReceivedList).HasSize(1);
+                Check.That(dataReceivedList[0]).ContainsExactly(A_MESSAGE);
             }
-
-            // Asserts
-            manualSetEvent.WaitOne();
-            Check.That(dataReceived).ContainsExactly(message);
         }
 
         [Fact]
-        public void receive_data_when_splitted_in_2_sends()
+        public void transfert_2_messages_to_another_connection()
         {
-            // Actors
-            var manualSetEvent = new ManualResetEvent(false);
-            var dataReceived = new byte[0];
-            var connectedSockets = GetConnectedSockets();
-            connectedSockets.Server.DataReceived += data => {
-                dataReceived = data;
-                manualSetEvent.Set();
-            };
+            using (var interconnectedConnections = Get2InterconnectedSocketConnections()) {
+                // Actors
+                var dataReceivedList = new List<byte[]>();
+                interconnectedConnections.Client1.DataReceived += data => {
+                    dataReceivedList.Add(data);
+                    if (dataReceivedList.Count == 2) {
+                        interconnectedConnections.SetOperationCompleted();
+                    }
+                };
 
-            // Actions
-            var message = new[] { (byte) 3, (byte) 0, (byte) 0, (byte) 0, (byte) 1, (byte) 2, (byte) 3 };
-            connectedSockets.Client.Send(message.Take(2).ToArray());
-            connectedSockets.Client.Send(message.Skip(2).ToArray());
+                // Actions
+                interconnectedConnections.Client2.SendAsync(A_MESSAGE);
+                interconnectedConnections.Client2.SendAsync(ANOTHER_MESSAGE);
 
-            // Asserts
-            manualSetEvent.WaitOne();
-            Check.That(dataReceived).ContainsExactly(message.Skip(4));
+                // Asserts
+                interconnectedConnections.WaitForOperation();
+                Check.That(dataReceivedList).HasSize(2);
+                Check.That(dataReceivedList[0]).ContainsExactly(A_MESSAGE);
+                Check.That(dataReceivedList[1]).ContainsExactly(ANOTHER_MESSAGE);
+            }
         }
 
         [Fact]
-        public void disconnection_processed_by_connected_host_should_raise_disconnect_event()
+        public void transfert_2_messages_merged_in_network_stream_to_another_connection()
         {
-            // Actor
-            var manualSetEvent = new ManualResetEvent(false);
-            var disconnected = false;
-            var connectedSockets = GetConnectedSockets();
-            connectedSockets.Server.Closed += () => {
-                disconnected = true;
-                manualSetEvent.Set();
-            };
+            using (var interconnectedConnections = Get2InterconnectedSocketConnections()) {
+                // Actors
+                var dataReceivedList = new List<byte[]>();
+                interconnectedConnections.Client1.DataReceived += data => {
+                    dataReceivedList.Add(data);
+                    Thread.Sleep(10); // wait for processing, merging 2nd and 3rd messages in networks stream
+                    if (dataReceivedList.Count == 3) {
+                        interconnectedConnections.SetOperationCompleted();
+                    }
+                };
 
-            // Action
-            connectedSockets.Client.Close();
+                // Actions
+                interconnectedConnections.Client2.SendAsync(A_MESSAGE);
+                interconnectedConnections.Client2.SendAsync(ANOTHER_MESSAGE);
+                interconnectedConnections.Client2.SendAsync(A_MESSAGE);
 
-            // Asserts
-            manualSetEvent.WaitOne(50);
-            Check.That(disconnected).IsTrue();
+                // Asserts
+                interconnectedConnections.WaitForOperation();
+                Check.That(dataReceivedList).HasSize(3);
+                Check.That(dataReceivedList[0]).ContainsExactly(A_MESSAGE);
+                Check.That(dataReceivedList[1]).ContainsExactly(ANOTHER_MESSAGE);
+                Check.That(dataReceivedList[2]).ContainsExactly(A_MESSAGE);
+            }
         }
 
         [Fact]
-        public void disconnection_processed_by_self_should_raise_disconnect_event()
+        public void fully_receive_message_when_network_send_byte_one_after_one()
         {
-            // Actor
-            var manualSetEvent = new ManualResetEvent(false);
-            var disconnected = false;
-            var connectedSockets = GetConnectedSockets();
-            connectedSockets.Server.Closed += () => {
-                disconnected = true;
-                manualSetEvent.Set();
-            };
+            using (var networkSimulationSample = GetNetworkSimulationSample()) {
+                // Actors
+                byte[] header = { 3, 0, 0, 0 }, dataToSend = { 1, 2, 3 };
+                var message = header.Concat(dataToSend).ToArray();
 
-            // Action
-            connectedSockets.Server.Close();
+                var dataReceived = new byte[0];
+                networkSimulationSample.SocketConnection.DataReceived += bytes => {
+                    dataReceived = bytes;
+                    networkSimulationSample.SetOperationCompleted();
+                };
 
-            // Asserts
-            manualSetEvent.WaitOne(50);
-            Check.That(disconnected).IsTrue();
+                // Actions
+                for (var i = 0; i < message.Length; i++) {
+                    networkSimulationSample.NetworkSimulationClient.Send(message.Skip(i).Take(1).ToArray());
+                    Thread.Sleep(1);
+                }
+
+                // Asserts
+                networkSimulationSample.WaitForOperation();
+                Check.That(dataReceived).ContainsExactly(dataToSend);
+            }
+        }
+
+        [Fact]
+        public void fully_receive_message_when_header_is_truncated_between_2_messages()
+        {
+            using (var networkSimulationSample = GetNetworkSimulationSample()) {
+                // Actors
+                byte[] header = { 3, 0, 0, 0 }, dataToSend = { 1, 2, 3 };
+                var message = header.Concat(dataToSend).ToArray();
+
+                var dataReceived = new byte[0];
+                networkSimulationSample.SocketConnection.DataReceived += bytes => {
+                    dataReceived = bytes;
+                    networkSimulationSample.SetOperationCompleted();
+                };
+
+                // Actions
+                networkSimulationSample.NetworkSimulationClient.Send(message.Take(2).ToArray());
+                Thread.Sleep(10);
+                networkSimulationSample.NetworkSimulationClient.Send(message.Skip(2).ToArray());
+
+                // Asserts
+                networkSimulationSample.WaitForOperation();
+                Check.That(dataReceived).ContainsExactly(dataToSend);
+            }
+        }
+
+        [Fact]
+        public void raise_closed_event_when_remote_host_initiate_closing_the_connection()
+        {
+            using (var connectedSockets = Get2InterconnectedSocketConnections()) {
+                // Actor
+                var disconnected = false;
+                connectedSockets.Client1.Closed += () => {
+                    disconnected = true;
+                    connectedSockets.SetOperationCompleted();
+                };
+
+                // Action
+                connectedSockets.Client2.Close();
+
+                // Asserts
+                connectedSockets.WaitForOperation();
+                Check.That(disconnected).IsTrue();
+            }
+        }
+
+        [Fact]
+        public void raise_closed_event_when_initiate_closing_the_connection()
+        {
+            using (var connectedSockets = Get2InterconnectedSocketConnections()) {
+                // Actor
+                var disconnected = false;
+                connectedSockets.Client1.Closed += () => {
+                    disconnected = true;
+                    connectedSockets.SetOperationCompleted();
+                };
+
+                // Action
+                connectedSockets.Client1.Close();
+
+                // Asserts
+                connectedSockets.WaitForOperation();
+                Check.That(disconnected).IsTrue();
+            }
         }
 
         // ----- Utils
-        private ConnectedSocketConnectionSample GetConnectedSocketConnections()
+        private static ConnectedSocketConnectionSample Get2InterconnectedSocketConnections()
         {
             SocketConnection server = null;
             var client = new SocketConnection();
@@ -234,9 +197,9 @@ namespace LinkUs.Tests
             while (server == null) {
                 Thread.Sleep(10);
             }
-            return new ConnectedSocketConnectionSample { Client = client, Server = server };
+            return new ConnectedSocketConnectionSample { Client2 = client, Client1 = server };
         }
-        private ConnectedSocketSample GetConnectedSockets()
+        private static NetworkSimulationSample GetNetworkSimulationSample()
         {
             SocketConnection server = null;
             var client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -252,29 +215,7 @@ namespace LinkUs.Tests
             while (server == null) {
                 Thread.Sleep(10);
             }
-            return new ConnectedSocketSample { Client = client, Server = server };
-        }
-    }
-
-    public class ConnectedSocketConnectionSample
-    {
-        public SocketConnection Server { get; set; }
-        public SocketConnection Client { get; set; }
-        public void Close()
-        {
-            Server.Close();
-            Client.Close();
-        }
-    }
-
-    public class ConnectedSocketSample
-    {
-        public SocketConnection Server { get; set; }
-        public Socket Client { get; set; }
-        public void Close()
-        {
-            Server.Close();
-            Client.Close();
+            return new NetworkSimulationSample { NetworkSimulationClient = client, SocketConnection = server };
         }
     }
 }
