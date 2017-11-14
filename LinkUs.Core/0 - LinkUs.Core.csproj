@@ -52,8 +52,10 @@
     <Compile Include="ClientInformation\NetHelper.cs" />
     <Compile Include="ClientInformation\SetStatus.cs" />
     <Compile Include="CommandSender.cs" />
+    <Compile Include="Connection\ArrayExtensions.cs" />
     <Compile Include="Connection\ClientId.cs" />
     <Compile Include="Connection\SemaphoredQueue.cs" />
+    <Compile Include="Connection\SocketAsyncOperation.cs" />
     <Compile Include="ErrorMessage.cs" />
     <Compile Include="FileTransfert\Commands\EndFileUpload.cs" />
     <Compile Include="FileTransfert\Commands\EndFileDownload.cs" />

@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Net.Sockets;
 
 namespace LinkUs.Core.Connection
@@ -37,10 +36,7 @@ namespace LinkUs.Core.Connection
         public void SendAsync(byte[] data)
         {
             var operation = _socketOperations.Dequeue();
-            var protocol = operation.Protocol;
-            var dataToSend = protocol.Transform(data);
-            operation.AcceptSocket = _socket;
-            operation.SetBuffer(dataToSend, 0, dataToSend.Length);
+            operation.PrepareSendOperation(data, _socket);
             StartSendOperationAsync(operation);
         }
         public void Close()
@@ -76,31 +72,26 @@ namespace LinkUs.Core.Connection
                 RecycleOperation(operation);
                 return;
             }
-            var bytesTransferred = operation.Buffer.Take(bytesTransferredCount).ToArray();
+            var bytesTransferred = operation.Buffer.SmartTake(bytesTransferredCount);
             ProcessBytesTransferred(operation, bytesTransferred);
         }
         private void ProcessBytesTransferred(SocketAsyncOperation operation, byte[] bytesTransferred)
         {
             var protocol = operation.Protocol;
-            var usedToProcessHeaderBytesCount = protocol.ProcessHeader(bytesTransferred);
-            if (usedToProcessHeaderBytesCount == bytesTransferred.Length) {
-                StartReceiveOperationAsync(operation);
-                return;
-            }
 
-            var messageBytes = ReduceBuffer(bytesTransferred, usedToProcessHeaderBytesCount);
-            var usedToProcessMessageBytesCount = protocol.ProcessMessage(messageBytes, DataReceived);
-
-            var remainingBytesCountToProcess = bytesTransferred.Length - usedToProcessHeaderBytesCount - usedToProcessMessageBytesCount;
-            if (remainingBytesCountToProcess == 0) {
+            byte[] message, additionalData;
+            var extractionSucceded = protocol.TryToExtractMessageFromReceivedBytes(bytesTransferred, out message, out additionalData);
+            if (!extractionSucceded) {
                 StartReceiveOperationAsync(operation);
-            }
-            else if (remainingBytesCountToProcess > 0) {
-                var surplusData = bytesTransferred.Skip(usedToProcessHeaderBytesCount + usedToProcessMessageBytesCount).ToArray();
-                ProcessBytesTransferred(operation, surplusData);
             }
             else {
-                throw new Exception("Cannot have a number of byte to process < 0.");
+                DataReceived?.Invoke(message);
+                if (additionalData == null) {
+                    StartReceiveOperationAsync(operation);
+                }
+                else {
+                    ProcessBytesTransferred(operation, additionalData);
+                }
             }
         }
 
@@ -185,34 +176,6 @@ namespace LinkUs.Core.Connection
         private static Socket BuildDefaultSocket()
         {
             return new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        }
-        private static byte[] ReduceBuffer(byte[] bytesTransferred, int usedToProcessHeaderBytesCount)
-        {
-            byte[] buffer;
-            if (usedToProcessHeaderBytesCount == 0) {
-                buffer = bytesTransferred;
-            }
-            else {
-                var dataToProcess = bytesTransferred.Skip(usedToProcessHeaderBytesCount).ToArray();
-                buffer = dataToProcess;
-            }
-            return buffer;
-        }
-    }
-
-    public class SocketAsyncOperation : SocketAsyncEventArgs
-    {
-        public BytesTransfertProtocol Protocol { get; } = new BytesTransfertProtocol();
-
-        public SocketAsyncOperation()
-        {
-            SetBuffer(new byte[1024], 0, 1024);
-        }
-
-        public void Reset()
-        {
-            AcceptSocket = null;
-            Protocol.Reset();
         }
     }
 }

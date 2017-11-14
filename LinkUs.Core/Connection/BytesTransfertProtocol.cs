@@ -14,7 +14,52 @@ namespace LinkUs.Core.Connection
         private int _packageLengthReceivedBytesCount;
 
         // ----- Public methods
-        public int ProcessHeader(byte[] bytes)
+        public byte[] PrepareMessageToSend(byte[] data)
+        {
+            var fullData = new byte[_packageLengthBytes.Length + data.Length];
+            _packageLengthBytes = BitConverter.GetBytes(data.Length);
+            Buffer.BlockCopy(_packageLengthBytes, 0, fullData, 0, _packageLengthBytes.Length);
+            Buffer.BlockCopy(data, 0, fullData, _packageLengthBytes.Length, data.Length);
+            return fullData;
+        }
+        public bool TryToExtractMessageFromReceivedBytes(byte[] bytesTransferred, out byte[] message, out byte[] additionalData)
+        {
+            var usedToProcessHeaderBytesCount = ProcessHeader(bytesTransferred);
+            if (usedToProcessHeaderBytesCount == bytesTransferred.Length) {
+                message = null;
+                additionalData = null;
+                return false;
+            }
+
+            var messageBytes = bytesTransferred.SmartSkip(usedToProcessHeaderBytesCount);
+            byte[] message2;
+            var usedToProcessMessageBytesCount = ProcessMessage(messageBytes, out message2);
+
+            var remainingBytesCountToProcess = bytesTransferred.Length - usedToProcessHeaderBytesCount - usedToProcessMessageBytesCount;
+
+            if (remainingBytesCountToProcess < 0) {
+                throw new Exception("Cannot have a number of byte to process < 0.");
+            }
+            else if (remainingBytesCountToProcess == 0) {
+                message = message2;
+                additionalData = null;
+                return true;
+            }
+            else /*if (remainingBytesCountToProcess > 0)*/ {
+                message = message2;
+                additionalData = bytesTransferred.Skip(usedToProcessHeaderBytesCount + usedToProcessMessageBytesCount).ToArray();
+                return true;
+            }
+        }
+        public void Reset()
+        {
+            _allDataReceived.Clear();
+            _packageLength = null;
+            _packageLengthReceivedBytesCount = 0;
+        }
+
+        // ----- Internal logic
+        private int ProcessHeader(byte[] bytes)
         {
             if (_packageLength.HasValue) {
                 return 0;
@@ -47,7 +92,7 @@ namespace LinkUs.Core.Connection
                 return bytes.Length;
             }
         }
-        public int ProcessMessage(byte[] bytes, Action<byte[]> dataReceived)
+        private int ProcessMessage(byte[] bytes, out byte[] message)
         {
             if (_packageLength.HasValue == false) {
                 throw new Exception("Unable to process bytes received: the package length was not processed.");
@@ -56,36 +101,23 @@ namespace LinkUs.Core.Connection
             var allBytesReceivedCount = _allDataReceived.Select(x => x.Length).Sum(x => x);
             if (allBytesReceivedCount + bytes.Length == _packageLength) {
                 var fullMessage = _allDataReceived.SelectMany(x => x).Concat(bytes).ToArray();
-                dataReceived?.Invoke(fullMessage);
+                message = fullMessage;
                 Reset();
                 return bytes.Length;
             }
             if (allBytesReceivedCount + bytes.Length < _packageLength) {
                 _allDataReceived.Add(bytes);
+                message = null;
                 return bytes.Length;
             }
             else {
                 var remainingByteCount = _packageLength.Value - allBytesReceivedCount;
                 var exactBufferEnd = bytes.Take(remainingByteCount).ToArray();
                 var fullMessage = _allDataReceived.SelectMany(x => x).Concat(exactBufferEnd).ToArray();
-                dataReceived?.Invoke(fullMessage);
+                message = fullMessage;
                 Reset();
                 return remainingByteCount;
             }
-        }
-        public byte[] Transform(byte[] data)
-        {
-            var fullData = new byte[_packageLengthBytes.Length + data.Length];
-            _packageLengthBytes = BitConverter.GetBytes(data.Length);
-            Buffer.BlockCopy(_packageLengthBytes, 0, fullData, 0, _packageLengthBytes.Length);
-            Buffer.BlockCopy(data, 0, fullData, _packageLengthBytes.Length, data.Length);
-            return fullData;
-        }
-        public void Reset()
-        {
-            _allDataReceived.Clear();
-            _packageLength = null;
-            _packageLengthReceivedBytesCount = 0;
         }
     }
 }
