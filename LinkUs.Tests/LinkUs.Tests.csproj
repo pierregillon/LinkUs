@@ -63,6 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BytesTransfertProtocolShould.cs" />
     <Compile Include="Helpers\ConnectedSocketConnectionSample.cs" />
     <Compile Include="Helpers\NetworkSimulationSample.cs" />
     <Compile Include="SocketConnectionShould.cs" />

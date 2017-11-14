@@ -22,7 +22,7 @@ namespace LinkUs.Core.Connection
             Buffer.BlockCopy(data, 0, fullData, _packageLengthBytes.Length, data.Length);
             return fullData;
         }
-        public bool TryToExtractMessageFromReceivedBytes(byte[] bytesTransferred, out byte[] message, out byte[] additionalData)
+        public bool TryParse(byte[] bytesTransferred, out byte[] message, out byte[] additionalData)
         {
             var usedToProcessHeaderBytesCount = ProcessHeader(bytesTransferred);
             if (usedToProcessHeaderBytesCount == bytesTransferred.Length) {

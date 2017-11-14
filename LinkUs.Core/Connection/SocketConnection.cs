@@ -80,7 +80,7 @@ namespace LinkUs.Core.Connection
             var protocol = operation.Protocol;
 
             byte[] message, additionalData;
-            var extractionSucceded = protocol.TryToExtractMessageFromReceivedBytes(bytesTransferred, out message, out additionalData);
+            var extractionSucceded = protocol.TryParse(bytesTransferred, out message, out additionalData);
             if (!extractionSucceded) {
                 StartReceiveOperationAsync(operation);
             }
