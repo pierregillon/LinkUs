@@ -56,8 +56,9 @@
     <Compile Include="Connection\SemaphoredQueue.cs" />
     <Compile Include="ErrorMessage.cs" />
     <Compile Include="FileTransfert\Commands\EndFileUpload.cs" />
+    <Compile Include="FileTransfert\Commands\EndFileDownload.cs" />
+    <Compile Include="FileTransfert\Commands\GetNextFileData.cs" />
     <Compile Include="FileTransfert\IFilePointer.cs" />
-    <Compile Include="FileTransfert\Commands\ReadyToReceiveFileData.cs" />
     <Compile Include="FileTransfert\DownloadFileCommandHandler.cs" />
     <Compile Include="FileTransfert\Events\FileDownloadEnded.cs" />
     <Compile Include="FileTransfert\Events\FileDownloadStarted.cs" />
@@ -66,6 +67,7 @@
     <Compile Include="FileTransfert\Events\FileUploadEnded.cs" />
     <Compile Include="FileTransfert\Events\FileUploadStarted.cs" />
     <Compile Include="FileTransfert\Commands\SendNextFileData.cs" />
+    <Compile Include="FileTransfert\Events\NextFileDataRead.cs" />
     <Compile Include="FileTransfert\UploadFileCommandHandler.cs" />
     <Compile Include="IBus.cs" />
     <Compile Include="ICommandSender.cs" />

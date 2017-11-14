@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using LinkUs.Core;
 using LinkUs.Core.Connection;
@@ -27,42 +26,43 @@ namespace LinkUs.CommandLine.FileTransferts
                 File.Delete(localDestinationFilePath);
             }
 
-            var cancellationToken = new CancellationTokenSource();
+            var startedEvent = await StartDownload(remoteSourceFilePath);
+            var totalBytesTransferred = await CopyDataToLocalFile(startedEvent, localDestinationFilePath);
+            await EndDownload(startedEvent);
 
-            try {
-                var command = new StartFileDownload {
-                    SourceFilePath = remoteSourceFilePath
-                };
+            if (totalBytesTransferred != startedEvent.TotalLength) {
+                throw new Exception("The total amount of bytes received is not correct, file must be corrupted.");
+            }
+        }
 
-                var startedEvent = await _commandSender.ExecuteAsync<StartFileDownload, FileDownloadStarted>(command, _clientId);
-                var dataStream = _commandSender.BuildStream<SendNextFileData>(data => data.FileId == startedEvent.FileId);
-                dataStream.Start();
-
-                _commandSender.ExecuteAsync(new ReadyToReceiveFileData { FileId = startedEvent.FileId }, _clientId);
-
-                var endedEventTask = _commandSender
-                    .Receive<FileDownloadEnded>(_clientId, @event => @event.FileId == startedEvent.FileId, cancellationToken.Token)
-                    .ContinueWith(x => dataStream.End(), cancellationToken.Token);
-
-                var totalBytesTransferred = 0;
-                using (var stream = File.OpenWrite(localDestinationFilePath)) {
-                    foreach (var sendNextFileData in dataStream.GetData()) {
-                        stream.Write(sendNextFileData.Buffer, 0, sendNextFileData.Buffer.Length);
-                        totalBytesTransferred += sendNextFileData.Buffer.Length;
-                        Pourcentage = (int) (totalBytesTransferred * 100 / startedEvent.TotalLength);
+        // ----- Internal logics
+        private async Task<FileDownloadStarted> StartDownload(string remoteSourceFilePath)
+        {
+            var startCommand = new StartFileDownload { SourceFilePath = remoteSourceFilePath };
+            var startedEvent = await _commandSender.ExecuteAsync<StartFileDownload, FileDownloadStarted>(startCommand, _clientId);
+            return startedEvent;
+        }
+        private async Task<int> CopyDataToLocalFile(FileDownloadStarted startedEvent, string filePath)
+        {
+            var totalBytesTransferred = 0;
+            using (var stream = File.OpenWrite(filePath)) {
+                var nextFileDataCommand = new GetNextFileData { FileId = startedEvent.FileId };
+                while (true) {
+                    var fileDataRead = await _commandSender.ExecuteAsync<GetNextFileData, NextFileDataRead>(nextFileDataCommand, _clientId);
+                    if (fileDataRead.Data.Length == 0) {
+                        break;
                     }
-                }
-
-                await endedEventTask;
-
-                if (totalBytesTransferred != startedEvent.TotalLength) {
-                    throw new Exception("The total amount of bytes received is not correct, file must be corrupted.");
+                    stream.Write(fileDataRead.Data, 0, fileDataRead.Data.Length);
+                    totalBytesTransferred += fileDataRead.Data.Length;
+                    Pourcentage = (int) (totalBytesTransferred * 100 / startedEvent.TotalLength);
                 }
             }
-            catch (Exception) {
-                cancellationToken.Cancel();
-                throw;
-            }
+            return totalBytesTransferred;
+        }
+        private async Task EndDownload(FileDownloadStarted startedEvent)
+        {
+            var endCommand = new EndFileDownload { FileId = startedEvent.FileId };
+            await _commandSender.ExecuteAsync<EndFileDownload, FileDownloadEnded>(endCommand, _clientId);
         }
     }
 }

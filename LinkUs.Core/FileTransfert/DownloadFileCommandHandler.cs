@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using LinkUs.Core.FileTransfert.Commands;
 using LinkUs.Core.FileTransfert.Events;
 
@@ -9,16 +10,12 @@ namespace LinkUs.Core.FileTransfert
 {
     public class DownloadFileCommandHandler :
         IHandler<StartFileDownload, FileDownloadStarted>,
-        IHandler<ReadyToReceiveFileData, FileDownloadEnded>
+        IHandler<GetNextFileData, NextFileDataRead>,
+        IHandler<EndFileDownload, FileDownloadEnded>
     {
         private static readonly IDictionary<Guid, Stream> OpenedStreams = new ConcurrentDictionary<Guid, Stream>();
-        private readonly IBus _bus;
 
-        public DownloadFileCommandHandler(IBus bus)
-        {
-            _bus = bus;
-        }
-
+        // ----- Public methods
         public FileDownloadStarted Handle(StartFileDownload command)
         {
             try {
@@ -34,41 +31,45 @@ namespace LinkUs.Core.FileTransfert
                 throw new Exception($"Unable to start the download of the file '{command.SourceFilePath}'.", ex);
             }
         }
-
-        public FileDownloadEnded Handle(ReadyToReceiveFileData command)
+        public NextFileDataRead Handle(GetNextFileData command)
         {
-            Stream stream;
-            if (OpenedStreams.TryGetValue(command.FileId, out stream) == false) {
-                throw new Exception($"Unable to find the file with id '{command.FileId}'.");
-            }
-
+            var stream = GetOpenedStream(command.FileId);
             try {
                 var buffer = new byte[1024];
-                while (true) {
-                    var bytesReadCount = stream.Read(buffer, 0, buffer.Length);
-                    if (bytesReadCount == 0) {
-                        break;
-                    }
-                    if (bytesReadCount < buffer.Length) {
-                        var endBuffer = new byte[bytesReadCount];
-                        Buffer.BlockCopy(buffer, 0, endBuffer, 0, bytesReadCount);
-                        buffer = endBuffer;
-                    }
-                    _bus.Send(new SendNextFileData {
-                        FileId = command.FileId,
-                        Buffer = buffer
-                    });
+                var bytesReadCount = stream.Read(buffer, 0, buffer.Length);
+                if (bytesReadCount != buffer.Length) {
+                    buffer = buffer.Take(bytesReadCount).ToArray();
                 }
+                return new NextFileDataRead {
+                    FileId = command.FileId,
+                    Data = buffer
+                };
             }
             catch (Exception ex) {
-                throw new Exception("An unexpected error occurred during the file download.", ex);
-            }
-            finally {
                 stream.Close();
                 OpenedStreams.Remove(command.FileId);
+                throw new Exception("An unexpected error occurred during the file download.", ex);
             }
+        }
+        public FileDownloadEnded Handle(EndFileDownload command)
+        {
+            var fileStream = GetOpenedStream(command.FileId);
+            fileStream.Close();
+            fileStream.Dispose();
+            OpenedStreams.Remove(command.FileId);
+            return new FileDownloadEnded {
+                FileId = command.FileId
+            };
+        }
 
-            return new FileDownloadEnded() { FileId = command.FileId };
+        // ----- Utils
+        private static Stream GetOpenedStream(Guid fileId)
+        {
+            Stream stream;
+            if (OpenedStreams.TryGetValue(fileId, out stream) == false) {
+                throw new Exception($"Unable to download, the file id '{fileId}' does not exist.");
+            }
+            return stream;
         }
     }
 }

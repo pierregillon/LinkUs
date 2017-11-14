@@ -14,6 +14,7 @@ namespace LinkUs.Core.FileTransfert
     {
         private static readonly IDictionary<Guid, Stream> OpenedStreams = new ConcurrentDictionary<Guid, Stream>();
 
+        // ----- Public methods
         public FileUploadStarted Handle(StartFileUpload command)
         {
             try {
@@ -28,10 +29,9 @@ namespace LinkUs.Core.FileTransfert
                 throw new Exception($"Unable to start the upload of the file '{command.DestinationFilePath}'.", ex);
             }
         }
-
         public bool Handle(SendNextFileData command)
         {
-            var fileStream = GetFileStream(command.FileId);
+            var fileStream = GetOpenedFileStream(command.FileId);
             try {
                 fileStream.Write(command.Buffer, 0, command.Buffer.Length);
                 return true;
@@ -43,7 +43,6 @@ namespace LinkUs.Core.FileTransfert
                 throw new Exception("An unexpected error occurred during the file upload.", ex);
             }
         }
-
         public FileUploadEnded Handle(EndFileUpload command)
         {
             Stream fileStream;
@@ -55,11 +54,12 @@ namespace LinkUs.Core.FileTransfert
             return new FileUploadEnded { FileId = command.FileId };
         }
 
-        private static Stream GetFileStream(Guid id)
+        // ----- Utils
+        private static Stream GetOpenedFileStream(Guid fileId)
         {
             Stream fileStream;
-            if (OpenedStreams.TryGetValue(id, out fileStream) == false) {
-                throw new Exception($"Unable to use the file data, downloader with id '{id}' does not exist.");
+            if (OpenedStreams.TryGetValue(fileId, out fileStream) == false) {
+                throw new Exception($"Unable to upload, the file id '{fileId}' does not exist.");
             }
             return fileStream;
         }

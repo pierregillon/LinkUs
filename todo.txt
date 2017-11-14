@@ -15,4 +15,3 @@
 * when client not responding for a period of time during the Receive/Stream, free resource and throw exception.
 * Ellapsed time for upload/download.
 * use of the stream for shell command line handler.
-* do not block all thread when downloading. send buffer after buffer. need ack from client.
