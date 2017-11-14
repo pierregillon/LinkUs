@@ -6,9 +6,10 @@ namespace LinkUs.Core.Connection
 {
     public class SocketConnection : IConnection
     {
+        private const int ASYNC_OPERATION_COUNT = 20;
+
         private readonly Socket _socket;
-        private readonly SemaphoredQueue<SocketAsyncEventArgs> _receiveSocketOperations = new SemaphoredQueue<SocketAsyncEventArgs>();
-        private readonly SemaphoredQueue<SocketAsyncEventArgs> _sendSocketOperations = new SemaphoredQueue<SocketAsyncEventArgs>();
+        private readonly SemaphoredQueue<SocketAsyncOperation> _socketOperations = new SemaphoredQueue<SocketAsyncOperation>(ASYNC_OPERATION_COUNT);
 
         public event Action<byte[]> DataReceived;
         public event Action<int> DataSent;
@@ -18,12 +19,12 @@ namespace LinkUs.Core.Connection
         public SocketConnection()
         {
             _socket = BuildDefaultSocket();
-            BuildSocketAsyncEventArgs();
+            BuildSocketAsyncOperation();
         }
         public SocketConnection(Socket socket)
         {
             _socket = socket;
-            BuildSocketAsyncEventArgs();
+            BuildSocketAsyncOperation();
             StartContinuousReceive();
         }
 
@@ -35,12 +36,12 @@ namespace LinkUs.Core.Connection
         }
         public void SendAsync(byte[] data)
         {
-            var sendSocketEventArgs = _sendSocketOperations.Dequeue();
-            var protocol = (BytesTransfertProtocol) sendSocketEventArgs.UserToken;
+            var operation = _socketOperations.Dequeue();
+            var protocol = operation.Protocol;
             var dataToSend = protocol.Transform(data);
-            sendSocketEventArgs.AcceptSocket = _socket;
-            sendSocketEventArgs.SetBuffer(dataToSend, 0, dataToSend.Length);
-            StartSendData(sendSocketEventArgs);
+            operation.AcceptSocket = _socket;
+            operation.SetBuffer(dataToSend, 0, dataToSend.Length);
+            StartSendOperationAsync(operation);
         }
         public void Close()
         {
@@ -48,48 +49,42 @@ namespace LinkUs.Core.Connection
         }
 
         // ----- Receive Operation
-        private void StartReceiveData(SocketAsyncEventArgs args)
+        private void StartReceiveOperationAsync(SocketAsyncOperation operation)
         {
-            var isPending = args.AcceptSocket.ReceiveAsync(args);
+            var isPending = operation.AcceptSocket.ReceiveAsync(operation);
             if (!isPending) {
-                ProcessReceiveData(args);
+                EndReceiveOperation(operation);
             }
         }
-        private void ReceiveEventCompleted(object sender, SocketAsyncEventArgs receiveSocketEventArgs)
+        private void EndReceiveOperation(SocketAsyncOperation operation)
         {
-            ProcessReceiveData(receiveSocketEventArgs);
-        }
-        private void ProcessReceiveData(SocketAsyncEventArgs receiveSocketEventArgs)
-        {
-            if (receiveSocketEventArgs.LastOperation != SocketAsyncOperation.Receive) {
-                CloseSocket(receiveSocketEventArgs.AcceptSocket);
-                RecycleReceiveArgs(receiveSocketEventArgs);
-                throw new Exception("bad operation");
-            }
-            if (receiveSocketEventArgs.SocketError == SocketError.ConnectionReset) {
-                CloseSocket(receiveSocketEventArgs.AcceptSocket);
-                RecycleReceiveArgs(receiveSocketEventArgs);
+            if (operation.SocketError == SocketError.ConnectionReset) {
+                CloseSocket(operation.AcceptSocket);
+                RecycleOperation(operation);
                 return;
-            }
-            if (receiveSocketEventArgs.SocketError != SocketError.Success) {
-                throw new Exception("unsuccessed read");
             }
 
-            var bytesTransferredCount = receiveSocketEventArgs.BytesTransferred;
+            if (operation.SocketError != SocketError.Success) {
+                CloseSocket(operation.AcceptSocket);
+                RecycleOperation(operation);
+                throw new Exception("Read failed");
+            }
+
+            var bytesTransferredCount = operation.BytesTransferred;
             if (bytesTransferredCount == 0) {
-                CloseSocket(receiveSocketEventArgs.AcceptSocket);
-                RecycleReceiveArgs(receiveSocketEventArgs);
+                CloseSocket(operation.AcceptSocket);
+                RecycleOperation(operation);
                 return;
             }
-            var bytesTransferred = receiveSocketEventArgs.Buffer.Take(bytesTransferredCount).ToArray();
-            ProcessBytesTransferred(receiveSocketEventArgs, bytesTransferred);
+            var bytesTransferred = operation.Buffer.Take(bytesTransferredCount).ToArray();
+            ProcessBytesTransferred(operation, bytesTransferred);
         }
-        private void ProcessBytesTransferred(SocketAsyncEventArgs receiveSocketEventArgs, byte[] bytesTransferred)
+        private void ProcessBytesTransferred(SocketAsyncOperation operation, byte[] bytesTransferred)
         {
-            var protocol = (BytesTransfertProtocol) receiveSocketEventArgs.UserToken;
+            var protocol = operation.Protocol;
             var usedToProcessHeaderBytesCount = protocol.ProcessHeader(bytesTransferred);
             if (usedToProcessHeaderBytesCount == bytesTransferred.Length) {
-                StartReceiveData(receiveSocketEventArgs);
+                StartReceiveOperationAsync(operation);
                 return;
             }
 
@@ -98,15 +93,98 @@ namespace LinkUs.Core.Connection
 
             var remainingBytesCountToProcess = bytesTransferred.Length - usedToProcessHeaderBytesCount - usedToProcessMessageBytesCount;
             if (remainingBytesCountToProcess == 0) {
-                StartReceiveData(receiveSocketEventArgs);
+                StartReceiveOperationAsync(operation);
             }
             else if (remainingBytesCountToProcess > 0) {
                 var surplusData = bytesTransferred.Skip(usedToProcessHeaderBytesCount + usedToProcessMessageBytesCount).ToArray();
-                ProcessBytesTransferred(receiveSocketEventArgs, surplusData);
+                ProcessBytesTransferred(operation, surplusData);
             }
             else {
                 throw new Exception("Cannot have a number of byte to process < 0.");
             }
+        }
+
+        // ----- Send Operation
+        private void StartSendOperationAsync(SocketAsyncOperation operation)
+        {
+            try {
+                var isPending = operation.AcceptSocket.SendAsync(operation);
+                if (isPending == false) {
+                    EndSendOperation(operation);
+                }
+            }
+            catch (ObjectDisposedException ex) {
+                if (ex.ObjectName == "System.Net.Sockets.Socket") {
+                    CloseSocket(operation.AcceptSocket);
+                    RecycleOperation(operation);
+                    return;
+                }
+                throw;
+            }
+        }
+        private void EndSendOperation(SocketAsyncOperation operation)
+        {
+            if (operation.SocketError == SocketError.ConnectionReset) {
+                CloseSocket(operation.AcceptSocket);
+                RecycleOperation(operation);
+                return;
+            }
+            if (operation.SocketError != SocketError.Success) {
+                CloseSocket(operation.AcceptSocket);
+                RecycleOperation(operation);
+                throw new Exception("unsuccessed send");
+            }
+            DataSent?.Invoke(operation.BytesTransferred);
+            RecycleOperation(operation);
+        }
+
+        // ----- Callbacks
+        private void EventCompleted(object sender, SocketAsyncEventArgs operation)
+        {
+            if (operation.LastOperation == System.Net.Sockets.SocketAsyncOperation.Send) {
+                EndSendOperation((SocketAsyncOperation) operation);
+            }
+            else if (operation.LastOperation == System.Net.Sockets.SocketAsyncOperation.Receive) {
+                EndReceiveOperation((SocketAsyncOperation) operation);
+            }
+            else {
+                throw new NotImplementedException("Unknown of SocketAsyncOperation");
+            }
+        }
+
+        // ----- Interal logic
+        private void RecycleOperation(SocketAsyncOperation operation)
+        {
+            operation.Reset();
+            _socketOperations.Enqueue(operation);
+        }
+        private void StartContinuousReceive()
+        {
+            var operation = _socketOperations.Dequeue();
+            operation.AcceptSocket = _socket;
+            StartReceiveOperationAsync(operation);
+        }
+        private void CloseSocket(Socket socket)
+        {
+            try {
+                socket.Shutdown(SocketShutdown.Both);
+            }
+            catch (ObjectDisposedException) { }
+            socket.Close();
+            socket.Dispose();
+            Closed?.Invoke();
+        }
+        private void BuildSocketAsyncOperation()
+        {
+            for (var i = 0; i < ASYNC_OPERATION_COUNT; i++) {
+                var operation = new SocketAsyncOperation();
+                operation.Completed += EventCompleted;
+                _socketOperations.Enqueue(operation);
+            }
+        }
+        private static Socket BuildDefaultSocket()
+        {
+            return new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         }
         private static byte[] ReduceBuffer(byte[] bytesTransferred, int usedToProcessHeaderBytesCount)
         {
@@ -120,94 +198,21 @@ namespace LinkUs.Core.Connection
             }
             return buffer;
         }
-        private void RecycleReceiveArgs(SocketAsyncEventArgs receiveSocketEventArgs)
+    }
+
+    public class SocketAsyncOperation : SocketAsyncEventArgs
+    {
+        public BytesTransfertProtocol Protocol { get; } = new BytesTransfertProtocol();
+
+        public SocketAsyncOperation()
         {
-            receiveSocketEventArgs.AcceptSocket = null;
-            ((BytesTransfertProtocol) receiveSocketEventArgs.UserToken).Reset();
-            _receiveSocketOperations.Enqueue(receiveSocketEventArgs);
+            SetBuffer(new byte[1024], 0, 1024);
         }
 
-        // ----- Send Operation
-        private void StartSendData(SocketAsyncEventArgs args)
+        public void Reset()
         {
-            try {
-                var isPending = args.AcceptSocket.SendAsync(args);
-                if (isPending == false) {
-                    ProcessSendData(args);
-                }
-            }
-            catch (ObjectDisposedException ex) {
-                if (ex.ObjectName == "System.Net.Sockets.Socket") {
-                    CloseSocket(args.AcceptSocket);
-                    RecycleSendSocket(args);
-                    return;
-                }
-                throw;
-            }
-        }
-        private void SendEventCompleted(object sender, SocketAsyncEventArgs asyncEventArgs)
-        {
-            ProcessSendData(asyncEventArgs);
-        }
-        private void ProcessSendData(SocketAsyncEventArgs args)
-        {
-            if (args.LastOperation != SocketAsyncOperation.Send) {
-                CloseSocket(args.AcceptSocket);
-                RecycleSendSocket(args);
-                throw new Exception("bad operation");
-            }
-            if (args.SocketError != SocketError.Success) {
-                CloseSocket(args.AcceptSocket);
-                RecycleSendSocket(args);
-                throw new Exception("unsuccessed send");
-            }
-            DataSent?.Invoke(args.BytesTransferred);
-            RecycleSendSocket(args);
-        }
-        private void RecycleSendSocket(SocketAsyncEventArgs args)
-        {
-            args.AcceptSocket = null;
-            ((BytesTransfertProtocol) args.UserToken).Reset();
-            _sendSocketOperations.Enqueue(args);
-        }
-
-        // ----- Interal logic
-        private void StartContinuousReceive()
-        {
-            var receiveSocketEventArgs = _receiveSocketOperations.Dequeue();
-            receiveSocketEventArgs.AcceptSocket = _socket;
-            StartReceiveData(receiveSocketEventArgs);
-        }
-        private void CloseSocket(Socket socket)
-        {
-            try {
-                socket.Shutdown(SocketShutdown.Both);
-            }
-            catch (ObjectDisposedException) { }
-            socket.Close();
-            socket.Dispose();
-            Closed?.Invoke();
-        }
-        private void BuildSocketAsyncEventArgs()
-        {
-            for (int i = 0; i < 10; i++) {
-                var args = new SocketAsyncEventArgs();
-                args.Completed += ReceiveEventCompleted;
-                args.SetBuffer(new byte[1024], 0, 1024);
-                args.UserToken = new BytesTransfertProtocol();
-                _receiveSocketOperations.Enqueue(args);
-            }
-
-            for (int i = 0; i < 10; i++) {
-                var args = new SocketAsyncEventArgs();
-                args.Completed += SendEventCompleted;
-                args.UserToken = new BytesTransfertProtocol();
-                _sendSocketOperations.Enqueue(args);
-            }
-        }
-        private static Socket BuildDefaultSocket()
-        {
-            return new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            AcceptSocket = null;
+            Protocol.Reset();
         }
     }
 }

@@ -5,8 +5,13 @@ namespace LinkUs.Core.Connection
 {
     public class SemaphoredQueue<T>
     {
-        private readonly Semaphore _lock = new Semaphore(0, 10);
+        private readonly Semaphore _lock;
         private readonly ConcurrentQueue<T> _queue = new ConcurrentQueue<T>();
+
+        public SemaphoredQueue(int maxCount)
+        {
+            _lock = new Semaphore(0, maxCount);
+        }
 
         public void Enqueue(T element)
         {

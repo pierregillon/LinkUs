@@ -13,7 +13,7 @@ namespace LinkUs.Tests.Helpers
 
         public void WaitForOperation()
         {
-            _manualSetEvent.WaitOne(100);
+            _manualSetEvent.WaitOne(1000);
         }
         public void SetOperationCompleted()
         {

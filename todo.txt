@@ -1,4 +1,3 @@
-* send data with fixed size buffer
 * lock on queue for SocketConnection => "exit" on remote shell
 * introduce concept for sending package with command or event.
 * ILogger in ExternalAssemblyModule to do the Console Printing.
@@ -13,3 +12,7 @@
 * dont use handler with return type, only void, and pass IBus systematically to interact with host process.
 * when client not responding for a period of time during the Receive/Stream, free resource and throw exception.
 * use of the stream for shell command line handler.
+
+* send data with fixed size buffer
+* or reset the asyncOperation buffer to 1024 after send. (because now, it can be use for a read.)
+* introduce enum to explicit the different case FULLY_READ, PARTIAL_READ, ADDITIONAL_READ
