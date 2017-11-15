@@ -24,14 +24,13 @@ namespace LinkUs.Tests
             var preparedData = _protocol.PrepareMessageToSend(A_MESSAGE);
 
             // Actions
-            byte[] message;
-            byte[] additionalData;
-            var result = _protocol.TryParse(preparedData, out message, out additionalData);
+            ParsedData parsedData;
+            var result = _protocol.TryParse(preparedData, out parsedData);
 
             // Asserts
             Check.That(result).IsTrue();
-            Check.That(message).ContainsExactly(A_MESSAGE);
-            Check.That(additionalData).IsNull();
+            Check.That(parsedData.Message).ContainsExactly(A_MESSAGE);
+            Check.That(parsedData.ContainsAdditionalData()).IsFalse();
         }
 
         [Fact]
@@ -44,14 +43,14 @@ namespace LinkUs.Tests
                 .ToArray();
 
             // Actions
-            byte[] message;
-            byte[] additionalData;
-            var result = _protocol.TryParse(dataToSend, out message, out additionalData);
+            ParsedData parsedData;
+            var isParsingSuccessful = _protocol.TryParse(dataToSend, out parsedData);
 
             // Asserts
-            Check.That(result).IsTrue();
-            Check.That(message).ContainsExactly(A_MESSAGE);
-            Check.That(additionalData).ContainsExactly(SOME_ADDITIONAL_DATA);
+            Check.That(isParsingSuccessful).IsTrue();
+            Check.That(parsedData.Message).ContainsExactly(A_MESSAGE);
+            Check.That(parsedData.ContainsAdditionalData()).IsTrue();
+            Check.That(parsedData.AdditionalData).ContainsExactly(SOME_ADDITIONAL_DATA);
         }
 
         [Fact]
@@ -64,14 +63,14 @@ namespace LinkUs.Tests
                 .ToArray();
 
             // Actions
-            byte[] message;
-            byte[] additionalData;
-            var result = _protocol.TryParse(dataToSend, out message, out additionalData);
+            ParsedData parsedData;
+            var isParsingSuccessful = _protocol.TryParse(dataToSend, out parsedData);
 
             // Asserts
-            Check.That(result).IsFalse();
-            Check.That(message).IsNull();
-            Check.That(additionalData).IsNull();
+            Check.That(isParsingSuccessful).IsFalse();
+            Check.That(parsedData.IsEmpty()).IsTrue();
+            Check.That(parsedData.Message).IsNull();
+            Check.That(parsedData.AdditionalData).IsNull();
         }
     }
 }

@@ -79,18 +79,18 @@ namespace LinkUs.Core.Connection
         {
             var protocol = operation.Protocol;
 
-            byte[] message, additionalData;
-            var extractionSucceded = protocol.TryParse(bytesTransferred, out message, out additionalData);
+            ParsedData parsedData;
+            var extractionSucceded = protocol.TryParse(bytesTransferred, out parsedData);
             if (!extractionSucceded) {
                 StartReceiveOperationAsync(operation);
             }
             else {
-                DataReceived?.Invoke(message);
-                if (additionalData == null) {
-                    StartReceiveOperationAsync(operation);
+                DataReceived?.Invoke(parsedData.Message);
+                if (parsedData.ContainsAdditionalData()) {
+                    ProcessBytesTransferred(operation, parsedData.AdditionalData);
                 }
                 else {
-                    ProcessBytesTransferred(operation, additionalData);
+                    StartReceiveOperationAsync(operation);
                 }
             }
         }

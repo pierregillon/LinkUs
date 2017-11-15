@@ -22,32 +22,34 @@ namespace LinkUs.Core.Connection
             Buffer.BlockCopy(data, 0, fullData, _packageLengthBytes.Length, data.Length);
             return fullData;
         }
-        public bool TryParse(byte[] bytesTransferred, out byte[] message, out byte[] additionalData)
+        public bool TryParse(byte[] bytesTransferred, out ParsedData parsedData)
         {
             var usedToProcessHeaderBytesCount = ProcessHeader(bytesTransferred);
             if (usedToProcessHeaderBytesCount == bytesTransferred.Length) {
-                message = null;
-                additionalData = null;
+                parsedData = ParsedData.None();
                 return false;
             }
 
             var messageBytes = bytesTransferred.SmartSkip(usedToProcessHeaderBytesCount);
-            byte[] message2;
-            var usedToProcessMessageBytesCount = ProcessMessage(messageBytes, out message2);
+
+            byte[] message;
+            var usedToProcessMessageBytesCount = ProcessMessage(messageBytes, out message);
 
             var remainingBytesCountToProcess = bytesTransferred.Length - usedToProcessHeaderBytesCount - usedToProcessMessageBytesCount;
-
             if (remainingBytesCountToProcess < 0) {
                 throw new Exception("Cannot have a number of byte to process < 0.");
             }
             else if (remainingBytesCountToProcess == 0) {
-                message = message2;
-                additionalData = null;
+                parsedData = ParsedData.OnlyMessage(message);
                 return true;
             }
             else /*if (remainingBytesCountToProcess > 0)*/ {
-                message = message2;
-                additionalData = bytesTransferred.Skip(usedToProcessHeaderBytesCount + usedToProcessMessageBytesCount).ToArray();
+                parsedData = ParsedData.MessageAndAdditionalData(
+                    message: message,
+                    additionalData: bytesTransferred
+                        .Skip(usedToProcessHeaderBytesCount + usedToProcessMessageBytesCount)
+                        .ToArray()
+                );
                 return true;
             }
         }
