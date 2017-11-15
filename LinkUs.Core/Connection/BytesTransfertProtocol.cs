@@ -24,30 +24,36 @@ namespace LinkUs.Core.Connection
         }
         public bool TryParse(byte[] bytesTransferred, out ParsedData parsedData)
         {
-            var usedToProcessHeaderBytesCount = ProcessHeader(bytesTransferred);
-            if (usedToProcessHeaderBytesCount == bytesTransferred.Length) {
+            var usedToParseHeaderBytesCount = ParseHeader(bytesTransferred);
+            if (usedToParseHeaderBytesCount == bytesTransferred.Length) {
                 parsedData = ParsedData.None();
                 return false;
             }
 
-            var messageBytes = bytesTransferred.SmartSkip(usedToProcessHeaderBytesCount);
+            var messageBytes = bytesTransferred.SmartSkip(usedToParseHeaderBytesCount);
 
             byte[] message;
-            var usedToProcessMessageBytesCount = ProcessMessage(messageBytes, out message);
+            var usedToParseMessageBytesCount = ParseMessage(messageBytes, out message);
 
-            var remainingBytesCountToProcess = bytesTransferred.Length - usedToProcessHeaderBytesCount - usedToProcessMessageBytesCount;
-            if (remainingBytesCountToProcess < 0) {
+            var remainingBytesCount = bytesTransferred.Length - usedToParseHeaderBytesCount - usedToParseMessageBytesCount;
+            if (remainingBytesCount < 0) {
                 throw new Exception("Cannot have a number of byte to process < 0.");
             }
-            else if (remainingBytesCountToProcess == 0) {
-                parsedData = ParsedData.OnlyMessage(message);
-                return true;
+            else if (remainingBytesCount == 0) {
+                if (message == null) {
+                    parsedData = ParsedData.None();
+                    return false;
+                }
+                else {
+                    parsedData = ParsedData.OnlyMessage(message);
+                    return true;
+                }
             }
             else /*if (remainingBytesCountToProcess > 0)*/ {
                 parsedData = ParsedData.MessageAndAdditionalData(
                     message: message,
                     additionalData: bytesTransferred
-                        .Skip(usedToProcessHeaderBytesCount + usedToProcessMessageBytesCount)
+                        .Skip(usedToParseHeaderBytesCount + usedToParseMessageBytesCount)
                         .ToArray()
                 );
                 return true;
@@ -61,7 +67,7 @@ namespace LinkUs.Core.Connection
         }
 
         // ----- Internal logic
-        private int ProcessHeader(byte[] bytes)
+        private int ParseHeader(byte[] bytes)
         {
             if (_packageLength.HasValue) {
                 return 0;
@@ -94,17 +100,16 @@ namespace LinkUs.Core.Connection
                 return bytes.Length;
             }
         }
-        private int ProcessMessage(byte[] bytes, out byte[] message)
+        private int ParseMessage(byte[] bytes, out byte[] message)
         {
             if (_packageLength.HasValue == false) {
-                throw new Exception("Unable to process bytes received: the package length was not processed.");
+                throw new Exception("Unable to process bytes received: the package length was not parsed.");
             }
 
             var allBytesReceivedCount = _allDataReceived.Select(x => x.Length).Sum(x => x);
             if (allBytesReceivedCount + bytes.Length == _packageLength) {
                 var fullMessage = _allDataReceived.SelectMany(x => x).Concat(bytes).ToArray();
                 message = fullMessage;
-                Reset();
                 return bytes.Length;
             }
             if (allBytesReceivedCount + bytes.Length < _packageLength) {
@@ -117,7 +122,6 @@ namespace LinkUs.Core.Connection
                 var exactBufferEnd = bytes.Take(remainingByteCount).ToArray();
                 var fullMessage = _allDataReceived.SelectMany(x => x).Concat(exactBufferEnd).ToArray();
                 message = fullMessage;
-                Reset();
                 return remainingByteCount;
             }
         }

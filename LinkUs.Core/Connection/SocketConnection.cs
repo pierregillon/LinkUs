@@ -86,6 +86,7 @@ namespace LinkUs.Core.Connection
             }
             else {
                 DataReceived?.Invoke(parsedData.Message);
+                operation.PrepareReceiveOperation(_socket);
                 if (parsedData.ContainsAdditionalData()) {
                     ProcessBytesTransferred(operation, parsedData.AdditionalData);
                 }
@@ -152,7 +153,7 @@ namespace LinkUs.Core.Connection
         private void StartContinuousReceive()
         {
             var operation = _socketOperations.Dequeue();
-            operation.AcceptSocket = _socket;
+            operation.PrepareReceiveOperation(_socket);
             StartReceiveOperationAsync(operation);
         }
         private void CloseSocket(Socket socket)

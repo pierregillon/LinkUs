@@ -26,5 +26,10 @@ namespace LinkUs.Core.Connection
             AcceptSocket = null;
             Protocol.Reset();
         }
+        public void PrepareReceiveOperation(Socket socket)
+        {
+            AcceptSocket = socket;
+            Protocol.Reset();
+        }
     }
 }

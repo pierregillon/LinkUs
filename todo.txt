@@ -16,3 +16,5 @@
 * send data with fixed size buffer
 * or reset the asyncOperation buffer to 1024 after send. (because now, it can be use for a read.)
 * introduce enum to explicit the different case FULLY_READ, PARTIAL_READ, ADDITIONAL_READ
+* socket is always used in the same connection. Init the socketoperationAsync with it.
+* catch exception in downloader/uploader and try to send message to client to close the file.
