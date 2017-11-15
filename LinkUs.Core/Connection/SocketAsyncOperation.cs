@@ -15,10 +15,9 @@ namespace LinkUs.Core.Connection
         }
 
         // ----- Public methods
-        public void PrepareSendOperation(byte[] data, Socket socket)
+        public void PrepareSendOperation(byte[] data)
         {
             var dataToSend = Protocol.PrepareMessageToSend(data);
-            AcceptSocket = socket;
             SetBuffer(dataToSend, 0, dataToSend.Length);
         }
         public void Reset()
@@ -26,9 +25,8 @@ namespace LinkUs.Core.Connection
             AcceptSocket = null;
             Protocol.Reset();
         }
-        public void PrepareReceiveOperation(Socket socket)
+        public void PrepareReceiveOperation()
         {
-            AcceptSocket = socket;
             Protocol.Reset();
         }
     }

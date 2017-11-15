@@ -36,7 +36,7 @@ namespace LinkUs.Core.Connection
         public void SendAsync(byte[] data)
         {
             var operation = _socketOperations.Dequeue();
-            operation.PrepareSendOperation(data, _socket);
+            operation.PrepareSendOperation(data);
             StartSendOperationAsync(operation);
         }
         public void Close()
@@ -86,7 +86,7 @@ namespace LinkUs.Core.Connection
             }
             else {
                 DataReceived?.Invoke(parsedData.Message);
-                operation.PrepareReceiveOperation(_socket);
+                operation.PrepareReceiveOperation();
                 if (parsedData.ContainsAdditionalData()) {
                     ProcessBytesTransferred(operation, parsedData.AdditionalData);
                 }
@@ -153,7 +153,7 @@ namespace LinkUs.Core.Connection
         private void StartContinuousReceive()
         {
             var operation = _socketOperations.Dequeue();
-            operation.PrepareReceiveOperation(_socket);
+            operation.PrepareReceiveOperation();
             StartReceiveOperationAsync(operation);
         }
         private void CloseSocket(Socket socket)
@@ -171,6 +171,7 @@ namespace LinkUs.Core.Connection
             for (var i = 0; i < ASYNC_OPERATION_COUNT; i++) {
                 var operation = new SocketAsyncOperation();
                 operation.Completed += EventCompleted;
+                operation.AcceptSocket = _socket;
                 _socketOperations.Enqueue(operation);
             }
         }
