@@ -26,7 +26,7 @@ namespace LinkUs.Tests
 
             // Actions
             ParsedData parsedData;
-            var result = _protocol.TryParse(preparedData, out parsedData);
+            var result = _protocol.TryParse(preparedData, preparedData.Length, out parsedData);
 
             // Asserts
             Check.That(result).IsTrue();
@@ -45,7 +45,7 @@ namespace LinkUs.Tests
 
             // Actions
             ParsedData parsedData;
-            var isParsingSuccessful = _protocol.TryParse(dataToSend, out parsedData);
+            var isParsingSuccessful = _protocol.TryParse(dataToSend, dataToSend.Length, out parsedData);
 
             // Asserts
             Check.That(isParsingSuccessful).IsTrue();
@@ -65,7 +65,7 @@ namespace LinkUs.Tests
 
             // Actions
             ParsedData parsedData;
-            var isParsingSuccessful = _protocol.TryParse(dataToSend, out parsedData);
+            var isParsingSuccessful = _protocol.TryParse(dataToSend, dataToSend.Length, out parsedData);
 
             // Asserts
             Check.That(isParsingSuccessful).IsFalse();

@@ -13,6 +13,8 @@ namespace LinkUs.Core.Connection
         private int? _packageLength;
         private byte[] _packageLengthBytes = new byte[HEADER_LENGTH];
         private int _packageLengthReceivedBytesCount;
+        private byte[] _receivedMessage;
+        private int _receivedBytesCount;
 
         // ----- Public methods
         public byte[] PrepareMessageToSend(byte[] data, int bufferLength = 1024)
@@ -48,20 +50,24 @@ namespace LinkUs.Core.Connection
                 return true;
             }
         }
-        public bool TryParse(byte[] bytesTransferred, out ParsedData parsedData)
+        public bool TryParse(byte[] bytesTransferred, int bytesTransferredCount, out ParsedData parsedData)
         {
-            var usedToParseHeaderBytesCount = ParseHeader(bytesTransferred);
-            if (usedToParseHeaderBytesCount == bytesTransferred.Length) {
+            var usedToParseHeaderBytesCount = ParseHeader(bytesTransferred, bytesTransferredCount);
+            if (usedToParseHeaderBytesCount == bytesTransferredCount) {
                 parsedData = ParsedData.None();
                 return false;
             }
 
-            var messageBytes = bytesTransferred.SmartSkip(usedToParseHeaderBytesCount);
-
             byte[] message;
-            var usedToParseMessageBytesCount = ParseMessage(messageBytes, out message);
 
-            var remainingBytesCount = bytesTransferred.Length - usedToParseHeaderBytesCount - usedToParseMessageBytesCount;
+            var usedToParseMessageBytesCount = ParseMessage(
+                bytesTransferred, 
+                bytesTransferredCount - usedToParseHeaderBytesCount, 
+                usedToParseHeaderBytesCount, 
+                out message
+            );
+
+            var remainingBytesCount = bytesTransferredCount - usedToParseHeaderBytesCount - usedToParseMessageBytesCount;
             if (remainingBytesCount < 0) {
                 throw new Exception("Cannot have a number of byte to process < 0.");
             }
@@ -90,17 +96,19 @@ namespace LinkUs.Core.Connection
             _buffers.Clear();
             _packageLength = null;
             _packageLengthReceivedBytesCount = 0;
+            _receivedBytesCount = 0;
+            _receivedMessage = null;
         }
 
         // ----- Internal logic
-        private int ParseHeader(byte[] bytes)
+        private int ParseHeader(byte[] bytes, int bytesCount)
         {
             if (_packageLength.HasValue) {
                 return 0;
             }
 
             var remainingBytesCountForPackageLength = _packageLengthBytes.Length - _packageLengthReceivedBytesCount;
-            if (bytes.Length >= remainingBytesCountForPackageLength) {
+            if (bytesCount >= remainingBytesCountForPackageLength) {
                 Buffer.BlockCopy(
                     bytes,
                     0,
@@ -112,6 +120,7 @@ namespace LinkUs.Core.Connection
                 if (_packageLength <= 0 || _packageLength > 100000) {
                     throw new Exception("Invalid length");
                 }
+                _receivedMessage = new byte[_packageLength.Value];
                 return remainingBytesCountForPackageLength;
             }
             else {
@@ -120,36 +129,35 @@ namespace LinkUs.Core.Connection
                     0,
                     _packageLengthBytes,
                     _packageLengthReceivedBytesCount,
-                    bytes.Length);
+                    bytesCount);
 
-                _packageLengthReceivedBytesCount += bytes.Length;
-                return bytes.Length;
+                _packageLengthReceivedBytesCount += bytesCount;
+                return bytesCount;
             }
         }
-        private int ParseMessage(byte[] bytes, out byte[] message)
+        private int ParseMessage(byte[] bytes, int bytesCount, int byteOffset, out byte[] message)
         {
             if (_packageLength.HasValue == false) {
                 throw new Exception("Unable to process bytes received: the package length was not parsed.");
             }
 
-            var allBytesReceivedCount = _buffers.Select(x => x.Length).Sum(x => x);
-            if (allBytesReceivedCount + bytes.Length == _packageLength) {
-                _buffers.Add(bytes.ToArray());
-                var fullMessage = _buffers.SelectMany(x => x).ToArray();
-                message = fullMessage;
-                return bytes.Length;
+            if (_receivedBytesCount + bytesCount == _packageLength) {
+                Buffer.BlockCopy(bytes, byteOffset, _receivedMessage, _receivedBytesCount, bytesCount);
+                message = _receivedMessage;
+                _receivedBytesCount += bytesCount;
+                return bytesCount;
             }
-            if (allBytesReceivedCount + bytes.Length < _packageLength) {
-                _buffers.Add(bytes.ToArray());
+            if (_receivedBytesCount + bytesCount < _packageLength) {
+                Buffer.BlockCopy(bytes, byteOffset, _receivedMessage, _receivedBytesCount, bytesCount);
+                _receivedBytesCount += bytesCount;
                 message = null;
-                return bytes.Length;
+                return bytesCount;
             }
             else {
-                var remainingByteCount = _packageLength.Value - allBytesReceivedCount;
-                var exactBufferEnd = bytes.Take(remainingByteCount).ToArray();
-                _buffers.Add(exactBufferEnd);
-                var fullMessage = _buffers.SelectMany(x => x).ToArray();
-                message = fullMessage;
+                var remainingByteCount = _packageLength.Value - _receivedBytesCount;
+                Buffer.BlockCopy(bytes, byteOffset, _receivedMessage, _receivedBytesCount, remainingByteCount);
+                _receivedBytesCount += remainingByteCount;
+                message = _receivedMessage;
                 return remainingByteCount;
             }
         }
