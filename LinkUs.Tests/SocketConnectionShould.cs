@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -14,6 +16,7 @@ namespace LinkUs.Tests
     {
         private readonly byte[] A_MESSAGE = { 1, 2, 3 };
         private readonly byte[] ANOTHER_MESSAGE = { 4, 5, 6 };
+        private readonly byte[] BIG_MESSAGE = BuildBigMessage(1024 * 2 + 500);
 
         [Fact]
         public void transfert_simple_message_to_another_connection()
@@ -33,6 +36,27 @@ namespace LinkUs.Tests
                 interconnectedConnections.WaitForOperation();
                 Check.That(dataReceivedList).HasSize(1);
                 Check.That(dataReceivedList[0]).ContainsExactly(A_MESSAGE);
+            }
+        }
+
+        [Fact]
+        public void transfert_big_message_to_another_connection()
+        {
+            using (var interconnectedConnections = Get2InterconnectedSocketConnections()) {
+                // Actors
+                var dataReceivedList = new List<byte[]>();
+                interconnectedConnections.Client1.DataReceived += data => {
+                    dataReceivedList.Add(data);
+                    interconnectedConnections.SetOperationCompleted();
+                };
+
+                // Actions
+                interconnectedConnections.Client2.SendAsync(BIG_MESSAGE);
+
+                // Asserts
+                interconnectedConnections.WaitForOperation();
+                Check.That(dataReceivedList).HasSize(1);
+                Check.That(dataReceivedList[0]).ContainsExactly(BIG_MESSAGE);
             }
         }
 
@@ -216,6 +240,15 @@ namespace LinkUs.Tests
                 Thread.Sleep(10);
             }
             return new NetworkSimulationSample { NetworkSimulationClient = client, SocketConnection = server };
+        }
+        private static byte[] BuildBigMessage(int length)
+        {
+            var random = new Random((int) DateTime.Now.Ticks);
+            var bytes = new byte[length];
+            for (var i = 0; i < length; i++) {
+                bytes[i] = (byte) random.Next(255);
+            }
+            return bytes;
         }
     }
 }

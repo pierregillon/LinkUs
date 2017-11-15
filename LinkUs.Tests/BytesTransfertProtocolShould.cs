@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using LinkUs.Core.Connection;
 using NFluent;
 using Xunit;
@@ -71,6 +72,30 @@ namespace LinkUs.Tests
             Check.That(parsedData.IsEmpty()).IsTrue();
             Check.That(parsedData.Message).IsNull();
             Check.That(parsedData.AdditionalData).IsNull();
+        }
+
+        [Fact]
+        public void prepare_big_data_for_send2()
+        {
+            // Data
+            byte[] nextBytes;
+            byte[] message = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+            // Acts
+            var dataToSend = _protocol.PrepareMessageToSend(message, 5);
+            Check.That(dataToSend).ContainsExactly(new byte[] { 9, 0, 0, 0, 1 });
+
+            // Acts
+            _protocol.TryGetNextBytes(out nextBytes);
+            Check.That(nextBytes).ContainsExactly(new byte[] { 2, 3, 4, 5, 6 });
+
+            // Acts 2
+            _protocol.TryGetNextBytes(out nextBytes);
+            Check.That(nextBytes).ContainsExactly(new byte[] { 7, 8, 9 });
+
+            // Acts 3
+            var isSucceded = _protocol.TryGetNextBytes(out nextBytes);
+            Check.That(isSucceded).IsFalse();
         }
     }
 }

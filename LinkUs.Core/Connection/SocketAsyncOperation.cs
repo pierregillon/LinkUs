@@ -17,12 +17,12 @@ namespace LinkUs.Core.Connection
         // ----- Public methods
         public void PrepareSendOperation(byte[] data)
         {
-            var dataToSend = Protocol.PrepareMessageToSend(data);
+            Protocol.Reset();
+            var dataToSend = Protocol.PrepareMessageToSend(data, BUFFER_SIZE);
             SetBuffer(dataToSend, 0, dataToSend.Length);
         }
         public void Reset()
         {
-            AcceptSocket = null;
             Protocol.Reset();
         }
         public void PrepareReceiveOperation()

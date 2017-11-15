@@ -18,12 +18,12 @@ namespace LinkUs.Core.Connection
         public SocketConnection()
         {
             _socket = BuildDefaultSocket();
-            BuildSocketAsyncOperation();
+            BuildSocketAsyncOperation(_socket);
         }
         public SocketConnection(Socket socket)
         {
             _socket = socket;
-            BuildSocketAsyncOperation();
+            BuildSocketAsyncOperation(socket);
             StartContinuousReceive();
         }
 
@@ -126,8 +126,17 @@ namespace LinkUs.Core.Connection
                 RecycleOperation(operation);
                 throw new Exception("unsuccessed send");
             }
+
             DataSent?.Invoke(operation.BytesTransferred);
-            RecycleOperation(operation);
+
+            byte[] bytes;
+            if (operation.Protocol.TryGetNextBytes(out bytes)) {
+                operation.SetBuffer(bytes, 0, bytes.Length);
+                StartSendOperationAsync(operation);
+            }
+            else {
+                RecycleOperation(operation);
+            }
         }
 
         // ----- Callbacks
@@ -166,12 +175,12 @@ namespace LinkUs.Core.Connection
             socket.Dispose();
             Closed?.Invoke();
         }
-        private void BuildSocketAsyncOperation()
+        private void BuildSocketAsyncOperation(Socket socket)
         {
             for (var i = 0; i < ASYNC_OPERATION_COUNT; i++) {
                 var operation = new SocketAsyncOperation();
                 operation.Completed += EventCompleted;
-                operation.AcceptSocket = _socket;
+                operation.AcceptSocket = socket;
                 _socketOperations.Enqueue(operation);
             }
         }
