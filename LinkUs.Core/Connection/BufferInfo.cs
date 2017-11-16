@@ -4,6 +4,14 @@ namespace LinkUs.Core.Connection
 {
     public class BufferInfo
     {
+        public BufferInfo() { }
+        public BufferInfo(byte[] data)
+        {
+            Buffer = data;
+            Length = data.Length;
+            Offset = 0;
+        }
+
         public byte[] Buffer { get; set; }
         public int Offset { get; set; }
         public int Length { get; set; }

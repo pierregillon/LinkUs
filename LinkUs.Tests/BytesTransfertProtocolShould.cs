@@ -27,7 +27,7 @@ namespace LinkUs.Tests
 
             // Actions
             ParsedData parsedData;
-            var result = _protocol.TryParse(preparedData, preparedData.Length, out parsedData);
+            var result = _protocol.TryParse(preparedData, out parsedData);
 
             // Asserts
             Check.That(result).IsTrue();
@@ -39,11 +39,12 @@ namespace LinkUs.Tests
         public void parse_message_with_additional_data()
         {
             // Actors
-            var dataToSend = GetDataToSendFromMessage(A_MESSAGE).Concat(SOME_ADDITIONAL_DATA).ToArray();
+            var dataToSend = GetDataToSendFromMessage(A_MESSAGE).ToBytes().Concat(SOME_ADDITIONAL_DATA).ToArray();
+            var bufferInfo = new BufferInfo(dataToSend);
 
             // Actions
             ParsedData parsedData;
-            var isParsingSuccessful = _protocol.TryParse(dataToSend, dataToSend.Length, out parsedData);
+            var isParsingSuccessful = _protocol.TryParse(bufferInfo, out parsedData);
 
             // Asserts
             Check.That(isParsingSuccessful).IsTrue();
@@ -56,11 +57,12 @@ namespace LinkUs.Tests
         public void do_not_parse_when_data_not_completed()
         {
             // Actors
-            var dataToSend = GetDataToSendFromMessage(A_MESSAGE).Take(3).ToArray();
+            var dataToSend = GetDataToSendFromMessage(A_MESSAGE);
+            dataToSend.Length = 3;
 
             // Actions
             ParsedData parsedData;
-            var isParsingSuccessful = _protocol.TryParse(dataToSend, dataToSend.Length, out parsedData);
+            var isParsingSuccessful = _protocol.TryParse(dataToSend, out parsedData);
 
             // Asserts
             Check.That(isParsingSuccessful).IsFalse();
@@ -158,12 +160,12 @@ namespace LinkUs.Tests
         }
 
         // ----- Utils
-        private byte[] GetDataToSendFromMessage(byte[] message)
+        private BufferInfo GetDataToSendFromMessage(byte[] message)
         {
             BufferInfo bufferInfo;
             _protocol.PrepareMessageToSend(message);
             _protocol.TryGetNextDataToSend(message.Length + 4, out bufferInfo);
-            return bufferInfo.ToBytes();
+            return bufferInfo;
         }
     }
 }

@@ -78,8 +78,14 @@ namespace LinkUs.Core.Connection
         {
             var protocol = operation.Protocol;
 
+            var bufferInfoRead = new BufferInfo {
+                Buffer = bytesTransferred,
+                Length = bytesTransferredCount,
+                Offset = 0
+            };
+
             ParsedData parsedData;
-            var extractionSucceded = protocol.TryParse(bytesTransferred, bytesTransferredCount, out parsedData);
+            var extractionSucceded = protocol.TryParse(bufferInfoRead, out parsedData);
             if (!extractionSucceded) {
                 StartReceiveOperationAsync(operation);
             }
