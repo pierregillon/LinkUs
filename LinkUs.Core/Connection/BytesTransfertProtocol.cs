@@ -141,20 +141,20 @@ namespace LinkUs.Core.Connection
             }
 
             if (_receivedBytesCount + byteArraySlice.Length == _receivedMessage.Length) {
-                Buffer.BlockCopy(byteArraySlice.Buffer, byteArraySlice.Offset, _receivedMessage, _receivedBytesCount, byteArraySlice.Length);
+                byteArraySlice.CopyTo(_receivedMessage, _receivedBytesCount);
                 message = _receivedMessage;
                 _receivedBytesCount += byteArraySlice.Length;
                 return byteArraySlice.Length;
             }
             if (_receivedBytesCount + byteArraySlice.Length < _receivedMessage.Length) {
-                Buffer.BlockCopy(byteArraySlice.Buffer, byteArraySlice.Offset, _receivedMessage, _receivedBytesCount, byteArraySlice.Length);
+                byteArraySlice.CopyTo(_receivedMessage, _receivedBytesCount);
                 _receivedBytesCount += byteArraySlice.Length;
                 message = null;
                 return byteArraySlice.Length;
             }
             else {
                 var remainingByteCount = _receivedMessage.Length - _receivedBytesCount;
-                Buffer.BlockCopy(byteArraySlice.Buffer, byteArraySlice.Offset, _receivedMessage, _receivedBytesCount, remainingByteCount);
+                byteArraySlice.CopyTo(_receivedMessage, _receivedBytesCount, remainingByteCount);
                 _receivedBytesCount += remainingByteCount;
                 message = _receivedMessage;
                 return remainingByteCount;

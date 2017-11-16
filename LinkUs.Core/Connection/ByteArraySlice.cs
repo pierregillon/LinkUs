@@ -48,5 +48,24 @@ namespace LinkUs.Core.Connection
             }
             return new ByteArraySlice(Buffer, newLength, Offset);
         }
+
+        public void CopyTo(byte[] targetArray)
+        {
+            CopyTo(targetArray, 0);
+        }
+        public void CopyTo(byte[] targetArray, int targetOffset)
+        {
+            CopyTo(targetArray, targetOffset, Length);
+        }
+        public void CopyTo(byte[] targetArray, int targetOffset, int byteCount)
+        {
+            System.Buffer.BlockCopy(
+                Buffer,
+                Offset,
+                targetArray,
+                targetOffset,
+                byteCount
+            );
+        }
     }
 }

@@ -48,16 +48,10 @@ namespace LinkUs.Core.Connection
         }
 
         // ----- Internal logic
-        private void SetBuffer(ByteArraySlice byteArraySlice)
+        private void SetBuffer(ByteArraySlice slice)
         {
-            System.Buffer.BlockCopy(
-                byteArraySlice.Buffer,
-                byteArraySlice.Offset,
-                Buffer,
-                0,
-                byteArraySlice.Length);
-
-            SetBuffer(0, byteArraySlice.Length);
+            slice.CopyTo(Buffer);
+            SetBuffer(0, slice.Length);
         }
     }
 }
