@@ -208,7 +208,7 @@ namespace LinkUs.Tests
         private static ConnectedSocketConnectionSample Get2InterconnectedSocketConnections()
         {
             SocketConnection server = null;
-            var client = new SocketConnection();
+            var client = new SocketConnection(new SocketAsyncOperationPool(10));
 
             var listener = new SocketConnectionListener(new IPEndPoint(IPAddress.Any, 9000));
             listener.ConnectionEstablished += connection => {

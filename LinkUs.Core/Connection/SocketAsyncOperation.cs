@@ -17,8 +17,9 @@ namespace LinkUs.Core.Connection
         }
 
         // ----- Public methods
-        public void PrepareSendOperation(byte[] data)
+        public void PrepareSendOperation(Socket socket, byte[] data)
         {
+            AcceptSocket = socket;
             _byteArraySlicer.DefineMessageToSlice(data);
             ByteArraySlice byteArraySlice;
             if (_byteArraySlicer.TryGetNextSlice(BUFFER_SIZE, out byteArraySlice) == false) {
@@ -61,6 +62,10 @@ namespace LinkUs.Core.Connection
         {
             slice.CopyTo(Buffer);
             SetBuffer(0, slice.Length);
+        }
+        public void PrepareReceiveOperation(Socket socket)
+        {
+            AcceptSocket = socket;
         }
     }
 }

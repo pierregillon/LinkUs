@@ -115,7 +115,8 @@ namespace LinkUs.CommandLine
         {
             var host = "127.0.0.1";
             var port = 9000;
-            var connection = new SocketConnection();
+            var operationPool = new SocketAsyncOperationPool(10);
+            var connection = new SocketConnection(operationPool);
             connection.Connect(host, port);
             container.Inject(typeof(IConnection), connection);
             var commandDispatcher = container.GetInstance<CommandSender>();

@@ -7,6 +7,9 @@ namespace LinkUs.Core.Connection
 {
     public class SocketConnectionListener : IConnectionListener<SocketConnection>
     {
+        private const int ASYNC_OPERATION_COUNT = 20;
+        private readonly SocketAsyncOperationPool _pool = new SocketAsyncOperationPool(ASYNC_OPERATION_COUNT);
+
         private readonly Socket _listenSocket;
         private readonly Queue<SocketAsyncEventArgs> _acceptSocketOperations = new Queue<SocketAsyncEventArgs>();
 
@@ -64,7 +67,7 @@ namespace LinkUs.Core.Connection
 
             StartAcceptNextConnection();
 
-            ConnectionEstablished?.Invoke(new SocketConnection(acceptSocketEventArgs.AcceptSocket));
+            ConnectionEstablished?.Invoke(new SocketConnection(_pool, acceptSocketEventArgs.AcceptSocket));
 
             acceptSocketEventArgs.AcceptSocket = null;
             _acceptSocketOperations.Enqueue(acceptSocketEventArgs);

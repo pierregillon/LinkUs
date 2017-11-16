@@ -58,6 +58,7 @@
     <Compile Include="Connection\ByteArraySliceAggregator.cs" />
     <Compile Include="Connection\SemaphoredQueue.cs" />
     <Compile Include="Connection\SocketAsyncOperation.cs" />
+    <Compile Include="Connection\SocketAsyncOperationPool.cs" />
     <Compile Include="ErrorMessage.cs" />
     <Compile Include="FileTransfert\Commands\EndFileUpload.cs" />
     <Compile Include="FileTransfert\Commands\EndFileDownload.cs" />

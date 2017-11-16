@@ -5,25 +5,23 @@ namespace LinkUs.Core.Connection
 {
     public class SocketConnection : IConnection
     {
-        private const int ASYNC_OPERATION_COUNT = 20;
-
+        private readonly SocketAsyncOperationPool _operationPool;
         private readonly Socket _socket;
-        private readonly SemaphoredQueue<SocketAsyncOperation> _socketOperations = new SemaphoredQueue<SocketAsyncOperation>(ASYNC_OPERATION_COUNT);
-
+        
         public event Action<byte[]> DataReceived;
         public event Action<int> DataSent;
         public event Action Closed;
 
         // ----- Constructors
-        public SocketConnection()
+        public SocketConnection(SocketAsyncOperationPool operationPool)
         {
+            _operationPool = operationPool;
             _socket = BuildDefaultSocket();
-            BuildSocketAsyncOperation(_socket);
         }
-        public SocketConnection(Socket socket)
+        public SocketConnection(SocketAsyncOperationPool operationPool, Socket socket)
         {
+            _operationPool = operationPool;
             _socket = socket;
-            BuildSocketAsyncOperation(socket);
             StartContinuousReceive();
         }
 
@@ -35,8 +33,9 @@ namespace LinkUs.Core.Connection
         }
         public void SendAsync(byte[] data)
         {
-            var operation = _socketOperations.Dequeue();
-            operation.PrepareSendOperation(data);
+            var operation = _operationPool.Dequeue();
+            operation.PrepareSendOperation(_socket, data);
+            operation.Completed += EventCompleted;
             StartSendOperationAsync(operation);
         }
         public void Close()
@@ -146,11 +145,14 @@ namespace LinkUs.Core.Connection
         private void RecycleOperation(SocketAsyncOperation operation)
         {
             operation.Clean();
-            _socketOperations.Enqueue(operation);
+            operation.Completed -= EventCompleted;
+            _operationPool.Enqueue(operation);
         }
         private void StartContinuousReceive()
         {
-            var operation = _socketOperations.Dequeue();
+            var operation = _operationPool.Dequeue();
+            operation.PrepareReceiveOperation(_socket);
+            operation.Completed += EventCompleted;
             StartReceiveOperationAsync(operation);
         }
         private void CloseSocket(Socket socket)
@@ -162,15 +164,6 @@ namespace LinkUs.Core.Connection
             socket.Close();
             socket.Dispose();
             Closed?.Invoke();
-        }
-        private void BuildSocketAsyncOperation(Socket socket)
-        {
-            for (var i = 0; i < ASYNC_OPERATION_COUNT; i++) {
-                var operation = new SocketAsyncOperation();
-                operation.Completed += EventCompleted;
-                operation.AcceptSocket = socket;
-                _socketOperations.Enqueue(operation);
-            }
         }
         private static Socket BuildDefaultSocket()
         {

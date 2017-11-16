@@ -12,7 +12,8 @@ namespace LinkUs.Client
             string host = "127.0.0.1";
             int port = 9000;
 
-            var connection = new SocketConnection();
+            var operationPool = new SocketAsyncOperationPool(10);
+            var connection = new SocketConnection(operationPool);
             while (true) {
                 try {
                     Console.Write($"* Try to connect to host {host} on port {port} ... ");
