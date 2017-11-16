@@ -78,9 +78,9 @@ namespace LinkUs.Core.Connection
         }
         private void ProcessBytesTransferred(SocketAsyncOperation operation, ByteArraySlice byteArraySliceRead)
         {
-            var messageBuilder = operation.MessageBuilder;
+            var messageBuilder = operation.ByteArraySliceAggregator;
 
-            messageBuilder.AddData(byteArraySliceRead);
+            messageBuilder.Aggregate(byteArraySliceRead);
             if (!messageBuilder.IsFinished()) {
                 StartReceiveOperationAsync(operation);
             }

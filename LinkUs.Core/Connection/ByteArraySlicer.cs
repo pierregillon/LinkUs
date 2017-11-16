@@ -2,25 +2,25 @@
 
 namespace LinkUs.Core.Connection
 {
-    public class SendBytesTransfertProtocol
+    public class ByteArraySlicer
     {
-        private const int HEADER_LENGTH = 4;
+        private const int INTEGER_SIZE = 4;
 
         private byte[] _messageToSend;
         private int _dataToSendOffset;
 
         // ----- Public methods
-        public void PrepareMessageToSend(byte[] data)
+        public void DefineMessageToSlice(byte[] data)
         {
-            _messageToSend = new byte[HEADER_LENGTH + data.Length];
+            _messageToSend = new byte[INTEGER_SIZE + data.Length];
             var messageLength = BitConverter.GetBytes(data.Length);
             Buffer.BlockCopy(messageLength, 0, _messageToSend, 0, messageLength.Length);
             Buffer.BlockCopy(data, 0, _messageToSend, messageLength.Length, data.Length);
         }
-        public bool TryGetNextDataToSend(int dataSize, out ByteArraySlice slice)
+        public bool TryGetNextSlice(int dataSize, out ByteArraySlice slice)
         {
             if (_messageToSend == null) {
-                throw new Exception("Unable to get next data to send, no message prepared.");
+                throw new Exception("Unable to get next data slice, no message defined.");
             }
             var remainingBytesToSendCount = _messageToSend.Length - _dataToSendOffset;
             if (remainingBytesToSendCount == 0) {
@@ -36,7 +36,7 @@ namespace LinkUs.Core.Connection
                 return true;
             }
         }
-        public void AcquitSentBytes(int byteSentCount)
+        public void AcquitBytes(int byteSentCount)
         {
             if (byteSentCount + _dataToSendOffset > _messageToSend.Length) {
                 throw new Exception("Cannot ACK more bytes than the message contains.");

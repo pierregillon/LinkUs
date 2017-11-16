@@ -2,7 +2,7 @@ using System;
 
 namespace LinkUs.Core.Connection
 {
-    public class MessageBuilder
+    public class ByteArraySliceAggregator
     {
         private const int INTEGER_SIZE = 4;
 
@@ -13,7 +13,7 @@ namespace LinkUs.Core.Connection
         private ByteArraySlice _additionalData;
 
         // ----- Public methods
-        public void AddData(ByteArraySlice dataSlice)
+        public void Aggregate(ByteArraySlice dataSlice)
         {
             var usedToParseHeaderBytesCount = ParseMessageLength(dataSlice);
             if (usedToParseHeaderBytesCount == dataSlice.Length) {

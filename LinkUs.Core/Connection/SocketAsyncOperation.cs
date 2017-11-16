@@ -7,8 +7,8 @@ namespace LinkUs.Core.Connection
     {
         private const int BUFFER_SIZE = 1024;
 
-        public MessageBuilder MessageBuilder { get; } = new MessageBuilder();
-        public SendBytesTransfertProtocol SendProtocol { get; } = new SendBytesTransfertProtocol();
+        public ByteArraySliceAggregator ByteArraySliceAggregator { get; } = new ByteArraySliceAggregator();
+        public ByteArraySlicer ByteArraySlicer { get; } = new ByteArraySlicer();
 
         // ----- Constructors
         public SocketAsyncOperation()
@@ -19,25 +19,25 @@ namespace LinkUs.Core.Connection
         // ----- Public methods
         public void PrepareReceiveOperation()
         {
-            MessageBuilder.Reset();
+            ByteArraySliceAggregator.Reset();
         }
         public void PrepareSendOperation(byte[] data)
         {
-            SendProtocol.Reset();
-            SendProtocol.PrepareMessageToSend(data);
+            ByteArraySlicer.Reset();
+            ByteArraySlicer.DefineMessageToSlice(data);
             ByteArraySlice byteArraySlice;
-            if (SendProtocol.TryGetNextDataToSend(BUFFER_SIZE, out byteArraySlice) == false) {
+            if (ByteArraySlicer.TryGetNextSlice(BUFFER_SIZE, out byteArraySlice) == false) {
                 throw new Exception("Unable to prepare the send operation: no data to send!");
             }
             SetBuffer(byteArraySlice);
         }
         public bool PrepareNextSendOperation(int byteTransferred)
         {
-            SendProtocol.AcquitSentBytes(byteTransferred);
+            ByteArraySlicer.AcquitBytes(byteTransferred);
 
             ByteArraySlice byteArraySlice;
 
-            if (!SendProtocol.TryGetNextDataToSend(BUFFER_SIZE, out byteArraySlice)) {
+            if (!ByteArraySlicer.TryGetNextSlice(BUFFER_SIZE, out byteArraySlice)) {
                 return false;
             }
 
@@ -47,8 +47,8 @@ namespace LinkUs.Core.Connection
         }
         public void Clean()
         {
-            MessageBuilder.Reset();
-            SendProtocol.Reset();
+            ByteArraySliceAggregator.Reset();
+            ByteArraySlicer.Reset();
         }
 
         // ----- Internal logic
