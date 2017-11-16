@@ -14,3 +14,5 @@
 * catch exception in downloader/uploader and try to send message to client to close the file.
 * Centralize socketAsyncOperation in a class to share it accross multiple SocketConnection? SocketAsyncOperationPool?
 * better error display of uncatch exception.
+* Refactor the Server to use IOC (tiny)
+* Refactor client and server to use 0 dependencies (file injection)
