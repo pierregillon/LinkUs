@@ -20,11 +20,11 @@ namespace LinkUs.Core.Connection
         {
             Protocol.Reset();
             Protocol.PrepareMessageToSend(data);
-            BufferInfo bufferInfo;
-            if (Protocol.TryGetNextDataToSend(BUFFER_SIZE, out bufferInfo) == false) {
+            ByteArraySlice byteArraySlice;
+            if (Protocol.TryGetNextDataToSend(BUFFER_SIZE, out byteArraySlice) == false) {
                 throw new Exception("Unable to prepare the send operation: no data to send!");
             }
-            SetBuffer(bufferInfo);
+            SetBuffer(byteArraySlice);
         }
         public void Reset()
         {
@@ -36,28 +36,28 @@ namespace LinkUs.Core.Connection
         }
         public bool PrepareNextSendOperation()
         {
-            BufferInfo bufferInfo;
+            ByteArraySlice byteArraySlice;
 
-            if (!Protocol.TryGetNextDataToSend(BUFFER_SIZE, out bufferInfo)) {
+            if (!Protocol.TryGetNextDataToSend(BUFFER_SIZE, out byteArraySlice)) {
                 return false;
             }
 
-            SetBuffer(bufferInfo);
+            SetBuffer(byteArraySlice);
 
             return true;
         }
 
         // ----- Internal logic
-        private void SetBuffer(BufferInfo bufferInfo)
+        private void SetBuffer(ByteArraySlice byteArraySlice)
         {
             System.Buffer.BlockCopy(
-                bufferInfo.Buffer,
-                bufferInfo.Offset,
+                byteArraySlice.Buffer,
+                byteArraySlice.Offset,
                 Buffer,
                 0,
-                bufferInfo.Length);
+                byteArraySlice.Length);
 
-            SetBuffer(0, bufferInfo.Length);
+            SetBuffer(0, byteArraySlice.Length);
         }
     }
 }

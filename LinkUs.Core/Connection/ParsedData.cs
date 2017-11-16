@@ -3,7 +3,7 @@ namespace LinkUs.Core.Connection
     public class ParsedData
     {
         public byte[] Message { get; private set; }
-        public BufferInfo AdditionalData { get; private set; }
+        public ByteArraySlice AdditionalData { get; private set; }
 
         private ParsedData() { }
 
@@ -18,7 +18,7 @@ namespace LinkUs.Core.Connection
                 AdditionalData = null
             };
         }
-        public static ParsedData MessageAndAdditionalData(byte[] message, BufferInfo additionalData)
+        public static ParsedData MessageAndAdditionalData(byte[] message, ByteArraySlice additionalData)
         {
             return new ParsedData {
                 Message = message,

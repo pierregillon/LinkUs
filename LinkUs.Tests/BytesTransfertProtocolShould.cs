@@ -40,7 +40,7 @@ namespace LinkUs.Tests
         {
             // Actors
             var dataToSend = GetDataToSendFromMessage(A_MESSAGE).ToBytes().Concat(SOME_ADDITIONAL_DATA).ToArray();
-            var bufferInfo = new BufferInfo(dataToSend);
+            var bufferInfo = new ByteArraySlice(dataToSend);
 
             // Actions
             ParsedData parsedData;
@@ -57,8 +57,7 @@ namespace LinkUs.Tests
         public void do_not_parse_when_data_not_completed()
         {
             // Actors
-            var dataToSend = GetDataToSendFromMessage(A_MESSAGE);
-            dataToSend.Length = 3;
+            var dataToSend = GetDataToSendFromMessage(A_MESSAGE).ReduceLength(3);
 
             // Actions
             ParsedData parsedData;
@@ -90,8 +89,8 @@ namespace LinkUs.Tests
         public void throw_error_when_trying_to_get_next_data_to_send_but_message_not_prepared()
         {
             // Acts
-            BufferInfo bufferInfo;
-            Action action = () => _protocol.TryGetNextDataToSend(DEFAULT_DATA_SIZE, out bufferInfo);
+            ByteArraySlice byteArraySlice;
+            Action action = () => _protocol.TryGetNextDataToSend(DEFAULT_DATA_SIZE, out byteArraySlice);
 
             // Asserts
             Check.ThatCode(action)
@@ -103,69 +102,69 @@ namespace LinkUs.Tests
         public void concatenate_data_length_with_data()
         {
             // Data
-            BufferInfo bufferInfo;
+            ByteArraySlice byteArraySlice;
             byte[] message = { 1, 2, 3 };
 
             // Acts
             _protocol.PrepareMessageToSend(message);
-            _protocol.TryGetNextDataToSend(DEFAULT_DATA_SIZE, out bufferInfo);
+            _protocol.TryGetNextDataToSend(DEFAULT_DATA_SIZE, out byteArraySlice);
 
             // Asserts
-            Check.That(bufferInfo.ToBytes()).ContainsExactly(new byte[] { 3, 0, 0, 0, 1, 2, 3 });
+            Check.That(byteArraySlice.ToBytes()).ContainsExactly(new byte[] { 3, 0, 0, 0, 1, 2, 3 });
         }
 
         [Fact]
         public void limit_data_to_send_to_the_given_data_size()
         {
             // Data
-            BufferInfo bufferInfo;
+            ByteArraySlice byteArraySlice;
             byte[] message = { 1, 2, 3 };
             const int dataSize = 2;
 
             // Acts
             _protocol.PrepareMessageToSend(message);
-            _protocol.TryGetNextDataToSend(dataSize, out bufferInfo);
+            _protocol.TryGetNextDataToSend(dataSize, out byteArraySlice);
 
             // Asserts
-            Check.That(bufferInfo.ToBytes()).ContainsExactly(new byte[] { 3, 0 });
+            Check.That(byteArraySlice.ToBytes()).ContainsExactly(new byte[] { 3, 0 });
         }
 
         [Fact]
         public void get_next_data_to_send_multiple_time()
         {
             // Data
-            BufferInfo bufferInfo;
+            ByteArraySlice byteArraySlice;
             const int defaultBufferSize = 5;
             byte[] message = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
             // Acts
             _protocol.PrepareMessageToSend(message);
-            _protocol.TryGetNextDataToSend(defaultBufferSize, out bufferInfo);
-            Check.That(bufferInfo.ToBytes()).ContainsExactly(new byte[] { 9, 0, 0, 0, 1 });
+            _protocol.TryGetNextDataToSend(defaultBufferSize, out byteArraySlice);
+            Check.That(byteArraySlice.ToBytes()).ContainsExactly(new byte[] { 9, 0, 0, 0, 1 });
 
             // Acts
             _protocol.AcquitSentBytes(defaultBufferSize);
-            _protocol.TryGetNextDataToSend(defaultBufferSize, out bufferInfo);
-            Check.That(bufferInfo.ToBytes()).ContainsExactly(new byte[] { 2, 3, 4, 5, 6 });
+            _protocol.TryGetNextDataToSend(defaultBufferSize, out byteArraySlice);
+            Check.That(byteArraySlice.ToBytes()).ContainsExactly(new byte[] { 2, 3, 4, 5, 6 });
 
             // Acts 2
             _protocol.AcquitSentBytes(defaultBufferSize);
-            _protocol.TryGetNextDataToSend(defaultBufferSize, out bufferInfo);
-            Check.That(bufferInfo.ToBytes()).ContainsExactly(new byte[] { 7, 8, 9 });
+            _protocol.TryGetNextDataToSend(defaultBufferSize, out byteArraySlice);
+            Check.That(byteArraySlice.ToBytes()).ContainsExactly(new byte[] { 7, 8, 9 });
 
             // Acts 3
             _protocol.AcquitSentBytes(3);
-            var isSucceded = _protocol.TryGetNextDataToSend(defaultBufferSize, out bufferInfo);
+            var isSucceded = _protocol.TryGetNextDataToSend(defaultBufferSize, out byteArraySlice);
             Check.That(isSucceded).IsFalse();
         }
 
         // ----- Utils
-        private BufferInfo GetDataToSendFromMessage(byte[] message)
+        private ByteArraySlice GetDataToSendFromMessage(byte[] message)
         {
-            BufferInfo bufferInfo;
+            ByteArraySlice byteArraySlice;
             _protocol.PrepareMessageToSend(message);
-            _protocol.TryGetNextDataToSend(message.Length + 4, out bufferInfo);
-            return bufferInfo;
+            _protocol.TryGetNextDataToSend(message.Length + 4, out byteArraySlice);
+            return byteArraySlice;
         }
     }
 }

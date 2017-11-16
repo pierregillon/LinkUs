@@ -73,22 +73,16 @@ namespace LinkUs.Core.Connection
                 return;
             }
 
-            var bufferInfoRead = new BufferInfo
-            {
-                Buffer = operation.Buffer,
-                Length = bytesTransferredCount,
-                Offset = 0
-            };
-            ProcessBytesTransferred(operation, bufferInfoRead);
+            var dataSlice = new ByteArraySlice(operation.Buffer, bytesTransferredCount);
+            ProcessBytesTransferred(operation, dataSlice);
         }
-        private void ProcessBytesTransferred(SocketAsyncOperation operation, BufferInfo bufferInfoRead)
+        private void ProcessBytesTransferred(SocketAsyncOperation operation, ByteArraySlice byteArraySliceRead)
         {
             var protocol = operation.Protocol;
 
-            
 
             ParsedData parsedData;
-            var extractionSucceded = protocol.TryParse(bufferInfoRead, out parsedData);
+            var extractionSucceded = protocol.TryParse(byteArraySliceRead, out parsedData);
             if (!extractionSucceded) {
                 StartReceiveOperationAsync(operation);
             }
