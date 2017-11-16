@@ -128,9 +128,9 @@ namespace LinkUs.Core.Connection
 
             DataSent?.Invoke(operation.BytesTransferred);
 
-            byte[] bytes;
-            if (operation.Protocol.TryGetNextBytes(out bytes)) {
-                operation.SetBuffer(bytes, 0, bytes.Length);
+            operation.Protocol.AcquitSentBytes(operation.BytesTransferred);
+
+            if (operation.PrepareNextSendOperation()) {
                 StartSendOperationAsync(operation);
             }
             else {

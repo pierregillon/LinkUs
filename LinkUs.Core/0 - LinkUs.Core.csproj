@@ -53,6 +53,7 @@
     <Compile Include="ClientInformation\SetStatus.cs" />
     <Compile Include="CommandSender.cs" />
     <Compile Include="Connection\ArrayExtensions.cs" />
+    <Compile Include="Connection\BufferInfo.cs" />
     <Compile Include="Connection\ClientId.cs" />
     <Compile Include="Connection\ParsedData.cs" />
     <Compile Include="Connection\SemaphoredQueue.cs" />

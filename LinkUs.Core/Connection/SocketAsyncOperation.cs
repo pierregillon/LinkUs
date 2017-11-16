@@ -18,8 +18,8 @@ namespace LinkUs.Core.Connection
         public void PrepareSendOperation(byte[] data)
         {
             Protocol.Reset();
-            var dataToSend = Protocol.PrepareMessageToSend(data, BUFFER_SIZE);
-            SetBuffer(dataToSend, 0, dataToSend.Length);
+            var bufferInfo = Protocol.PrepareMessageToSend(BUFFER_SIZE, data);
+            SetBuffer(bufferInfo);
         }
         public void Reset()
         {
@@ -28,6 +28,31 @@ namespace LinkUs.Core.Connection
         public void PrepareReceiveOperation()
         {
             Protocol.Reset();
+        }
+        public bool PrepareNextSendOperation()
+        {
+            BufferInfo bufferInfo;
+
+            if (!Protocol.TryGetNextDataToSend(BUFFER_SIZE, out bufferInfo)) {
+                return false;
+            }
+
+            SetBuffer(bufferInfo);
+
+            return true;
+        }
+
+        // ----- Internal logic
+        private void SetBuffer(BufferInfo bufferInfo)
+        {
+            System.Buffer.BlockCopy(
+                bufferInfo.Buffer,
+                bufferInfo.Offset,
+                Buffer,
+                0,
+                bufferInfo.Length);
+
+            SetBuffer(0, bufferInfo.Length);
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using LinkUs.Core.Connection;
 using NFluent;
 using Xunit;
@@ -22,11 +21,11 @@ namespace LinkUs.Tests
         public void parse_simple_message()
         {
             // Actors
-            var preparedData = _protocol.PrepareMessageToSend(A_MESSAGE);
+            var preparedData = _protocol.PrepareMessageToSend(1024, A_MESSAGE);
 
             // Actions
             ParsedData parsedData;
-            var result = _protocol.TryParse(preparedData, preparedData.Length, out parsedData);
+            var result = _protocol.TryParse(preparedData.Buffer, preparedData.Length, out parsedData);
 
             // Asserts
             Check.That(result).IsTrue();
@@ -39,7 +38,8 @@ namespace LinkUs.Tests
         {
             // Actors
             var dataToSend = _protocol
-                .PrepareMessageToSend(A_MESSAGE)
+                .PrepareMessageToSend(1024, A_MESSAGE)
+                .ToBytes()
                 .Concat(SOME_ADDITIONAL_DATA)
                 .ToArray();
 
@@ -59,7 +59,8 @@ namespace LinkUs.Tests
         {
             // Actors
             var dataToSend = _protocol
-                .PrepareMessageToSend(A_MESSAGE)
+                .PrepareMessageToSend(1024, A_MESSAGE)
+                .ToBytes()
                 .Take(3)
                 .ToArray();
 
@@ -78,23 +79,25 @@ namespace LinkUs.Tests
         public void prepare_big_data_for_send2()
         {
             // Data
-            byte[] nextBytes;
             byte[] message = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
             // Acts
-            var dataToSend = _protocol.PrepareMessageToSend(message, 5);
-            Check.That(dataToSend).ContainsExactly(new byte[] { 9, 0, 0, 0, 1 });
+            var bufferInfo = _protocol.PrepareMessageToSend(5, message);
+            Check.That(bufferInfo.ToBytes()).ContainsExactly(new byte[] { 9, 0, 0, 0, 1 });
 
             // Acts
-            _protocol.TryGetNextBytes(out nextBytes);
-            Check.That(nextBytes).ContainsExactly(new byte[] { 2, 3, 4, 5, 6 });
+            _protocol.AcquitSentBytes(5);
+            _protocol.TryGetNextDataToSend(5, out bufferInfo);
+            Check.That(bufferInfo.ToBytes()).ContainsExactly(new byte[] { 2, 3, 4, 5, 6 });
 
             // Acts 2
-            _protocol.TryGetNextBytes(out nextBytes);
-            Check.That(nextBytes).ContainsExactly(new byte[] { 7, 8, 9 });
+            _protocol.AcquitSentBytes(5);
+            _protocol.TryGetNextDataToSend(5, out bufferInfo);
+            Check.That(bufferInfo.ToBytes()).ContainsExactly(new byte[] { 7, 8, 9 });
 
             // Acts 3
-            var isSucceded = _protocol.TryGetNextBytes(out nextBytes);
+            _protocol.AcquitSentBytes(3);
+            var isSucceded = _protocol.TryGetNextDataToSend(5, out bufferInfo);
             Check.That(isSucceded).IsFalse();
         }
     }

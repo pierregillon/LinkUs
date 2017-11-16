@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Remoting.Lifetime;
 
 namespace LinkUs.Core.Connection
 {
@@ -9,47 +7,54 @@ namespace LinkUs.Core.Connection
     {
         private const int HEADER_LENGTH = 4;
 
-        private readonly List<byte[]> _buffers = new List<byte[]>();
         private int? _packageLength;
         private byte[] _packageLengthBytes = new byte[HEADER_LENGTH];
         private int _packageLengthReceivedBytesCount;
         private byte[] _receivedMessage;
         private int _receivedBytesCount;
 
+        private byte[] _messageToSend;
+        private int _dataToSendOffset;
+
         // ----- Public methods
-        public byte[] PrepareMessageToSend(byte[] data, int bufferLength = 1024)
+        public BufferInfo PrepareMessageToSend(int bufferSize, byte[] data)
         {
             var fullData = new byte[_packageLengthBytes.Length + data.Length];
             _packageLengthBytes = BitConverter.GetBytes(data.Length);
             Buffer.BlockCopy(_packageLengthBytes, 0, fullData, 0, _packageLengthBytes.Length);
             Buffer.BlockCopy(data, 0, fullData, _packageLengthBytes.Length, data.Length);
-
-            for (var i = 0; i < fullData.Length / bufferLength + 1; i++) {
-                if (fullData.Length - i * bufferLength > bufferLength) {
-                    _buffers.Add(fullData.Skip(i * bufferLength).Take(bufferLength).ToArray());
-                }
-                else {
-                    _buffers.Add(fullData.Skip(i * bufferLength).Take(fullData.Length - i * bufferLength).ToArray());
-                }
-            }
-
-            var first = _buffers.First();
-            _buffers.RemoveAt(0);
-            return first;
+            _messageToSend = fullData;
+            return new BufferInfo {
+                Buffer = _messageToSend,
+                Offset = 0,
+                Length = Math.Min(bufferSize, _messageToSend.Length)
+            };
         }
-        public bool TryGetNextBytes(out byte[] nextBytesToSend)
+        public bool TryGetNextDataToSend(int bufferSize, out BufferInfo bufferInfo)
         {
-            if (_buffers.Count == 0) {
-                nextBytesToSend = null;
+            var remainingBytesToSendCount = _messageToSend.Length - _dataToSendOffset;
+            if (remainingBytesToSendCount == 0) {
+                bufferInfo = null;
                 return false;
             }
             else {
-                var first = _buffers.First();
-                _buffers.RemoveAt(0);
-                nextBytesToSend = first;
+                bufferInfo = new BufferInfo {
+                    Buffer = _messageToSend,
+                    Offset = _dataToSendOffset,
+                    Length = Math.Min(bufferSize, remainingBytesToSendCount)
+                };
                 return true;
             }
         }
+        public void AcquitSentBytes(int byteSentCount)
+        {
+            if (byteSentCount + _dataToSendOffset > _messageToSend.Length) {
+                throw new Exception("Cannot ACK more bytes than the message contains.");
+            }
+
+            _dataToSendOffset += byteSentCount;
+        }
+
         public bool TryParse(byte[] bytesTransferred, int bytesTransferredCount, out ParsedData parsedData)
         {
             var usedToParseHeaderBytesCount = ParseHeader(bytesTransferred, bytesTransferredCount);
@@ -61,9 +66,9 @@ namespace LinkUs.Core.Connection
             byte[] message;
 
             var usedToParseMessageBytesCount = ParseMessage(
-                bytesTransferred, 
-                bytesTransferredCount - usedToParseHeaderBytesCount, 
-                usedToParseHeaderBytesCount, 
+                bytesTransferred,
+                bytesTransferredCount - usedToParseHeaderBytesCount,
+                usedToParseHeaderBytesCount,
                 out message
             );
 
@@ -93,11 +98,13 @@ namespace LinkUs.Core.Connection
         }
         public void Reset()
         {
-            _buffers.Clear();
             _packageLength = null;
             _packageLengthReceivedBytesCount = 0;
             _receivedBytesCount = 0;
             _receivedMessage = null;
+
+            _dataToSendOffset = 0;
+            _messageToSend = null;
         }
 
         // ----- Internal logic
