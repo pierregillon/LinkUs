@@ -17,21 +17,18 @@ namespace LinkUs.Core.Connection
         private int _dataToSendOffset;
 
         // ----- Public methods
-        public BufferInfo PrepareMessageToSend(int bufferSize, byte[] data)
+        public void PrepareMessageToSend(byte[] data)
         {
-            var fullData = new byte[_packageLengthBytes.Length + data.Length];
+            _messageToSend = new byte[_packageLengthBytes.Length + data.Length];
             _packageLengthBytes = BitConverter.GetBytes(data.Length);
-            Buffer.BlockCopy(_packageLengthBytes, 0, fullData, 0, _packageLengthBytes.Length);
-            Buffer.BlockCopy(data, 0, fullData, _packageLengthBytes.Length, data.Length);
-            _messageToSend = fullData;
-            return new BufferInfo {
-                Buffer = _messageToSend,
-                Offset = 0,
-                Length = Math.Min(bufferSize, _messageToSend.Length)
-            };
+            Buffer.BlockCopy(_packageLengthBytes, 0, _messageToSend, 0, _packageLengthBytes.Length);
+            Buffer.BlockCopy(data, 0, _messageToSend, _packageLengthBytes.Length, data.Length);
         }
-        public bool TryGetNextDataToSend(int bufferSize, out BufferInfo bufferInfo)
+        public bool TryGetNextDataToSend(int dataSize, out BufferInfo bufferInfo)
         {
+            if (_messageToSend == null) {
+                throw new Exception("Unable to get next data to send, no message prepared.");
+            }
             var remainingBytesToSendCount = _messageToSend.Length - _dataToSendOffset;
             if (remainingBytesToSendCount == 0) {
                 bufferInfo = null;
@@ -41,7 +38,7 @@ namespace LinkUs.Core.Connection
                 bufferInfo = new BufferInfo {
                     Buffer = _messageToSend,
                     Offset = _dataToSendOffset,
-                    Length = Math.Min(bufferSize, remainingBytesToSendCount)
+                    Length = Math.Min(dataSize, remainingBytesToSendCount)
                 };
                 return true;
             }

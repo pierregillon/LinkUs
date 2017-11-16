@@ -1,3 +1,4 @@
+using System;
 using System.Net.Sockets;
 
 namespace LinkUs.Core.Connection
@@ -18,7 +19,11 @@ namespace LinkUs.Core.Connection
         public void PrepareSendOperation(byte[] data)
         {
             Protocol.Reset();
-            var bufferInfo = Protocol.PrepareMessageToSend(BUFFER_SIZE, data);
+            Protocol.PrepareMessageToSend(data);
+            BufferInfo bufferInfo;
+            if (Protocol.TryGetNextDataToSend(BUFFER_SIZE, out bufferInfo) == false) {
+                throw new Exception("Unable to prepare the send operation: no data to send!");
+            }
             SetBuffer(bufferInfo);
         }
         public void Reset()
