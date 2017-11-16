@@ -78,21 +78,22 @@ namespace LinkUs.Core.Connection
         }
         private void ProcessBytesTransferred(SocketAsyncOperation operation, ByteArraySlice byteArraySliceRead)
         {
-            var protocol = operation.ReadProtocol;
+            var messageBuilder = operation.MessageBuilder;
 
-
-            ParsedData parsedData;
-            var extractionSucceded = protocol.TryParse(byteArraySliceRead, out parsedData);
-            if (!extractionSucceded) {
+            messageBuilder.AddData(byteArraySliceRead);
+            if (!messageBuilder.IsFinished()) {
                 StartReceiveOperationAsync(operation);
             }
             else {
-                DataReceived?.Invoke(parsedData.Message);
-                operation.PrepareReceiveOperation();
-                if (parsedData.ContainsAdditionalData()) {
-                    ProcessBytesTransferred(operation, parsedData.AdditionalData);
+                var message = messageBuilder.GetBuiltMessage();
+                DataReceived?.Invoke(message);
+                var additionalData = messageBuilder.GetAdditionalData();
+                if (additionalData != null) {
+                    operation.PrepareReceiveOperation();
+                    ProcessBytesTransferred(operation, additionalData);
                 }
                 else {
+                    operation.PrepareReceiveOperation();
                     StartReceiveOperationAsync(operation);
                 }
             }

@@ -7,7 +7,7 @@ namespace LinkUs.Core.Connection
     {
         private const int BUFFER_SIZE = 1024;
 
-        public ReadBytesTransfertProtocol ReadProtocol { get; } = new ReadBytesTransfertProtocol();
+        public MessageBuilder MessageBuilder { get; } = new MessageBuilder();
         public SendBytesTransfertProtocol SendProtocol { get; } = new SendBytesTransfertProtocol();
 
         // ----- Constructors
@@ -19,7 +19,7 @@ namespace LinkUs.Core.Connection
         // ----- Public methods
         public void PrepareReceiveOperation()
         {
-            ReadProtocol.Reset();
+            MessageBuilder.Reset();
         }
         public void PrepareSendOperation(byte[] data)
         {
@@ -47,7 +47,7 @@ namespace LinkUs.Core.Connection
         }
         public void Clean()
         {
-            ReadProtocol.Reset();
+            MessageBuilder.Reset();
             SendProtocol.Reset();
         }
 

@@ -55,7 +55,7 @@
     <Compile Include="Connection\ArrayExtensions.cs" />
     <Compile Include="Connection\ByteArraySlice.cs" />
     <Compile Include="Connection\ClientId.cs" />
-    <Compile Include="Connection\ParsedData.cs" />
+    <Compile Include="Connection\MessageBuilder.cs" />
     <Compile Include="Connection\SemaphoredQueue.cs" />
     <Compile Include="Connection\SocketAsyncOperation.cs" />
     <Compile Include="ErrorMessage.cs" />
@@ -103,7 +103,7 @@
     <Compile Include="Connection\IConnectionListener.cs" />
     <Compile Include="Json\ISerializer.cs" />
     <Compile Include="Json\JsonSerializer.cs" />
-    <Compile Include="Connection\BytesTransfertProtocol.cs" />
+    <Compile Include="Connection\SendBytesTransfertProtocol.cs" />
     <Compile Include="Connection\Package.cs" />
     <Compile Include="Connection\PackageTransmitter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
