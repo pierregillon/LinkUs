@@ -62,10 +62,10 @@ namespace LinkUs.Core.Connection
 
             byte[] message;
 
+            var bufferInfoMessage = bufferInfoRead.ReduceSizeFromLeft(usedToParseHeaderBytesCount);
+
             var usedToParseMessageBytesCount = ParseMessage(
-                bufferInfoRead.Buffer,
-                bufferInfoRead.Length - usedToParseHeaderBytesCount,
-                usedToParseHeaderBytesCount,
+                bufferInfoMessage,
                 out message
             );
 
@@ -86,9 +86,11 @@ namespace LinkUs.Core.Connection
             else /*if (remainingBytesCountToProcess > 0)*/ {
                 parsedData = ParsedData.MessageAndAdditionalData(
                     message: message,
-                    additionalData: bufferInfoRead.Buffer
-                        .Skip(usedToParseHeaderBytesCount + usedToParseMessageBytesCount)
-                        .ToArray()
+                    additionalData: new BufferInfo {
+                        Buffer = bufferInfoRead.Buffer,
+                        Offset = usedToParseHeaderBytesCount + usedToParseMessageBytesCount,
+                        Length = bufferInfoRead.Length - usedToParseHeaderBytesCount - usedToParseMessageBytesCount
+                    }
                 );
                 return true;
             }
@@ -139,27 +141,27 @@ namespace LinkUs.Core.Connection
                 return bufferInfo.Length;
             }
         }
-        private int ParseMessage(byte[] bytes, int bytesCount, int byteOffset, out byte[] message)
+        private int ParseMessage(BufferInfo bufferInfo, out byte[] message)
         {
             if (_packageLength.HasValue == false) {
                 throw new Exception("Unable to process bytes received: the package length was not parsed.");
             }
 
-            if (_receivedBytesCount + bytesCount == _packageLength) {
-                Buffer.BlockCopy(bytes, byteOffset, _receivedMessage, _receivedBytesCount, bytesCount);
+            if (_receivedBytesCount + bufferInfo.Length == _packageLength) {
+                Buffer.BlockCopy(bufferInfo.Buffer, bufferInfo.Offset, _receivedMessage, _receivedBytesCount, bufferInfo.Length);
                 message = _receivedMessage;
-                _receivedBytesCount += bytesCount;
-                return bytesCount;
+                _receivedBytesCount += bufferInfo.Length;
+                return bufferInfo.Length;
             }
-            if (_receivedBytesCount + bytesCount < _packageLength) {
-                Buffer.BlockCopy(bytes, byteOffset, _receivedMessage, _receivedBytesCount, bytesCount);
-                _receivedBytesCount += bytesCount;
+            if (_receivedBytesCount + bufferInfo.Length < _packageLength) {
+                Buffer.BlockCopy(bufferInfo.Buffer, bufferInfo.Offset, _receivedMessage, _receivedBytesCount, bufferInfo.Length);
+                _receivedBytesCount += bufferInfo.Length;
                 message = null;
-                return bytesCount;
+                return bufferInfo.Length;
             }
             else {
                 var remainingByteCount = _packageLength.Value - _receivedBytesCount;
-                Buffer.BlockCopy(bytes, byteOffset, _receivedMessage, _receivedBytesCount, remainingByteCount);
+                Buffer.BlockCopy(bufferInfo.Buffer, bufferInfo.Offset, _receivedMessage, _receivedBytesCount, remainingByteCount);
                 _receivedBytesCount += remainingByteCount;
                 message = _receivedMessage;
                 return remainingByteCount;

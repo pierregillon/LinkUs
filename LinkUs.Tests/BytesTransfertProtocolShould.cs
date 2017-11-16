@@ -50,7 +50,7 @@ namespace LinkUs.Tests
             Check.That(isParsingSuccessful).IsTrue();
             Check.That(parsedData.Message).ContainsExactly(A_MESSAGE);
             Check.That(parsedData.ContainsAdditionalData()).IsTrue();
-            Check.That(parsedData.AdditionalData).ContainsExactly(SOME_ADDITIONAL_DATA);
+            Check.That(parsedData.AdditionalData.ToBytes()).ContainsExactly(SOME_ADDITIONAL_DATA);
         }
 
         [Fact]

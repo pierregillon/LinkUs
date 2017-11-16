@@ -23,5 +23,17 @@ namespace LinkUs.Core.Connection
                 .Take(Length)
                 .ToArray();
         }
+
+        public BufferInfo ReduceSizeFromLeft(int offsetCount)
+        {
+            if (offsetCount == 0) {
+                return this;
+            }
+            return new BufferInfo {
+                Buffer = Buffer,
+                Offset = Offset + offsetCount,
+                Length = Length - offsetCount
+            };
+        }
     }
 }

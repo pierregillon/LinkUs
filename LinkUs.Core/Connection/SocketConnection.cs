@@ -72,17 +72,20 @@ namespace LinkUs.Core.Connection
                 RecycleOperation(operation);
                 return;
             }
-            ProcessBytesTransferred(operation, operation.Buffer, bytesTransferredCount);
-        }
-        private void ProcessBytesTransferred(SocketAsyncOperation operation, byte[] bytesTransferred, int bytesTransferredCount)
-        {
-            var protocol = operation.Protocol;
 
-            var bufferInfoRead = new BufferInfo {
-                Buffer = bytesTransferred,
+            var bufferInfoRead = new BufferInfo
+            {
+                Buffer = operation.Buffer,
                 Length = bytesTransferredCount,
                 Offset = 0
             };
+            ProcessBytesTransferred(operation, bufferInfoRead);
+        }
+        private void ProcessBytesTransferred(SocketAsyncOperation operation, BufferInfo bufferInfoRead)
+        {
+            var protocol = operation.Protocol;
+
+            
 
             ParsedData parsedData;
             var extractionSucceded = protocol.TryParse(bufferInfoRead, out parsedData);
@@ -93,7 +96,7 @@ namespace LinkUs.Core.Connection
                 DataReceived?.Invoke(parsedData.Message);
                 operation.PrepareReceiveOperation();
                 if (parsedData.ContainsAdditionalData()) {
-                    ProcessBytesTransferred(operation, parsedData.AdditionalData, parsedData.AdditionalData.Length);
+                    ProcessBytesTransferred(operation, parsedData.AdditionalData);
                 }
                 else {
                     StartReceiveOperationAsync(operation);
