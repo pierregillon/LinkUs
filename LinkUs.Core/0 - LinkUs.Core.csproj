@@ -46,24 +46,82 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClientId.cs" />
-    <Compile Include="Command.cs" />
-    <Compile Include="ExecuteRemoteCommandLine.cs" />
-    <Compile Include="IConnection.cs" />
-    <Compile Include="IConnectionListener.cs" />
-    <Compile Include="ISerializer.cs" />
-    <Compile Include="JsonSerializer.cs" />
-    <Compile Include="Json\Parser.cs" />
-    <Compile Include="Metadata.cs" />
-    <Compile Include="Package.cs" />
-    <Compile Include="PackageTransmitter.cs" />
+    <Compile Include="ClientInformation\ClientBasicInformation.cs" />
+    <Compile Include="ClientInformation\GetBasicInformation.cs" />
+    <Compile Include="ClientInformation\GetBasicInformationHandler.cs" />
+    <Compile Include="ClientInformation\NetHelper.cs" />
+    <Compile Include="ClientInformation\SetStatus.cs" />
+    <Compile Include="CommandSender.cs" />
+    <Compile Include="Connection\ArrayExtensions.cs" />
+    <Compile Include="Connection\ByteArraySlice.cs" />
+    <Compile Include="Connection\ClientId.cs" />
+    <Compile Include="Connection\ByteArraySliceAggregator.cs" />
+    <Compile Include="Connection\SemaphoredQueue.cs" />
+    <Compile Include="Connection\SocketAsyncOperation.cs" />
+    <Compile Include="Connection\SocketAsyncOperationPool.cs" />
+    <Compile Include="ErrorMessage.cs" />
+    <Compile Include="FileTransfert\Commands\EndFileUpload.cs" />
+    <Compile Include="FileTransfert\Commands\EndFileDownload.cs" />
+    <Compile Include="FileTransfert\Commands\GetNextFileData.cs" />
+    <Compile Include="FileTransfert\IFilePointer.cs" />
+    <Compile Include="FileTransfert\DownloadFileCommandHandler.cs" />
+    <Compile Include="FileTransfert\Events\FileDownloadEnded.cs" />
+    <Compile Include="FileTransfert\Events\FileDownloadStarted.cs" />
+    <Compile Include="FileTransfert\Commands\StartFileDownload.cs" />
+    <Compile Include="FileTransfert\Commands\StartFileUpload.cs" />
+    <Compile Include="FileTransfert\Events\FileUploadEnded.cs" />
+    <Compile Include="FileTransfert\Events\FileUploadStarted.cs" />
+    <Compile Include="FileTransfert\Commands\SendNextFileData.cs" />
+    <Compile Include="FileTransfert\Events\NextFileDataRead.cs" />
+    <Compile Include="FileTransfert\UploadFileCommandHandler.cs" />
+    <Compile Include="IBus.cs" />
+    <Compile Include="ICommandSender.cs" />
+    <Compile Include="IHandler.cs" />
+    <Compile Include="MessageDescriptor.cs" />
+    <Compile Include="Modules\AssemblyHandlerScanner.cs" />
+    <Compile Include="Modules\Commands\LoadModule.cs" />
+    <Compile Include="Modules\Commands\UnloadModule.cs" />
+    <Compile Include="Modules\Exceptions\ModuleException.cs" />
+    <Compile Include="Modules\IModule.cs" />
+    <Compile Include="Modules\Commands\ListModules.cs" />
+    <Compile Include="Modules\ExternalAssemblyModule.cs" />
+    <Compile Include="Modules\LocalAssemblyModule.cs" />
+    <Compile Include="Modules\ExternalAssemblyModuleScanner.cs" />
+    <Compile Include="Modules\Exceptions\ModuleAlreadyLoadedException.cs" />
+    <Compile Include="Modules\MaterializationInfo.cs" />
+    <Compile Include="Modules\ModuleCommandHandler.cs" />
+    <Compile Include="Modules\ModuleInformation.cs" />
+    <Compile Include="Modules\ExternalAssemblyModuleLocator.cs" />
+    <Compile Include="Modules\ModuleManager.cs" />
+    <Compile Include="Modules\Exceptions\ModuleNotLoadedException.cs" />
+    <Compile Include="Modules\Exceptions\UnknownCommandException.cs" />
+    <Compile Include="Modules\Exceptions\ModuleNotInstalledOnClientException.cs" />
+    <Compile Include="PackageParser.cs" />
+    <Compile Include="PingLib\Ping.cs" />
+    <Compile Include="PingLib\PingHandler.cs" />
+    <Compile Include="PingLib\PingOk.cs" />
+    <Compile Include="Connection\IConnection.cs" />
+    <Compile Include="Connection\IConnectionListener.cs" />
+    <Compile Include="Json\ISerializer.cs" />
+    <Compile Include="Json\JsonSerializer.cs" />
+    <Compile Include="Connection\ByteArraySlicer.cs" />
+    <Compile Include="Connection\Package.cs" />
+    <Compile Include="Connection\PackageTransmitter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SocketConnection.cs" />
-    <Compile Include="SocketConnectionListener.cs" />
-    <Compile Include="TransactionId.cs" />
+    <Compile Include="Connection\SocketConnection.cs" />
+    <Compile Include="Connection\SocketConnectionListener.cs" />
+    <Compile Include="Connection\TransactionId.cs" />
+    <Compile Include="Json\SimpleJson.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LinkUs.Modules.RemoteShell\LinkUs.Modules.RemoteShell.csproj">
+      <Project>{ED039716-0C2A-4900-BDC7-2576A668D057}</Project>
+      <Name>LinkUs.Modules.RemoteShell</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

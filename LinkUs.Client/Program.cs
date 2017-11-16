@@ -1,98 +1,74 @@
 ﻿using System;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using LinkUs.Core;
+using LinkUs.Core.ClientInformation;
+using LinkUs.Core.Connection;
+using LinkUs.Core.Json;
+using LinkUs.Core.Modules;
 
 namespace LinkUs.Client
 {
     class Program
     {
-        private static readonly UTF8Encoding Encoding = new UTF8Encoding();
-        private static readonly ManualResetEvent ManualResetEvent = new ManualResetEvent(false);
-        private static readonly ISerializer Serializer = new JsonSerializer();
+        static Program()
+        {
+            var ioc = Ioc.Instance;
+            ioc.RegisterSingle<ModuleManager>();
+            ioc.Register<RequestProcessor>();
+            ioc.Register<PackageParser>();
+            ioc.Register<PackageTransmitter>();
+            ioc.Register<PackageProcessor>();
+            ioc.Register<ISerializer, JsonSerializer>();
+            ioc.Register<ExternalAssemblyModuleLocator>();
+            ioc.Register<ExternalAssemblyModuleScanner>();
+            ioc.Register<ServerBrowser>();
+            ioc.Register<ICommandSender, CommandSender>();
+            ioc.Register<AssemblyHandlerScanner>();
+        }
 
         static void Main(string[] args)
         {
-            Thread.Sleep(1000);
+            LoadModules();
+            FindHostAndProcessRequests();
+        }
+
+        // ----- Internal logics
+        private static void LoadModules()
+        {
+            var moduleManager = Ioc.Instance.GetInstance<ModuleManager>();
+            moduleManager.LoadModules();
+        }
+        private static void FindHostAndProcessRequests()
+        {
             while (true) {
-                var connection = new SocketConnection();
-                if (TryConnectSocketToHost(connection)) {
-                    try {
-                        var packageTransmitter = new PackageTransmitter(connection);
-                        packageTransmitter.PackageReceived += (sender, package) => {
-                            ProcessCommand(packageTransmitter, package);
-                        };
-                        packageTransmitter.Closed += (sender, eventArgs) => {
-                            ManualResetEvent.Set();
-                        };
-                        ManualResetEvent.WaitOne();
-                        Thread.Sleep(1000);
-                    }
-                    catch (Exception ex) {
-                        Console.WriteLine(ex);
-                    }
+                var connection = FindAvailableHost();
+                try {
+                    ProcessRequests();
                 }
-                else {
-                    Thread.Sleep(1000);
+                catch (Exception ex) {
+                    Console.WriteLine(ex);
                 }
+                finally {
+                    connection.Close();
+                    Ioc.Instance.UnregisterSingle<IConnection>();
+                }
+                Thread.Sleep(1000);
             }
         }
-
-        private static bool TryConnectSocketToHost(IConnection connection)
+        private static IConnection FindAvailableHost()
         {
-            string host = "127.0.0.1";
-            int port = 9000;
-
-            try {
-                Console.Write($"* Try to connect to host {host} on port {port} ... ");
-                connection.Connect(host, port);
-                Console.WriteLine("[SUCCESS]");
-                return true;
-            }
-            catch (SocketException) {
-                Console.WriteLine("[FAILED]");
-                return false;
-            }
+            var serverBrowser = Ioc.Instance.GetInstance<ServerBrowser>();
+            var connection = serverBrowser.SearchAvailableHost();
+            Ioc.Instance.RegisterSingle(connection);
+            return connection;
         }
-
-        private static void ProcessCommand(PackageTransmitter transmitter, Package package)
+        private static void ProcessRequests()
         {
-            Console.WriteLine(package);
+            var commandSender = Ioc.Instance.GetInstance<ICommandSender>();
+            commandSender.ExecuteAsync(new SetStatus {Status = "Provider"});
 
-            var command = Serializer.Deserialize<Command>(package.Content);
-            if (command.Name == "ExecuteRemoteCommandLine") {
-                var executeRemoteCommand = Serializer.Deserialize<ExecuteRemoteCommandLine>(package.Content);
-                var result = ExecuteBatch(executeRemoteCommand);
-                var packageResponse = package.CreateResponsePackage(Serializer.Serialize(result));
-                transmitter.Send(packageResponse);
-            }
-            else if (command.Name == "date") {
-                var packageResponse = package.CreateResponsePackage(Serializer.Serialize(DateTime.Now.ToShortDateString()));
-                transmitter.Send(packageResponse);
-            }
-            else if (command.Name == "ping") {
-                var packageResponse = package.CreateResponsePackage(Serializer.Serialize("ok"));
-                transmitter.Send(packageResponse);
-            }
-            else {
-                var packageResponse = package.CreateResponsePackage(Serializer.Serialize("unknown command"));
-                transmitter.Send(packageResponse);
-            }
-        }
-
-        private static object ExecuteBatch(ExecuteRemoteCommandLine executeRemoteCommand)
-        {
-            var proc = new System.Diagnostics.Process();
-            proc.StartInfo.FileName = "cmd.exe";
-            proc.StartInfo.Arguments = "/c " + executeRemoteCommand.CommandLine + " " + string.Join(" ", executeRemoteCommand.Arguments);
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.Start();
-
-            var result = proc.StandardOutput.ReadToEnd();
-            proc.WaitForExit();
-            return result;
+            var requestProcessor = Ioc.Instance.GetInstance<RequestProcessor>();
+            requestProcessor.ProcessRequests();
         }
     }
 }

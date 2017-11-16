@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "0 - LinkUs.Core", "LinkUs.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinkUs.Client", "LinkUs.Client\LinkUs.Client.csproj", "{FE5906F7-B211-43FF-802D-8E229B50E16B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinkUs.Tests", "LinkUs.Tests\LinkUs.Tests.csproj", "{D348B375-B308-4E25-8E94-B9CF7F53D7C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinkUs.Modules.RemoteShell", "LinkUs.Modules.RemoteShell\LinkUs.Modules.RemoteShell.csproj", "{ED039716-0C2A-4900-BDC7-2576A668D057}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{FE5906F7-B211-43FF-802D-8E229B50E16B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE5906F7-B211-43FF-802D-8E229B50E16B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE5906F7-B211-43FF-802D-8E229B50E16B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D348B375-B308-4E25-8E94-B9CF7F53D7C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D348B375-B308-4E25-8E94-B9CF7F53D7C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D348B375-B308-4E25-8E94-B9CF7F53D7C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D348B375-B308-4E25-8E94-B9CF7F53D7C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED039716-0C2A-4900-BDC7-2576A668D057}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED039716-0C2A-4900-BDC7-2576A668D057}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED039716-0C2A-4900-BDC7-2576A668D057}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED039716-0C2A-4900-BDC7-2576A668D057}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

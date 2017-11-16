@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-using LinkUs.Core;
 
 namespace LinkUs
 {
@@ -8,27 +7,16 @@ namespace LinkUs
     {
         static void Main(string[] args)
         {
-            var packageRouter = new PackageRouter();
-            packageRouter.ClientConnected += clientId => {
-                WriteLine($"* Client '{clientId}' connected.");
-            };
-            packageRouter.ClientDisconnected += clientId => {
-                WriteLine($"* Client '{clientId}' disconnected.");
-            };
-            var connectionListener = new SocketConnectionListener(new IPEndPoint(IPAddress.Any, 9000));
-            connectionListener.ConnectionEstablished += connection => {
-                packageRouter.Connect(connection);
-            };
-            connectionListener.StartListening();
-
-            WriteLine("* Server started. Waiting for incoming connections.");
+            var server = new Server(new IPEndPoint(IPAddress.Any, 9000));
+            server.Start();
+            WriteLine("Server started. Waiting for incoming connections.");
             while (Console.ReadLine() != "exit") { }
-            WriteLine("* Closing connections...");
-            connectionListener.StopListening();
-            packageRouter.Close();
-            WriteLine("* Server shutdown.");
+            WriteLine("Closing connections...");
+            server.Stop();
+            WriteLine("Server shutdown.");
         }
 
+        // ----- Utils
         private static void WriteLine(string value)
         {
             Console.WriteLine($"[{DateTime.Now}] {value}");

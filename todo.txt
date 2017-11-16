@@ -1,0 +1,18 @@
+* lock on queue for SocketConnection => "exit" on remote shell
+* ILogger in ExternalAssemblyModule to do the Console Printing.
+* Request frequently the basic information to keep information up to date.
+* remove -Exception at the end of custom exception name
+* retain -target in file to simplify command.
+* admin mode for app, need to write to c:\
+* The message size for uploading/downloading is huge because of UTF8 conversion. Find something to reduce the size (before compression)
+* Send command without return result. (underlying sync call with byte result)
+* upload with directory path as destination.
+* Deserialization with typeof(TCommand) to replace with command.GetType() => let dev to serialize partial data .
+* dont use handler with return type, only void, and pass IBus systematically to interact with host process.
+* when client not responding for a period of time during the Receive/Stream, free resource and throw exception.
+* use of the stream for shell command line handler.
+* catch exception in downloader/uploader and try to send message to client to close the file.
+* Centralize socketAsyncOperation in a class to share it accross multiple SocketConnection? SocketAsyncOperationPool?
+* better error display of uncatch exception.
+* Refactor the Server to use IOC (tiny)
+* Refactor client and server to use 0 dependencies (file injection)

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using LinkUs.Core;
+using LinkUs.Core.Connection;
+using LinkUs.Core.Json;
 
 namespace LinkUs
 {
@@ -12,6 +14,7 @@ namespace LinkUs
         private readonly IDictionary<ClientId, PackageTransmitter> _activeTransmitter = new ConcurrentDictionary<ClientId, PackageTransmitter>();
         public event Action<ClientId> ClientConnected;
         public event Action<ClientId> ClientDisconnected;
+        public event Action<Package> TargettedServerPackageReceived;
 
         // ----- Public methods
         public void Connect(IConnection connection)
@@ -29,6 +32,11 @@ namespace LinkUs
                 packageTransmitter.Close();
             }
         }
+        public void SendPackage(Package package)
+        {
+            var packageTransmitter = _activeTransmitter[package.Destination];
+            packageTransmitter.Send(package);
+        }
 
         // ----- Event callbacks
         private void PackageTransmitterOnPackageReceived(object sender, Package package)
@@ -36,7 +44,7 @@ namespace LinkUs
             var packageTransmitter = (PackageTransmitter) sender;
             var clientId = _activeTransmitter.Single(x => x.Value == packageTransmitter).Key;
             package.ChangeSource(clientId);
-            ProcessPackage(package);
+            Route(package);
         }
         private void PackageTransmitterOnClosed(object sender, EventArgs eventArgs)
         {
@@ -47,29 +55,17 @@ namespace LinkUs
         }
 
         // ----- Internal logics
-        private void SendPackage(Package package)
+        private void Route(Package package)
         {
-            var packageTransmitter = _activeTransmitter[package.Destination];
-            packageTransmitter.Send(package);
-        }
-        private void ProcessPackage(Package package)
-        {
+            Console.WriteLine($"[{DateTime.Now}] Package routed : {package}");
             if (!Equals(package.Destination, ClientId.Server)) {
                 SendPackage(package);
             }
+            else if (Equals(package.Source, package.Destination)) {
+                Console.WriteLine($"Client '{package.Source}' is trying to send package to himself.");
+            }
             else {
-                var jsonSerializer = new JsonSerializer();
-                var commandLine = jsonSerializer.Deserialize<Command>(package.Content);
-                if (commandLine.Name == "list-clients") {
-                    var clients = _activeTransmitter.Keys;
-                    var value = string.Join(Environment.NewLine, clients.Select(x => x.ToString()));
-                    var packageResponse = package.CreateResponsePackage(jsonSerializer.Serialize(value));
-                    SendPackage(packageResponse);
-                }
-                else {
-                    var responsePackage = package.CreateResponsePackage(jsonSerializer.Serialize("Invalid command"));
-                    SendPackage(responsePackage);
-                }
+                TargettedServerPackageReceived?.Invoke(package);
             }
         }
     }

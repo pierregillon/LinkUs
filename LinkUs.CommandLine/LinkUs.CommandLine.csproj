@@ -33,8 +33,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FluentCommandLineParser, Version=1.4.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentCommandLineParser.1.4.3\lib\net35\FluentCommandLineParser.dll</HintPath>
+    <Reference Include="CommandLine, Version=1.9.71.2, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
+      <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="StructureMap, Version=4.5.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\StructureMap.4.5.2\lib\net45\StructureMap.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -47,9 +51,37 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandDispatcher.cs" />
+    <Compile Include="CommandLineProcessingFailed.cs" />
+    <Compile Include="CommandLineProcessor.cs" />
+    <Compile Include="ConsoleLib\WindowsConsole.cs" />
+    <Compile Include="ConsoleLib\IConsole.cs" />
+    <Compile Include="FileTransferts\FileDownloader.cs" />
+    <Compile Include="FileTransferts\FileUploader.cs" />
+    <Compile Include="FileTransferts\IProgressable.cs" />
+    <Compile Include="Verbs\DownloadFileCommandLine.cs" />
+    <Compile Include="Handlers\DownloadFileCommandLineHandler.cs" />
+    <Compile Include="Handlers\ListConnectedClientsCommandLineHandler.cs" />
+    <Compile Include="Handlers\ShellCommandLineHandler.cs" />
+    <Compile Include="ConsoleLib\StringExtension.cs" />
+    <Compile Include="Handlers\UploadFileCommandLineHandler.cs" />
+    <Compile Include="ICommandLineHandler.cs" />
+    <Compile Include="ICommandLineProcessor.cs" />
+    <Compile Include="RemoteClient.cs" />
+    <Compile Include="Server.cs" />
+    <Compile Include="Verbs\ListModulesCommandLine.cs" />
+    <Compile Include="Handlers\PingCommandLineHandler.cs" />
+    <Compile Include="Verbs\ClientTargettedCommandLine.cs" />
+    <Compile Include="CursorPosition.cs" />
+    <Compile Include="Handlers\ModuleCommandHandler.cs" />
+    <Compile Include="Verbs\LoadModuleCommandLine.cs" />
+    <Compile Include="Options.cs" />
+    <Compile Include="Verbs\PingCommandLine.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ConsoleRemoteShellController.cs" />
+    <Compile Include="Verbs\ShellCommandLine.cs" />
+    <Compile Include="Verbs\UnloadModuleCommandLine.cs" />
+    <Compile Include="Verbs\UploadFileCommandLine.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -59,6 +91,14 @@
     <ProjectReference Include="..\LinkUs.Core\0 - LinkUs.Core.csproj">
       <Project>{511C52CB-31E3-43AE-92E7-481FF4C82ACB}</Project>
       <Name>0 - LinkUs.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LinkUs.Modules.RemoteShell\LinkUs.Modules.RemoteShell.csproj">
+      <Project>{ED039716-0C2A-4900-BDC7-2576A668D057}</Project>
+      <Name>LinkUs.Modules.RemoteShell</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LinkUs\LinkUs.csproj">
+      <Project>{0A5AD8DA-E2B1-4D51-927C-0593AD9EDCC0}</Project>
+      <Name>LinkUs</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
