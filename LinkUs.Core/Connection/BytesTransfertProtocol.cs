@@ -6,7 +6,6 @@ namespace LinkUs.Core.Connection
     {
         private const int HEADER_LENGTH = 4;
 
-        private int? _packageLength;
         private byte[] _packageLengthBytes = new byte[HEADER_LENGTH];
         private int _packageLengthReceivedBytesCount;
         private byte[] _receivedMessage;
@@ -92,7 +91,6 @@ namespace LinkUs.Core.Connection
         }
         public void Reset()
         {
-            _packageLength = null;
             _packageLengthReceivedBytesCount = 0;
             _receivedBytesCount = 0;
             _receivedMessage = null;
@@ -104,7 +102,7 @@ namespace LinkUs.Core.Connection
         // ----- Internal logic
         private int ParseHeader(ByteArraySlice byteArraySlice)
         {
-            if (_packageLength.HasValue) {
+            if (_receivedMessage != null) {
                 return 0;
             }
 
@@ -117,11 +115,11 @@ namespace LinkUs.Core.Connection
                     _packageLengthReceivedBytesCount,
                     remainingBytesCountForPackageLength);
 
-                _packageLength = BitConverter.ToInt32(_packageLengthBytes, 0);
-                if (_packageLength <= 0 || _packageLength > 100000) {
+                var messageLength = BitConverter.ToInt32(_packageLengthBytes, 0);
+                if (messageLength <= 0 || messageLength > 100000) {
                     throw new Exception("Invalid length");
                 }
-                _receivedMessage = new byte[_packageLength.Value];
+                _receivedMessage = new byte[messageLength];
                 return remainingBytesCountForPackageLength;
             }
             else {
@@ -138,24 +136,24 @@ namespace LinkUs.Core.Connection
         }
         private int ParseMessage(ByteArraySlice byteArraySlice, out byte[] message)
         {
-            if (_packageLength.HasValue == false) {
-                throw new Exception("Unable to process bytes received: the package length was not parsed.");
+            if (_receivedMessage == null) {
+                throw new Exception("Unable to process bytes received: the received message was not instanciated.");
             }
 
-            if (_receivedBytesCount + byteArraySlice.Length == _packageLength) {
+            if (_receivedBytesCount + byteArraySlice.Length == _receivedMessage.Length) {
                 Buffer.BlockCopy(byteArraySlice.Buffer, byteArraySlice.Offset, _receivedMessage, _receivedBytesCount, byteArraySlice.Length);
                 message = _receivedMessage;
                 _receivedBytesCount += byteArraySlice.Length;
                 return byteArraySlice.Length;
             }
-            if (_receivedBytesCount + byteArraySlice.Length < _packageLength) {
+            if (_receivedBytesCount + byteArraySlice.Length < _receivedMessage.Length) {
                 Buffer.BlockCopy(byteArraySlice.Buffer, byteArraySlice.Offset, _receivedMessage, _receivedBytesCount, byteArraySlice.Length);
                 _receivedBytesCount += byteArraySlice.Length;
                 message = null;
                 return byteArraySlice.Length;
             }
             else {
-                var remainingByteCount = _packageLength.Value - _receivedBytesCount;
+                var remainingByteCount = _receivedMessage.Length - _receivedBytesCount;
                 Buffer.BlockCopy(byteArraySlice.Buffer, byteArraySlice.Offset, _receivedMessage, _receivedBytesCount, remainingByteCount);
                 _receivedBytesCount += remainingByteCount;
                 message = _receivedMessage;
