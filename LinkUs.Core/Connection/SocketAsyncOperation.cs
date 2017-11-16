@@ -7,8 +7,8 @@ namespace LinkUs.Core.Connection
     {
         private const int BUFFER_SIZE = 1024;
 
-        public ByteArraySliceAggregator ByteArraySliceAggregator { get; } = new ByteArraySliceAggregator();
-        public ByteArraySlicer ByteArraySlicer { get; } = new ByteArraySlicer();
+        private readonly ByteArraySliceAggregator _sliceAggregator = new ByteArraySliceAggregator();
+        private readonly ByteArraySlicer _byteArraySlicer = new ByteArraySlicer();
 
         // ----- Constructors
         public SocketAsyncOperation()
@@ -17,38 +17,43 @@ namespace LinkUs.Core.Connection
         }
 
         // ----- Public methods
-        public void PrepareReceiveOperation()
-        {
-            ByteArraySliceAggregator.Reset();
-        }
         public void PrepareSendOperation(byte[] data)
         {
-            ByteArraySlicer.Reset();
-            ByteArraySlicer.DefineMessageToSlice(data);
+            _byteArraySlicer.DefineMessageToSlice(data);
             ByteArraySlice byteArraySlice;
-            if (ByteArraySlicer.TryGetNextSlice(BUFFER_SIZE, out byteArraySlice) == false) {
+            if (_byteArraySlicer.TryGetNextSlice(BUFFER_SIZE, out byteArraySlice) == false) {
                 throw new Exception("Unable to prepare the send operation: no data to send!");
             }
             SetBuffer(byteArraySlice);
         }
         public bool PrepareNextSendOperation(int byteTransferred)
         {
-            ByteArraySlicer.AcquitBytes(byteTransferred);
-
+            _byteArraySlicer.AcquitBytes(byteTransferred);
             ByteArraySlice byteArraySlice;
-
-            if (!ByteArraySlicer.TryGetNextSlice(BUFFER_SIZE, out byteArraySlice)) {
+            if (!_byteArraySlicer.TryGetNextSlice(BUFFER_SIZE, out byteArraySlice)) {
                 return false;
             }
-
             SetBuffer(byteArraySlice);
-
             return true;
+        }
+        public ByteArraySlice DigestSliceReceived(ByteArraySlice slice, Action<byte[]> dataReceived)
+        {
+            _sliceAggregator.Aggregate(slice);
+
+            if (!_sliceAggregator.IsFinished()) {
+                return null;
+            }
+
+            var message = _sliceAggregator.GetBuiltMessage();
+            dataReceived?.Invoke(message);
+            var additionalData = _sliceAggregator.GetAdditionalData();
+            _sliceAggregator.Reset();
+            return additionalData;
         }
         public void Clean()
         {
-            ByteArraySliceAggregator.Reset();
-            ByteArraySlicer.Reset();
+            _sliceAggregator.Reset();
+            _byteArraySlicer.Reset();
         }
 
         // ----- Internal logic

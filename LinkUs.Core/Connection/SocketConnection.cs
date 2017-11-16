@@ -78,24 +78,12 @@ namespace LinkUs.Core.Connection
         }
         private void ProcessBytesTransferred(SocketAsyncOperation operation, ByteArraySlice byteArraySliceRead)
         {
-            var messageBuilder = operation.ByteArraySliceAggregator;
-
-            messageBuilder.Aggregate(byteArraySliceRead);
-            if (!messageBuilder.IsFinished()) {
-                StartReceiveOperationAsync(operation);
+            var additionalData = operation.DigestSliceReceived(byteArraySliceRead, DataReceived);
+            if (additionalData != null) {
+                ProcessBytesTransferred(operation, additionalData);
             }
             else {
-                var message = messageBuilder.GetBuiltMessage();
-                DataReceived?.Invoke(message);
-                var additionalData = messageBuilder.GetAdditionalData();
-                if (additionalData != null) {
-                    operation.PrepareReceiveOperation();
-                    ProcessBytesTransferred(operation, additionalData);
-                }
-                else {
-                    operation.PrepareReceiveOperation();
-                    StartReceiveOperationAsync(operation);
-                }
+                StartReceiveOperationAsync(operation);
             }
         }
 
@@ -163,7 +151,6 @@ namespace LinkUs.Core.Connection
         private void StartContinuousReceive()
         {
             var operation = _socketOperations.Dequeue();
-            operation.PrepareReceiveOperation();
             StartReceiveOperationAsync(operation);
         }
         private void CloseSocket(Socket socket)
