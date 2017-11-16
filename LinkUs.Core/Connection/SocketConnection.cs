@@ -78,7 +78,7 @@ namespace LinkUs.Core.Connection
         }
         private void ProcessBytesTransferred(SocketAsyncOperation operation, ByteArraySlice byteArraySliceRead)
         {
-            var protocol = operation.Protocol;
+            var protocol = operation.ReadProtocol;
 
 
             ParsedData parsedData;
@@ -131,9 +131,7 @@ namespace LinkUs.Core.Connection
 
             DataSent?.Invoke(operation.BytesTransferred);
 
-            operation.Protocol.AcquitSentBytes(operation.BytesTransferred);
-
-            if (operation.PrepareNextSendOperation()) {
+            if (operation.PrepareNextSendOperation(operation.BytesTransferred)) {
                 StartSendOperationAsync(operation);
             }
             else {
@@ -158,7 +156,7 @@ namespace LinkUs.Core.Connection
         // ----- Interal logic
         private void RecycleOperation(SocketAsyncOperation operation)
         {
-            operation.Reset();
+            operation.Clean();
             _socketOperations.Enqueue(operation);
         }
         private void StartContinuousReceive()
