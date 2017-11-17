@@ -6,12 +6,10 @@ using LinkUs.CommandLine.FileTransferts;
 using LinkUs.Core;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
-using LinkUs.Core.FileTransfert.Commands;
-using LinkUs.Core.FileTransfert.Events;
-using LinkUs.Core.Modules;
-using LinkUs.Core.Modules.Commands;
 using LinkUs.Core.Packages;
-using LinkUs.Core.PingLib;
+using LinkUs.Modules.Default.Modules;
+using LinkUs.Modules.Default.Modules.Commands;
+using LinkUs.Modules.Default.PingLib;
 using LinkUs.Responses;
 
 namespace LinkUs.CommandLine

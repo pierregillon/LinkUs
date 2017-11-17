@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using LinkUs.Core;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
-using LinkUs.Core.FileTransfert.Commands;
-using LinkUs.Core.FileTransfert.Events;
 using LinkUs.Core.Packages;
+using LinkUs.Modules.Default.FileTransfert.Commands;
+using LinkUs.Modules.Default.FileTransfert.Events;
 
 namespace LinkUs.CommandLine.FileTransferts
 {
