@@ -6,13 +6,6 @@ namespace LinkUs.Core
 {
     public class Ioc
     {
-        // ----- Singleton
-        private static readonly Ioc _instance = new Ioc();
-        public static Ioc Instance
-        {
-            get { return _instance; }
-        }
-
         // ----- Fields
         private readonly Dictionary<Type, Type> _registration = new Dictionary<Type, Type>();
         private readonly Dictionary<Type, object> _singletons = new Dictionary<Type, object>();

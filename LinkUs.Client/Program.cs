@@ -10,21 +10,7 @@ namespace LinkUs.Client
 {
     class Program
     {
-        static Program()
-        {
-            var ioc = Ioc.Instance;
-            ioc.RegisterSingle<ModuleManager>();
-            ioc.Register<RequestProcessor>();
-            ioc.Register<PackageParser>();
-            ioc.Register<PackageTransmitter>();
-            ioc.Register<PackageProcessor>();
-            ioc.Register<ISerializer, JsonSerializer>();
-            ioc.Register<ExternalAssemblyModuleLocator>();
-            ioc.Register<ExternalAssemblyModuleScanner>();
-            ioc.Register<ServerBrowser>();
-            ioc.Register<ICommandSender, CommandSender>();
-            ioc.Register<AssemblyHandlerScanner>();
-        }
+        private static readonly Ioc Ioc = BuildIoc();
 
         static void Main(string[] args)
         {
@@ -35,7 +21,7 @@ namespace LinkUs.Client
         // ----- Internal logics
         private static void LoadModules()
         {
-            var moduleManager = Ioc.Instance.GetInstance<ModuleManager>();
+            var moduleManager = Ioc.GetInstance<ModuleManager>();
             moduleManager.LoadModules();
         }
         private static void FindHostAndProcessRequests()
@@ -50,25 +36,43 @@ namespace LinkUs.Client
                 }
                 finally {
                     connection.Close();
-                    Ioc.Instance.UnregisterSingle<IConnection>();
+                    Ioc.UnregisterSingle<IConnection>();
                 }
                 Thread.Sleep(1000);
             }
         }
         private static IConnection FindAvailableHost()
         {
-            var serverBrowser = Ioc.Instance.GetInstance<ServerBrowser>();
+            var serverBrowser = Ioc.GetInstance<ServerBrowser>();
             var connection = serverBrowser.SearchAvailableHost();
-            Ioc.Instance.RegisterSingle(connection);
+            Ioc.RegisterSingle(connection);
             return connection;
         }
         private static void ProcessRequests()
         {
-            var commandSender = Ioc.Instance.GetInstance<ICommandSender>();
-            commandSender.ExecuteAsync(new SetStatus {Status = "Provider"});
+            var commandSender = Ioc.GetInstance<ICommandSender>();
+            commandSender.ExecuteAsync(new SetStatus { Status = "Provider" });
 
-            var requestProcessor = Ioc.Instance.GetInstance<RequestProcessor>();
+            var requestProcessor = Ioc.GetInstance<RequestProcessor>();
             requestProcessor.ProcessRequests();
+        }
+
+        // ----- Utils
+        private static Ioc BuildIoc()
+        {
+            var ioc = new Ioc();
+            ioc.RegisterSingle<ModuleManager>();
+            ioc.Register<RequestProcessor>();
+            ioc.Register<PackageParser>();
+            ioc.Register<PackageTransmitter>();
+            ioc.Register<PackageProcessor>();
+            ioc.Register<ISerializer, JsonSerializer>();
+            ioc.Register<ExternalAssemblyModuleLocator>();
+            ioc.Register<ExternalAssemblyModuleScanner>();
+            ioc.Register<ServerBrowser>();
+            ioc.Register<ICommandSender, CommandSender>();
+            ioc.Register<AssemblyHandlerScanner>();
+            return ioc;
         }
     }
 }

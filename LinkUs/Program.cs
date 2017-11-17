@@ -22,7 +22,7 @@ namespace LinkUs
         // ----- Utils
         private static Ioc BuildNewContainer()
         {
-            var ioc = Ioc.Instance;
+            var ioc = new Ioc();
             ioc.RegisterSingle<Server>();
             ioc.RegisterSingle<PackageRouter>();
             ioc.RegisterSingle<SocketConnectionListener>();

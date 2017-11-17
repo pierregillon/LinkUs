@@ -208,14 +208,14 @@ namespace LinkUs.Tests
         private static ConnectedSocketConnectionSample Get2InterconnectedSocketConnections()
         {
             SocketConnection server = null;
-            var client = new SocketConnection(new SocketAsyncOperationPool(10));
-
-            var listener = new SocketConnectionListener(new IPEndPoint(IPAddress.Any, 9000));
+            var socketAsyncOperationPool = new SocketAsyncOperationPool(10);
+            var client = new SocketConnection(socketAsyncOperationPool);
+            var listener = new SocketConnectionListener(new SocketConnectionFactory(socketAsyncOperationPool));
             listener.ConnectionEstablished += connection => {
                 server = connection;
                 listener.StopListening();
             };
-            listener.StartListening();
+            listener.StartListening(new IPEndPoint(IPAddress.Any, 9000));
 
             client.Connect("127.0.0.1", 9000);
             while (server == null) {
@@ -228,12 +228,12 @@ namespace LinkUs.Tests
             SocketConnection server = null;
             var client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            var listener = new SocketConnectionListener(new IPEndPoint(IPAddress.Any, 9000));
+            var listener = new SocketConnectionListener(new SocketConnectionFactory(new SocketAsyncOperationPool(10)));
             listener.ConnectionEstablished += connection => {
                 server = connection;
                 listener.StopListening();
             };
-            listener.StartListening();
+            listener.StartListening(new IPEndPoint(IPAddress.Any, 9000));
 
             client.Connect("127.0.0.1", 9000);
             while (server == null) {
