@@ -67,6 +67,7 @@
     <Compile Include="Helpers\ConnectedSocketConnectionSample.cs" />
     <Compile Include="Helpers\NetworkSimulationSample.cs" />
     <Compile Include="ByteArraySlicer.cs" />
+    <Compile Include="SocketConnectionListener.cs" />
     <Compile Include="SocketConnectionShould.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
