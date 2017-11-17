@@ -1,8 +1,8 @@
 using System;
 
-namespace LinkUs.Core.Json
+namespace LinkUs.Core.Commands
 {
-    public interface ISerializer
+    public interface ICommandSerializer
     {
         T Deserialize<T>(byte[] bytes);
         byte[] Serialize<T>(T command);

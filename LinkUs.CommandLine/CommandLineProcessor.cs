@@ -40,7 +40,7 @@ namespace LinkUs.CommandLine
                 invokedVerbInstance = subOptions;
             })) {
                 var error = HelpText.AutoBuild(options, invokedVerb);
-                throw new CommandLineProcessingFailed(error);
+                throw new InvalidCommandLineArguments(error);
             }
             return invokedVerbInstance;
         }

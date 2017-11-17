@@ -2,9 +2,11 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using LinkUs.Core;
+using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
 using LinkUs.Core.FileTransfert.Commands;
 using LinkUs.Core.FileTransfert.Events;
+using LinkUs.Core.Packages;
 
 namespace LinkUs.CommandLine.FileTransferts
 {

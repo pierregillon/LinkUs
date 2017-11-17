@@ -5,8 +5,10 @@ using CommandLine;
 using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.Core;
 using LinkUs.Core.ClientInformation;
+using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
+using LinkUs.Core.Packages;
 using StructureMap;
 
 namespace LinkUs.CommandLine
@@ -54,7 +56,7 @@ namespace LinkUs.CommandLine
             try {
                 processor.Process(arguments).Wait();
             }
-            catch (CommandLineProcessingFailed ex) {
+            catch (InvalidCommandLineArguments ex) {
                 console.Write(ex.Message);
             }
             catch (TargetInvocationException ex) {
@@ -91,7 +93,7 @@ namespace LinkUs.CommandLine
                 configuration.For<ICommandSender>().Use<CommandSender>();
                 configuration.For<ICommandLineProcessor>().Use<CommandLineProcessor>();
                 configuration.For<IConsole>().Use<WindowsConsole>();
-                configuration.For<ISerializer>().Use<JsonSerializer>();
+                configuration.For<ICommandSerializer>().Use<JsonCommandSerializer>();
                 configuration.For<Parser>().Use(Parser.Default);
 
                 configuration.Scan(y => {

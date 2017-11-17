@@ -1,9 +1,11 @@
 using System;
 using System.Reflection;
 using LinkUs.Core;
+using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Modules;
 using LinkUs.Core.Modules.Exceptions;
+using LinkUs.Core.Packages;
 
 namespace LinkUs.Client
 {

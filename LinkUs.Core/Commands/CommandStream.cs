@@ -1,20 +1,20 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
+using LinkUs.Core.Packages;
 
-namespace LinkUs.Core
+namespace LinkUs.Core.Commands
 {
     public class CommandStream<T>
     {
         private readonly PackageTransmitter _transmitter;
-        private readonly ISerializer _serializer;
+        private readonly ICommandSerializer _serializer;
         private readonly ConcurrentQueue<T> _values = new ConcurrentQueue<T>();
         private bool _ended;
         private Exception _lastError;
 
-        public CommandStream(PackageTransmitter transmitter, ISerializer serializer)
+        public CommandStream(PackageTransmitter transmitter, ICommandSerializer serializer)
         {
             _transmitter = transmitter;
             _serializer = serializer;
@@ -49,7 +49,7 @@ namespace LinkUs.Core
                 if (_serializer.IsPrimitifMessage(package.Content)) {
                     return;
                 }
-                var messageDescriptor = _serializer.Deserialize<MessageDescriptor>(package.Content);
+                var messageDescriptor = _serializer.Deserialize<CommandDescriptor>(package.Content);
                 if (messageDescriptor.CommandName == typeof(T).Name) {
                     var response = _serializer.Deserialize<T>(package.Content);
                     _values.Enqueue(response);

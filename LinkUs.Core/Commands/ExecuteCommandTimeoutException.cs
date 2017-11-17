@@ -1,6 +1,6 @@
 using System;
 
-namespace LinkUs.Core
+namespace LinkUs.Core.Commands
 {
     public class ExecuteCommandTimeoutException : Exception
     {

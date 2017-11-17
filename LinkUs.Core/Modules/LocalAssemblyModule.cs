@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
 using LinkUs.Core.FileTransfert;
 using LinkUs.Core.FileTransfert.Commands;
 using LinkUs.Core.Modules.Commands;
 using LinkUs.Core.Modules.Exceptions;
+using LinkUs.Core.Packages;
 
 namespace LinkUs.Core.Modules
 {

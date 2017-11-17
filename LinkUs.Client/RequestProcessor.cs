@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using LinkUs.Core.Connection;
+using LinkUs.Core.Packages;
 
 namespace LinkUs.Client
 {

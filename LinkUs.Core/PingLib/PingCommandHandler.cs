@@ -1,6 +1,8 @@
+using LinkUs.Core.Commands;
+
 namespace LinkUs.Core.PingLib
 {
-    public class PingHandler : IHandler<Ping, PingOk>
+    public class PingCommandHandler : ICommandHandler<Ping, PingOk>
     {
         public PingOk Handle(Ping command)
         {

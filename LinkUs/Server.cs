@@ -5,8 +5,10 @@ using System.Net;
 using LinkUs.Commands;
 using LinkUs.Core;
 using LinkUs.Core.ClientInformation;
+using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
+using LinkUs.Core.Packages;
 using LinkUs.Responses;
 
 namespace LinkUs
@@ -57,8 +59,8 @@ namespace LinkUs
         }
         private void PackageRouterOnTargettedServerPackageReceived(Package package)
         {
-            var jsonSerializer = new JsonSerializer();
-            var commandLine = jsonSerializer.Deserialize<MessageDescriptor>(package.Content);
+            var jsonSerializer = new JsonCommandSerializer();
+            var commandLine = jsonSerializer.Deserialize<CommandDescriptor>(package.Content);
             if (commandLine.CommandName == typeof(SetStatus).Name) {
                 var command = jsonSerializer.Deserialize<SetStatus>(package.Content);
                 if (command.Status == "Provider") {

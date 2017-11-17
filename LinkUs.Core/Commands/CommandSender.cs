@@ -1,18 +1,18 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
+using LinkUs.Core.Packages;
 
-namespace LinkUs.Core
+namespace LinkUs.Core.Commands
 {
     public class CommandSender : ICommandSender
     {
-        private readonly ISerializer _serializer;
+        private readonly ICommandSerializer _serializer;
         private readonly PackageTransmitter _packageTransmitter;
 
         // ----- Constructors
-        public CommandSender(PackageTransmitter packageTransmitter, ISerializer serializer)
+        public CommandSender(PackageTransmitter packageTransmitter, ICommandSerializer serializer)
         {
             _packageTransmitter = packageTransmitter;
             _serializer = serializer;
@@ -109,7 +109,7 @@ namespace LinkUs.Core
                     return;
                 }
                 try {
-                    var messageDescriptor = _serializer.Deserialize<MessageDescriptor>(package.Content);
+                    var messageDescriptor = _serializer.Deserialize<CommandDescriptor>(package.Content);
                     if (messageDescriptor.CommandName == typeof(TResponse).Name) {
                         var response = _serializer.Deserialize<TResponse>(package.Content);
                         if (predicate(response)) {

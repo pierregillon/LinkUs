@@ -1,14 +1,16 @@
 ﻿using System.IO;
 using System.Linq;
+using LinkUs.Core.Commands;
 using LinkUs.Core.Modules.Commands;
 using LinkUs.Core.Modules.Exceptions;
+using LinkUs.Core.Packages;
 
 namespace LinkUs.Core.Modules
 {
     public class ModuleCommandHandler :
-        IHandler<ListModules, ModuleInformation[]>,
-        IHandler<LoadModule, bool>,
-        IHandler<UnloadModule, bool>
+        ICommandHandler<ListModules, ModuleInformation[]>,
+        ICommandHandler<LoadModule, bool>,
+        ICommandHandler<UnloadModule, bool>
     {
         private readonly ModuleManager _moduleManager;
         private readonly ExternalAssemblyModuleLocator _moduleLocator;

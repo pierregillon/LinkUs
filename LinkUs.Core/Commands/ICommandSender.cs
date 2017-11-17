@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using LinkUs.Core.Connection;
+using LinkUs.Core.Packages;
 
-namespace LinkUs.Core
+namespace LinkUs.Core.Commands
 {
     public interface ICommandSender
     {

@@ -1,8 +1,9 @@
 ﻿using System;
+using LinkUs.Core.Commands;
 
 namespace LinkUs.Core.ClientInformation
 {
-    public class GetBasicInformationHandler : IHandler<GetBasicInformation, ClientBasicInformation>
+    public class GetBasicInformationCommandHandler : ICommandHandler<GetBasicInformation, ClientBasicInformation>
     {
         public ClientBasicInformation Handle(GetBasicInformation command)
         {

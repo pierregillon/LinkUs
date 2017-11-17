@@ -1,10 +1,11 @@
 using System;
 using System.Linq;
 using System.Text;
+using LinkUs.Core.Json;
 
-namespace LinkUs.Core.Json
+namespace LinkUs.Core.Commands
 {
-    public class JsonSerializer : ISerializer
+    public class JsonCommandSerializer : ICommandSerializer
     {
         public byte[] Serialize<T>(T command)
         {
@@ -23,7 +24,7 @@ namespace LinkUs.Core.Json
                 return SimpleJson.DeserializeObject(json, type);
             }
             else {
-                var info = SimpleJson.DeserializeObject<MessageDescriptor>(json);
+                var info = SimpleJson.DeserializeObject<CommandDescriptor>(json);
                 if (info.CommandName == typeof(ErrorMessage).Name) {
                     var errorMessage = SimpleJson.DeserializeObject<ErrorMessage>(json);
                     throw new Exception(errorMessage.Error);

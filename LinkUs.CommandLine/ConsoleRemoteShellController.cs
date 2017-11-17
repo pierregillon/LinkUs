@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
 using LinkUs.Core;
+using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
+using LinkUs.Core.Packages;
 using LinkUs.Modules.RemoteShell.Commands;
 using LinkUs.Modules.RemoteShell.Events;
 
@@ -12,13 +14,13 @@ namespace LinkUs.CommandLine
     {
         private readonly PackageTransmitter _packageTransmitter;
         private readonly ICommandSender _commandSender;
-        private readonly ISerializer _serializer;
+        private readonly ICommandSerializer _serializer;
         private bool _remoteShellIsActive;
         private CursorPosition _lastCursorPosition;
         private int _processId;
 
         // ----- Constructor
-        public ConsoleRemoteShellController(ICommandSender commandSender, PackageTransmitter package, ISerializer serializer)
+        public ConsoleRemoteShellController(ICommandSender commandSender, PackageTransmitter package, ICommandSerializer serializer)
         {
             _packageTransmitter = package;
             _commandSender = commandSender;
@@ -48,7 +50,7 @@ namespace LinkUs.CommandLine
         private void PackageTransmitterOnPackageReceived(object sender, Package package)
         {
             try {
-                var command = _serializer.Deserialize<MessageDescriptor>(package.Content);
+                var command = _serializer.Deserialize<CommandDescriptor>(package.Content);
                 if (command.CommandName == typeof(ShellOutputReceived).Name) {
                     var response = _serializer.Deserialize<ShellOutputReceived>(package.Content);
                     if (response.ProcessId != _processId) return;

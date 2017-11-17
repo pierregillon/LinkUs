@@ -2,15 +2,16 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using LinkUs.Core.Commands;
 using LinkUs.Core.FileTransfert.Commands;
 using LinkUs.Core.FileTransfert.Events;
 
 namespace LinkUs.Core.FileTransfert
 {
     public class UploadFileCommandHandler :
-        IHandler<StartFileUpload, FileUploadStarted>,
-        IHandler<SendNextFileData, bool>,
-        IHandler<EndFileUpload, FileUploadEnded>
+        ICommandHandler<StartFileUpload, FileUploadStarted>,
+        ICommandHandler<SendNextFileData, bool>,
+        ICommandHandler<EndFileUpload, FileUploadEnded>
     {
         private static readonly IDictionary<Guid, Stream> OpenedStreams = new ConcurrentDictionary<Guid, Stream>();
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LinkUs.Core.Json;
 using LinkUs.Core.Modules.Exceptions;
+using LinkUs.Core.Packages;
 
 namespace LinkUs.Core.Modules
 {

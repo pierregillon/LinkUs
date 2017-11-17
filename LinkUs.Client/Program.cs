@@ -2,9 +2,11 @@
 using System.Threading;
 using LinkUs.Core;
 using LinkUs.Core.ClientInformation;
+using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
 using LinkUs.Core.Modules;
+using LinkUs.Core.Packages;
 
 namespace LinkUs.Client
 {
@@ -66,7 +68,7 @@ namespace LinkUs.Client
             ioc.Register<PackageParser>();
             ioc.Register<PackageTransmitter>();
             ioc.Register<PackageProcessor>();
-            ioc.Register<ISerializer, JsonSerializer>();
+            ioc.Register<ICommandSerializer, JsonCommandSerializer>();
             ioc.Register<ExternalAssemblyModuleLocator>();
             ioc.Register<ExternalAssemblyModuleScanner>();
             ioc.Register<ServerBrowser>();

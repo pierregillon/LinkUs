@@ -1,4 +1,4 @@
-namespace LinkUs.Core
+namespace LinkUs.Core.Commands
 {
     public interface IBus
     {

@@ -3,15 +3,16 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LinkUs.Core.Commands;
 using LinkUs.Core.FileTransfert.Commands;
 using LinkUs.Core.FileTransfert.Events;
 
 namespace LinkUs.Core.FileTransfert
 {
     public class DownloadFileCommandHandler :
-        IHandler<StartFileDownload, FileDownloadStarted>,
-        IHandler<GetNextFileData, NextFileDataRead>,
-        IHandler<EndFileDownload, FileDownloadEnded>
+        ICommandHandler<StartFileDownload, FileDownloadStarted>,
+        ICommandHandler<GetNextFileData, NextFileDataRead>,
+        ICommandHandler<EndFileDownload, FileDownloadEnded>
     {
         private static readonly IDictionary<Guid, Stream> OpenedStreams = new ConcurrentDictionary<Guid, Stream>();
 
