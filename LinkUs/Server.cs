@@ -18,21 +18,21 @@ namespace LinkUs
         private readonly IDictionary<ClientId, ClientBasicInformation> _clients = new Dictionary<ClientId, ClientBasicInformation>();
 
         // ----- Constructor
-        public Server(IPEndPoint endPoint)
+        public Server(PackageRouter packageRouter, SocketConnectionListener connectionListener)
         {
-            _packageRouter = new PackageRouter();
+            _packageRouter = packageRouter;
             _packageRouter.ClientConnected += PackageRouterOnClientConnected;
             _packageRouter.ClientDisconnected += PackageRouterOnClientDisconnected;
             _packageRouter.TargettedServerPackageReceived += PackageRouterOnTargettedServerPackageReceived;
 
-            _connectionListener = new SocketConnectionListener(endPoint);
+            _connectionListener = connectionListener;
             _connectionListener.ConnectionEstablished += ConnectionListenerOnConnectionEstablished;
         }
 
         // ----- Public methods
-        public void Start()
+        public void Start(IPEndPoint endPoint)
         {
-            _connectionListener.StartListening();
+            _connectionListener.StartListening(endPoint);
         }
         public void Stop()
         {

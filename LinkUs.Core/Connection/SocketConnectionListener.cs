@@ -7,19 +7,16 @@ namespace LinkUs.Core.Connection
 {
     public class SocketConnectionListener : IConnectionListener<SocketConnection>
     {
-        private const int ASYNC_OPERATION_COUNT = 20;
-        private readonly SocketAsyncOperationPool _pool = new SocketAsyncOperationPool(ASYNC_OPERATION_COUNT);
-
-        private readonly Socket _listenSocket;
+        private readonly IConnectionFactory<SocketConnection> _connectionFactory;
+        private Socket _listenSocket;
         private readonly Queue<SocketAsyncEventArgs> _acceptSocketOperations = new Queue<SocketAsyncEventArgs>();
 
         public event Action<SocketConnection> ConnectionEstablished;
 
-        public SocketConnectionListener(IPEndPoint endPoint)
+        // ----- Constructors
+        public SocketConnectionListener(IConnectionFactory<SocketConnection> connectionFactory)
         {
-            _listenSocket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            _listenSocket.Bind(endPoint);
-
+            _connectionFactory = connectionFactory;
             for (int i = 0; i < 5; i++) {
                 var args = new SocketAsyncEventArgs();
                 args.Completed += AcceptEventCompleted;
@@ -27,8 +24,14 @@ namespace LinkUs.Core.Connection
             }
         }
 
-        public void StartListening()
+        // ----- Public methods
+        public void StartListening(IPEndPoint endPoint)
         {
+            if (_listenSocket != null) {
+                throw new Exception("Already listening");
+            }
+            _listenSocket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            _listenSocket.Bind(endPoint);
             _listenSocket.Listen(10);
 
             StartAcceptNextConnection();
@@ -42,8 +45,10 @@ namespace LinkUs.Core.Connection
             catch (SocketException) { }
 
             _listenSocket.Close();
+            _listenSocket = null;
         }
 
+        // ----- Internal logics
         private void StartAcceptNextConnection()
         {
             var acceptSocketEventArgs = _acceptSocketOperations.Dequeue();
@@ -59,16 +64,25 @@ namespace LinkUs.Core.Connection
         private void ProcessAccept(SocketAsyncEventArgs acceptSocketEventArgs)
         {
             if (acceptSocketEventArgs.SocketError == SocketError.OperationAborted) {
+                RecycleSocketAsyncEventArgs(acceptSocketEventArgs);
                 return;
             }
             if (acceptSocketEventArgs.SocketError != SocketError.Success) {
+                RecycleSocketAsyncEventArgs(acceptSocketEventArgs);
                 throw new Exception("error");
             }
 
             StartAcceptNextConnection();
-
-            ConnectionEstablished?.Invoke(new SocketConnection(_pool, acceptSocketEventArgs.AcceptSocket));
-
+            ProcessNewSocket(acceptSocketEventArgs.AcceptSocket);
+            RecycleSocketAsyncEventArgs(acceptSocketEventArgs);
+        }
+        private void ProcessNewSocket(Socket socket)
+        {
+            var socketConnection = _connectionFactory.Create(socket);
+            ConnectionEstablished?.Invoke(socketConnection);
+        }
+        private void RecycleSocketAsyncEventArgs(SocketAsyncEventArgs acceptSocketEventArgs)
+        {
             acceptSocketEventArgs.AcceptSocket = null;
             _acceptSocketOperations.Enqueue(acceptSocketEventArgs);
         }

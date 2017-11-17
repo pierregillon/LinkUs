@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace LinkUs.Client
+namespace LinkUs.Core
 {
     public class Ioc
     {

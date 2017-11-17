@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Net;
+using LinkUs.Core;
+using LinkUs.Core.Connection;
 
 namespace LinkUs
 {
@@ -7,8 +9,9 @@ namespace LinkUs
     {
         static void Main(string[] args)
         {
-            var server = new Server(new IPEndPoint(IPAddress.Any, 9000));
-            server.Start();
+            var container = BuildNewContainer();
+            var server = container.GetInstance<Server>();
+            server.Start(new IPEndPoint(IPAddress.Any, 9000));
             WriteLine("Server started. Waiting for incoming connections.");
             while (Console.ReadLine() != "exit") { }
             WriteLine("Closing connections...");
@@ -17,6 +20,16 @@ namespace LinkUs
         }
 
         // ----- Utils
+        private static Ioc BuildNewContainer()
+        {
+            var ioc = Ioc.Instance;
+            ioc.RegisterSingle<Server>();
+            ioc.RegisterSingle<PackageRouter>();
+            ioc.RegisterSingle<SocketConnectionListener>();
+            ioc.Register<IConnectionFactory<SocketConnection>, SocketConnectionFactory>();
+            ioc.RegisterSingle(new SocketAsyncOperationPool(20));
+            return ioc;
+        }
         private static void WriteLine(string value)
         {
             Console.WriteLine($"[{DateTime.Now}] {value}");

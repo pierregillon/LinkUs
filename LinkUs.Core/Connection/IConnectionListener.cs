@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 
 namespace LinkUs.Core.Connection
 {
@@ -6,7 +7,7 @@ namespace LinkUs.Core.Connection
     {
         event Action<TConnection> ConnectionEstablished;
 
-        void StartListening();
+        void StartListening(IPEndPoint endPoint );
         void StopListening();
     }
 }

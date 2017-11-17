@@ -56,9 +56,11 @@
     <Compile Include="Connection\ByteArraySlice.cs" />
     <Compile Include="Connection\ClientId.cs" />
     <Compile Include="Connection\ByteArraySliceAggregator.cs" />
+    <Compile Include="Connection\IConnectionFactory.cs" />
     <Compile Include="Connection\SemaphoredQueue.cs" />
     <Compile Include="Connection\SocketAsyncOperation.cs" />
     <Compile Include="Connection\SocketAsyncOperationPool.cs" />
+    <Compile Include="Connection\SocketConnectionFactory.cs" />
     <Compile Include="ErrorMessage.cs" />
     <Compile Include="FileTransfert\Commands\EndFileUpload.cs" />
     <Compile Include="FileTransfert\Commands\EndFileDownload.cs" />
@@ -77,6 +79,7 @@
     <Compile Include="IBus.cs" />
     <Compile Include="ICommandSender.cs" />
     <Compile Include="IHandler.cs" />
+    <Compile Include="Ioc.cs" />
     <Compile Include="MessageDescriptor.cs" />
     <Compile Include="Modules\AssemblyHandlerScanner.cs" />
     <Compile Include="Modules\Commands\LoadModule.cs" />

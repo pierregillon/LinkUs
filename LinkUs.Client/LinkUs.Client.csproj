@@ -52,7 +52,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DedicatedBus.cs" />
-    <Compile Include="Ioc.cs" />
     <Compile Include="PackageProcessor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

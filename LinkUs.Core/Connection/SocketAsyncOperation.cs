@@ -17,6 +17,10 @@ namespace LinkUs.Core.Connection
         }
 
         // ----- Public methods
+        public void PrepareReceiveOperation(Socket socket)
+        {
+            AcceptSocket = socket;
+        }
         public void PrepareSendOperation(Socket socket, byte[] data)
         {
             AcceptSocket = socket;
@@ -62,10 +66,6 @@ namespace LinkUs.Core.Connection
         {
             slice.CopyTo(Buffer);
             SetBuffer(0, slice.Length);
-        }
-        public void PrepareReceiveOperation(Socket socket)
-        {
-            AcceptSocket = socket;
         }
     }
 }
