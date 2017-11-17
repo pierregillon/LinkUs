@@ -52,6 +52,7 @@ namespace LinkUs
         }
         private void PackageRouterOnClientDisconnected(ClientId clientId)
         {
+            _clients.Remove(clientId);
             WriteLine($"Server process : Client '{clientId}' disconnected.");
         }
         private void PackageRouterOnTargettedServerPackageReceived(Package package)

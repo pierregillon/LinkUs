@@ -108,7 +108,7 @@ namespace LinkUs.CommandLine
                 WriteInnerException(console, ((AggregateException) exception).InnerException);
             }
             else {
-                console.WriteLineError(exception.Message);
+                console.WriteLineError(exception.ToString());
             }
         }
         private static IConnection ConnectToServer(IContainer container)

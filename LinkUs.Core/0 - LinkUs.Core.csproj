@@ -52,6 +52,7 @@
     <Compile Include="ClientInformation\NetHelper.cs" />
     <Compile Include="ClientInformation\SetStatus.cs" />
     <Compile Include="CommandSender.cs" />
+    <Compile Include="CommandStream.cs" />
     <Compile Include="Connection\ArrayExtensions.cs" />
     <Compile Include="Connection\ByteArraySlice.cs" />
     <Compile Include="Connection\ClientId.cs" />
@@ -62,6 +63,7 @@
     <Compile Include="Connection\SocketAsyncOperationPool.cs" />
     <Compile Include="Connection\SocketConnectionFactory.cs" />
     <Compile Include="ErrorMessage.cs" />
+    <Compile Include="ExecuteCommandTimeoutException.cs" />
     <Compile Include="FileTransfert\Commands\EndFileUpload.cs" />
     <Compile Include="FileTransfert\Commands\EndFileDownload.cs" />
     <Compile Include="FileTransfert\Commands\GetNextFileData.cs" />

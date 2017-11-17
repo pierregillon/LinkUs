@@ -34,8 +34,10 @@ namespace LinkUs
         }
         public void SendPackage(Package package)
         {
-            var packageTransmitter = _activeTransmitter[package.Destination];
-            packageTransmitter.Send(package);
+            PackageTransmitter packageTransmitter;
+            if (_activeTransmitter.TryGetValue(package.Destination, out packageTransmitter)) {
+                packageTransmitter.Send(package);
+            }
         }
 
         // ----- Event callbacks
@@ -49,7 +51,7 @@ namespace LinkUs
         private void PackageTransmitterOnClosed(object sender, EventArgs eventArgs)
         {
             var packageTransmitter = (PackageTransmitter) sender;
-            var entry = _activeTransmitter.Single(x => x.Value == packageTransmitter);
+            var entry = _activeTransmitter.SingleOrDefault(x => x.Value == packageTransmitter);
             _activeTransmitter.Remove(entry);
             ClientDisconnected?.Invoke(entry.Key);
         }

@@ -14,12 +14,14 @@ namespace LinkUs.CommandLine.FileTransferts
         private readonly ClientId _clientId;
         public int Pourcentage { get; private set; }
 
+        // ----- Constructors
         public FileDownloader(ICommandSender commandSender, ClientId clientId)
         {
             _commandSender = commandSender;
             _clientId = clientId;
         }
 
+        // ----- Public methods
         public async Task DownloadAsync(string remoteSourceFilePath, string localDestinationFilePath)
         {
             if (File.Exists(localDestinationFilePath)) {
@@ -44,20 +46,29 @@ namespace LinkUs.CommandLine.FileTransferts
         }
         private async Task<int> CopyDataToLocalFile(FileDownloadStarted startedEvent, string filePath)
         {
-            var totalBytesTransferred = 0;
-            using (var stream = File.OpenWrite(filePath)) {
-                var nextFileDataCommand = new GetNextFileData { FileId = startedEvent.FileId };
-                while (true) {
-                    var fileDataRead = await _commandSender.ExecuteAsync<GetNextFileData, NextFileDataRead>(nextFileDataCommand, _clientId);
-                    if (fileDataRead.Data.Length == 0) {
-                        break;
+            try {
+                var totalBytesTransferred = 0;
+                using (var stream = File.OpenWrite(filePath)) {
+                    var nextFileDataCommand = new GetNextFileData { FileId = startedEvent.FileId };
+                    while (true) {
+                        var fileDataRead = await _commandSender.ExecuteAsync<GetNextFileData, NextFileDataRead>(nextFileDataCommand, _clientId);
+                        if (fileDataRead.Data.Length == 0) {
+                            break;
+                        }
+                        stream.Write(fileDataRead.Data, 0, fileDataRead.Data.Length);
+                        totalBytesTransferred += fileDataRead.Data.Length;
+                        Pourcentage = (int) (totalBytesTransferred * 100 / startedEvent.TotalLength);
                     }
-                    stream.Write(fileDataRead.Data, 0, fileDataRead.Data.Length);
-                    totalBytesTransferred += fileDataRead.Data.Length;
-                    Pourcentage = (int) (totalBytesTransferred * 100 / startedEvent.TotalLength);
                 }
+                return totalBytesTransferred;
             }
-            return totalBytesTransferred;
+            catch (ExecuteCommandTimeoutException) {
+                throw;
+            }
+            catch (Exception) {
+                await EndDownload(startedEvent);
+                throw;
+            }
         }
         private async Task EndDownload(FileDownloadStarted startedEvent)
         {

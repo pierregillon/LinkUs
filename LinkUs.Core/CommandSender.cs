@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using LinkUs.Core.Connection;
@@ -11,23 +9,48 @@ namespace LinkUs.Core
     public class CommandSender : ICommandSender
     {
         private readonly ISerializer _serializer;
-        public PackageTransmitter PackageTransmitter { get; }
+        private readonly PackageTransmitter _packageTransmitter;
 
+        // ----- Constructors
         public CommandSender(PackageTransmitter packageTransmitter, ISerializer serializer)
         {
-            PackageTransmitter = packageTransmitter;
+            _packageTransmitter = packageTransmitter;
             _serializer = serializer;
         }
 
+        // ----- Public methods
         public Task<TResponse> ExecuteAsync<TCommand, TResponse>(TCommand command, ClientId destination = null, ClientId source = null)
+        {
+            var tokenSource = new CancellationTokenSource();
+            var timeout = TimeSpan.FromSeconds(5);
+            var delayBeforeTimeoutTask = Task.Delay(timeout, tokenSource.Token);
+            var sendCommandTask = Send<TCommand, TResponse>(command, destination, source, tokenSource.Token);
+
+            return Task.WhenAny(sendCommandTask, delayBeforeTimeoutTask)
+                       .ContinueWith(t => {
+                           try {
+                               if (!sendCommandTask.IsCompleted) {
+                                   tokenSource.Cancel();
+                                   throw new ExecuteCommandTimeoutException(timeout);
+                               }
+                               else {
+                                   return sendCommandTask.Result;
+                               }
+                           }
+                           finally {
+                               tokenSource.Dispose();
+                           }
+                       }, tokenSource.Token);
+        }
+        private Task<TResponse> Send<TCommand, TResponse>(TCommand command, ClientId destination, ClientId source, CancellationToken token)
         {
             destination = destination ?? ClientId.Server;
             source = source ?? ClientId.Unknown;
 
             var commandPackage = new Package(source, destination, _serializer.Serialize(command));
-
             var completionSource = new TaskCompletionSource<TResponse>();
-            EventHandler<Package> packageReceivedAction = (sender, responsePackage) => {
+
+            EventHandler <Package> packageReceivedAction = (sender, responsePackage) => {
                 if (Equals(responsePackage.TransactionId, commandPackage.TransactionId)) {
                     try {
                         var response = _serializer.Deserialize<TResponse>(responsePackage.Content);
@@ -38,25 +61,34 @@ namespace LinkUs.Core
                     }
                 }
             };
+
             EventHandler closedAction = (sender, args) => {
                 completionSource.SetException(new Exception("Connection Closed"));
             };
-            PackageTransmitter.PackageReceived += packageReceivedAction;
-            PackageTransmitter.Closed += closedAction;
-            PackageTransmitter.Send(commandPackage);
+
+            var registration = token.Register(() => {
+                completionSource.SetCanceled();
+                _packageTransmitter.PackageReceived -= packageReceivedAction;
+                _packageTransmitter.Closed -= closedAction;
+            }, true);
+
+            _packageTransmitter.PackageReceived += packageReceivedAction;
+            _packageTransmitter.Closed += closedAction;
+            _packageTransmitter.Send(commandPackage);
 
             return completionSource.Task.ContinueWith(task => {
-                PackageTransmitter.PackageReceived -= packageReceivedAction;
-                PackageTransmitter.Closed -= closedAction;
+                _packageTransmitter.PackageReceived -= packageReceivedAction;
+                _packageTransmitter.Closed -= closedAction;
+                registration.Dispose();
                 return task.Result;
-            });
+            }, token);
         }
         public void ExecuteAsync<TCommand>(TCommand command, ClientId destination = null)
         {
             destination = destination ?? ClientId.Server;
             var content = _serializer.Serialize(command);
             var commandPackage = new Package(ClientId.Unknown, destination, content);
-            PackageTransmitter.Send(commandPackage);
+            _packageTransmitter.Send(commandPackage);
         }
         public Task<TResponse> Receive<TResponse>(ClientId @from, Predicate<TResponse> predicate, CancellationToken token)
         {
@@ -66,7 +98,7 @@ namespace LinkUs.Core
             EventHandler<Package> packageReceivedAction = null;
             packageReceivedAction = (sender, package) => {
                 if (token.IsCancellationRequested) {
-                    PackageTransmitter.PackageReceived -= packageReceivedAction;
+                    _packageTransmitter.PackageReceived -= packageReceivedAction;
                     completionSource.SetCanceled();
                     return;
                 }
@@ -90,10 +122,10 @@ namespace LinkUs.Core
                 }
             };
 
-            PackageTransmitter.PackageReceived += packageReceivedAction;
+            _packageTransmitter.PackageReceived += packageReceivedAction;
 
             return completionSource.Task.ContinueWith(task => {
-                PackageTransmitter.PackageReceived -= packageReceivedAction;
+                _packageTransmitter.PackageReceived -= packageReceivedAction;
                 return task.Result;
             }, token);
         }
@@ -101,67 +133,29 @@ namespace LinkUs.Core
         {
             var content = _serializer.Serialize(message);
             var commandPackage = package.CreateResponsePackage(content);
-            PackageTransmitter.Send(commandPackage);
+            _packageTransmitter.Send(commandPackage);
         }
         public CommandStream<T> BuildStream<T>(Predicate<T> predicate)
         {
-            return new CommandStream<T>(PackageTransmitter, _serializer);
+            return new CommandStream<T>(_packageTransmitter, _serializer);
         }
     }
 
-    public class CommandStream<T>
+    public sealed class CancellationTokenTaskSource<T> : IDisposable
     {
-        private readonly PackageTransmitter _transmitter;
-        private readonly ISerializer _serializer;
-        private readonly ConcurrentQueue<T> _values = new ConcurrentQueue<T>();
-        private bool _ended;
-        private Exception _lastError;
+        private readonly IDisposable _registration;
 
-        public CommandStream(PackageTransmitter transmitter, ISerializer serializer)
+        public CancellationTokenTaskSource(CancellationToken cancellationToken)
         {
-            _transmitter = transmitter;
-            _serializer = serializer;
+            var tcs = new TaskCompletionSource<T>();
+            _registration = cancellationToken.Register(() => tcs.TrySetCanceled(), false);
+            Task = tcs.Task;
         }
 
-        public void Start()
+        public Task<T> Task { get; }
+        public void Dispose()
         {
-            _transmitter.PackageReceived += TransmitterOnPackageReceived;
-        }
-        public IEnumerable<T> GetData()
-        {
-            while (!_ended || _values.Count != 0) {
-                T value;
-                if (_values.TryDequeue(out value)) {
-                    yield return value;
-                }
-            }
-
-            if (_lastError != null) {
-                throw _lastError;
-            }
-        }
-        public void End()
-        {
-            _transmitter.PackageReceived -= TransmitterOnPackageReceived;
-            _ended = true;
-        }
-
-        private void TransmitterOnPackageReceived(object o, Package package)
-        {
-            try {
-                if (_serializer.IsPrimitifMessage(package.Content)) {
-                    return;
-                }
-                var messageDescriptor = _serializer.Deserialize<MessageDescriptor>(package.Content);
-                if (messageDescriptor.CommandName == typeof(T).Name) {
-                    var response = _serializer.Deserialize<T>(package.Content);
-                    _values.Enqueue(response);
-                }
-            }
-            catch (Exception ex) {
-                _lastError = ex;
-                End();
-            }
+            _registration?.Dispose();
         }
     }
 }

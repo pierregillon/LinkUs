@@ -89,9 +89,17 @@ namespace LinkUs.CommandLine.ConsoleLib
                 NewLine();
             }
             catch (Exception) {
-                SetCursorLeft(0);
+                CleanLine();
                 throw;
             }
+        }
+        public void CleanLine()
+        {
+            SetCursorLeft(0);
+            for (int i = 0; i < Console.WindowWidth; i++) {
+                Console.Write(" ");
+            }
+            SetCursorLeft(0);
         }
 
         // ----- Utils

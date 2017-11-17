@@ -16,5 +16,6 @@ namespace LinkUs.CommandLine.ConsoleLib
         void MoveCursorLeftBack(int length);
         void SetCursorLeft(int left);
         void WriteProgress(Task task, IProgressable progressable);
+        void CleanLine();
     }
 }

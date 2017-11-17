@@ -12,6 +12,8 @@
 * when client not responding for a period of time during the Receive/Stream, free resource and throw exception.
 * use of the stream for shell command line handler.
 * catch exception in downloader/uploader and try to send message to client to close the file.
-* better error display of uncatch exception.
+* better error display of uncatch exception. Base exception for known that display message and not stacktrace.
 * Refactor client and server to use 0 dependencies (file injection)
 * free the asyncOperation before to call the DataReceived delegate.
+* When bad clientId is send to server, respond cliendId not found.
+* Close commandline when connection closed.
