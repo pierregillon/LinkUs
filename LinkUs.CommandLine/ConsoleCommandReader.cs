@@ -62,7 +62,7 @@ namespace LinkUs.CommandLine
             else {
                 _console.WriteLineError("An unexpected exception occurred during the command process.");
 #if DEBUG
-                _console.WriteLineError(exception.StackTrace);
+                _console.WriteLineError(exception.ToString());
 #else
                 _console.WriteLineError(exception.Message);
 #endif

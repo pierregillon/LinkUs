@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using CommandLine;
 using CommandLine.Text;
 using LinkUs.CommandLine.ConsoleLib;
-using LinkUs.Core;
 using StructureMap;
 
 namespace LinkUs.CommandLine
@@ -13,12 +12,14 @@ namespace LinkUs.CommandLine
     public class CommandLineProcessor : ICommandLineProcessor
     {
         private readonly IContainer _container;
+        private readonly IConsole _console;
         private readonly Parser _parser;
 
         // ----- Constructor
-        public CommandLineProcessor(IContainer container, Parser parser)
+        public CommandLineProcessor(IContainer container, IConsole console, Parser parser)
         {
             _container = container;
+            _console = console;
             _parser = parser;
         }
 
@@ -27,22 +28,29 @@ namespace LinkUs.CommandLine
         {
             if (arguments == null) throw new ArgumentNullException(nameof(arguments));
 
-            var commandLine = ParseArguments(arguments);
-            return ExecuteCommand(commandLine);
+            object commandLine;
+            if (TryParseArguments(arguments, out commandLine)) {
+                return ExecuteCommand(commandLine);
+            }
+            return Task.Delay(0);
         }
-        private object ParseArguments(string[] arguments)
+        private bool TryParseArguments(string[] arguments, out object commandLine)
         {
             var options = new Options();
-            string invokedVerb = null;
-            object invokedVerbInstance = null;
+            string verbName = null;
+            object commandLineIntance = null;
             if (!_parser.ParseArguments(arguments, options, (verb, subOptions) => {
-                invokedVerb = verb;
-                invokedVerbInstance = subOptions;
+                verbName = verb;
+                commandLineIntance = subOptions;
             })) {
-                var error = HelpText.AutoBuild(options, invokedVerb);
-                throw new InvalidCommandLineArguments(error);
+                _console.WriteLine(HelpText.AutoBuild(options, verbName));
+                commandLine = null;
+                return false;
             }
-            return invokedVerbInstance;
+            else {
+                commandLine = commandLineIntance;
+                return true;
+            }
         }
 
         // ----- Internal logic
