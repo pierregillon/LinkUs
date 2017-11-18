@@ -17,3 +17,5 @@
 * free the asyncOperation before to call the DataReceived delegate.
 * When bad clientId is send to server, respond cliendId not found.
 * Close commandline when connection closed.
+* Create install-module that upload and load a module
+* Modify list-modules to set target as not mandatory. If no target, list the modules available from commandline.

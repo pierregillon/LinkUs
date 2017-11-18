@@ -7,16 +7,16 @@ namespace LinkUs.Core.Connection
 {
     public class SocketConnectionListener : IConnectionListener<SocketConnection>
     {
-        private readonly IConnectionFactory<SocketConnection> _connectionFactory;
+        private readonly Connector _connector;
         private Socket _listenSocket;
         private readonly Queue<SocketAsyncEventArgs> _acceptSocketOperations = new Queue<SocketAsyncEventArgs>();
 
         public event Action<SocketConnection> ConnectionEstablished;
 
         // ----- Constructors
-        public SocketConnectionListener(IConnectionFactory<SocketConnection> connectionFactory)
+        public SocketConnectionListener(Connector connector)
         {
-            _connectionFactory = connectionFactory;
+            _connector = connector;
             for (int i = 0; i < 5; i++) {
                 var args = new SocketAsyncEventArgs();
                 args.Completed += AcceptEventCompleted;
@@ -78,7 +78,7 @@ namespace LinkUs.Core.Connection
         }
         private void ProcessNewSocket(Socket socket)
         {
-            var socketConnection = _connectionFactory.Create(socket);
+            var socketConnection = _connector.ConnectFromActiveSocket(socket);
             ConnectionEstablished?.Invoke(socketConnection);
         }
         private void RecycleSocketAsyncEventArgs(SocketAsyncEventArgs acceptSocketEventArgs)

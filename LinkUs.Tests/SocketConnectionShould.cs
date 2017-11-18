@@ -209,26 +209,27 @@ namespace LinkUs.Tests
         {
             SocketConnection server = null;
             var socketAsyncOperationPool = new SocketAsyncOperationPool(10);
-            var client = new SocketConnection(socketAsyncOperationPool);
-            var listener = new SocketConnectionListener(new SocketConnectionFactory(socketAsyncOperationPool));
-            listener.ConnectionEstablished += connection => {
-                server = connection;
+            var connector = new Connector(socketAsyncOperationPool);
+            var listener = new SocketConnectionListener(connector);
+            listener.ConnectionEstablished += serverConnection => {
+                server = serverConnection;
                 listener.StopListening();
             };
             listener.StartListening(new IPEndPoint(IPAddress.Any, 9000));
 
-            client.Connect("127.0.0.1", 9000);
+            var connection = connector.Connect("127.0.0.1", 9000);
             while (server == null) {
                 Thread.Sleep(10);
             }
-            return new ConnectedSocketConnectionSample { Client2 = client, Client1 = server };
+            return new ConnectedSocketConnectionSample { Client2 = connection, Client1 = server };
         }
         private static NetworkSimulationSample GetNetworkSimulationSample()
         {
             SocketConnection server = null;
             var client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            var listener = new SocketConnectionListener(new SocketConnectionFactory(new SocketAsyncOperationPool(10)));
+            var connector = new Connector(new SocketAsyncOperationPool(10));
+            var listener = new SocketConnectionListener(connector);
             listener.ConnectionEstablished += connection => {
                 server = connection;
                 listener.StopListening();

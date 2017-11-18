@@ -26,7 +26,7 @@ namespace LinkUs
             ioc.RegisterSingle<Server>();
             ioc.RegisterSingle<PackageRouter>();
             ioc.RegisterSingle<SocketConnectionListener>();
-            ioc.Register<IConnectionFactory<SocketConnection>, SocketConnectionFactory>();
+            ioc.RegisterSingle<Connector>();
             ioc.RegisterSingle(new SocketAsyncOperationPool(20));
             return ioc;
         }

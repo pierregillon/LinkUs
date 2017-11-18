@@ -13,11 +13,6 @@ namespace LinkUs.Core.Connection
         public event Action Closed;
 
         // ----- Constructors
-        public SocketConnection(SocketAsyncOperationPool operationPool)
-        {
-            _operationPool = operationPool;
-            _socket = BuildDefaultSocket();
-        }
         public SocketConnection(SocketAsyncOperationPool operationPool, Socket socket)
         {
             _operationPool = operationPool;
@@ -26,11 +21,6 @@ namespace LinkUs.Core.Connection
         }
 
         // ----- Public methods
-        public void Connect(string host, int port)
-        {
-            _socket.Connect(host, port);
-            StartContinuousReceive();
-        }
         public void SendAsync(byte[] data)
         {
             var operation = _operationPool.Dequeue();
@@ -164,10 +154,6 @@ namespace LinkUs.Core.Connection
             socket.Close();
             socket.Dispose();
             Closed?.Invoke();
-        }
-        private static Socket BuildDefaultSocket()
-        {
-            return new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         }
     }
 }

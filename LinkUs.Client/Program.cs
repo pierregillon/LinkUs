@@ -74,6 +74,8 @@ namespace LinkUs.Client
             ioc.Register<ServerBrowser>();
             ioc.Register<ICommandSender, CommandSender>();
             ioc.Register<AssemblyHandlerScanner>();
+            ioc.RegisterSingle(new SocketAsyncOperationPool(10));
+            ioc.RegisterSingle<Connector>();
             return ioc;
         }
     }

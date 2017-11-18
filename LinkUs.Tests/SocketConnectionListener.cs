@@ -15,8 +15,8 @@ namespace LinkUs.Tests
         public SocketConnectionListenerShould()
         {
             var pool = new SocketAsyncOperationPool(10);
-            var factory = new SocketConnectionFactory(pool);
-            _listener = new SocketConnectionListener(factory);
+            var connector = new Connector(pool);
+            _listener = new SocketConnectionListener(connector);
         }
         ~SocketConnectionListenerShould()
         {

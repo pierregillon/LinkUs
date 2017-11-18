@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using LinkUs.Commands;
-using LinkUs.Core;
 using LinkUs.Core.Commands;
-using LinkUs.Core.Connection;
 using LinkUs.Responses;
 
 namespace LinkUs.CommandLine

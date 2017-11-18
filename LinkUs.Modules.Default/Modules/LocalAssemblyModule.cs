@@ -16,7 +16,7 @@ namespace LinkUs.Modules.Default.Modules
         private readonly Type[] _assemblyTypes;
 
         // ----- Properties
-        public string Name => GetType().Assembly.GetName().Name;
+        public string Name => "LinkUs.Modules.Default";
 
         // ----- Constructor
         public LocalAssemblyModule(

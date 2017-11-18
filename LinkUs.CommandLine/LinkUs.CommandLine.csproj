@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleCommandReader.cs" />
     <Compile Include="InvalidCommandLineArguments.cs" />
     <Compile Include="CommandLineProcessor.cs" />
     <Compile Include="ConsoleLib\WindowsConsole.cs" />

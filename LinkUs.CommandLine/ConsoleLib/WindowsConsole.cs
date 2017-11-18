@@ -101,6 +101,10 @@ namespace LinkUs.CommandLine.ConsoleLib
             }
             SetCursorLeft(0);
         }
+        public string ReadLine()
+        {
+            return Console.ReadLine();
+        }
 
         // ----- Utils
         private void WriteWithColor(string message, ConsoleColor color)

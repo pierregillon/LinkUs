@@ -79,11 +79,11 @@
     <Compile Include="..\LinkUs.Core\Connection\ByteArraySlicer.cs">
       <Link>LinkUs.Core\Connection\ByteArraySlicer.cs</Link>
     </Compile>
+    <Compile Include="..\LinkUs.Core\Connection\Connector.cs">
+      <Link>LinkUs.Core\Connection\Connector.cs</Link>
+    </Compile>
     <Compile Include="..\LinkUs.Core\Connection\IConnection.cs">
       <Link>LinkUs.Core\Connection\IConnection.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Connection\IConnectionFactory.cs">
-      <Link>LinkUs.Core\Connection\IConnectionFactory.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Core\Connection\IConnectionListener.cs">
       <Link>LinkUs.Core\Connection\IConnectionListener.cs</Link>
@@ -99,9 +99,6 @@
     </Compile>
     <Compile Include="..\LinkUs.Core\Connection\SocketConnection.cs">
       <Link>LinkUs.Core\Connection\SocketConnection.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Connection\SocketConnectionFactory.cs">
-      <Link>LinkUs.Core\Connection\SocketConnectionFactory.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Core\Connection\SocketConnectionListener.cs">
       <Link>LinkUs.Core\Connection\SocketConnectionListener.cs</Link>
