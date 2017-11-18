@@ -37,10 +37,10 @@ namespace LinkUs.Client
                 }
             }
             catch (UnknownCommandException ex) {
-                Answer(package, new ErrorMessage(ex.Message));
+                Answer(package, new ErrorMessage(ex));
             }
             catch (ModuleException ex) {
-                Answer(package, new ErrorMessage(ex.Message));
+                Answer(package, new ErrorMessage(ex));
             }
             catch (TargetInvocationException ex) {
                 Answer(package, new ErrorMessage(ex.InnerException));

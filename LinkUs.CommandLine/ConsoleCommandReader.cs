@@ -39,17 +39,33 @@ namespace LinkUs.CommandLine
             try {
                 _commandLineProcessor.Process(arguments).Wait();
             }
-            catch (InvalidCommandLineArguments ex) {
-                _console.Write(ex.Message);
-            }
-            catch (TargetInvocationException ex) {
-                WriteInnerException(ex.InnerException);
-            }
             catch (Exception ex) {
-                WriteInnerException(ex);
+                WriteException(ex);
             }
-            finally {
-                _console.NewLine();
+        }
+        private void WriteException(Exception exception)
+        {
+            if (exception is AggregateException) {
+                WriteException(((AggregateException)exception).InnerException);
+                return;
+            }
+
+            if (exception is ErrorOccuredOnRemoteClientException) {
+                var remoteException = (ErrorOccuredOnRemoteClientException) exception;
+                _console.WriteLineError("An unexpected exception occurred on the remote client.");
+#if DEBUG
+                _console.WriteLineError(remoteException.FullMessage);
+#else
+                _console.WriteLineError(remoteException.Message);
+#endif
+            }
+            else {
+                _console.WriteLineError("An unexpected exception occurred during the command process.");
+#if DEBUG
+                _console.WriteLineError(exception.StackTrace);
+#else
+                _console.WriteLineError(exception.Message);
+#endif
             }
         }
         private void WhileReadingCommands(Action<string[]> action)
@@ -64,15 +80,6 @@ namespace LinkUs.CommandLine
                     var commandArguments = command.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     action(commandArguments);
                 }
-            }
-        }
-        private void WriteInnerException(Exception exception)
-        {
-            if (exception is AggregateException) {
-                WriteInnerException(((AggregateException) exception).InnerException);
-            }
-            else {
-                _console.WriteLineError(exception.ToString());
             }
         }
     }

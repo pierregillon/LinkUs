@@ -6,26 +6,26 @@ namespace LinkUs.Core.Commands
 {
     public class ErrorMessage
     {
-        public string Error { get; set; }
+        private static readonly string Separator = "----- End of exception ----- " + Environment.NewLine;
+
+        public string Message { get; set; }
+        public string FullError { get; set; }
 
         public ErrorMessage() { }
-        public ErrorMessage(string error)
-        {
-            Error = error;
-        }
         public ErrorMessage(Exception exception)
         {
-            Error = GetMessages(exception);
+            Message = exception.Message;
+            FullError = BuildInlineError(exception);
         }
 
-        private string GetMessages(Exception exception)
+        private static string BuildInlineError(Exception exception)
         {
             var errors = new List<Exception>();
             while (exception != null) {
                 errors.Add(exception);
                 exception = exception.InnerException;
             }
-            return string.Join(Environment.NewLine, errors.Select(x=>x.Message));
+            return string.Join(Separator, errors.Select(x=>x.ToString()));
         }
     }
 }

@@ -72,7 +72,7 @@
     <Compile Include="Verbs\ListModulesCommandLine.cs" />
     <Compile Include="Handlers\PingCommandLineHandler.cs" />
     <Compile Include="Verbs\ClientTargettedCommandLine.cs" />
-    <Compile Include="ModuleIntegration\RemoteShell\CursorPosition.cs" />
+    <Compile Include="ConsoleLib\CursorPosition.cs" />
     <Compile Include="Handlers\ModuleCommandHandler.cs" />
     <Compile Include="Verbs\LoadModuleCommandLine.cs" />
     <Compile Include="Options.cs" />

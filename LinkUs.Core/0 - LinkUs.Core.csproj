@@ -49,6 +49,7 @@
     <Compile Include="Commands\CommandSender.cs" />
     <Compile Include="Commands\CommandStream.cs" />
     <Compile Include="Commands\CommandSubscription.cs" />
+    <Compile Include="Commands\ErrorOccuredOnRemoteClientException.cs" />
     <Compile Include="Connection\ArrayExtensions.cs" />
     <Compile Include="Connection\ByteArraySlice.cs" />
     <Compile Include="Connection\Connector.cs" />

@@ -52,7 +52,7 @@ namespace LinkUs.CommandLine
             var handlerContract = typeof(ICommandLineHandler<>).MakeGenericType(commandLineType);
             var handler = _container.GetInstance(handlerContract);
             var handleMethod = GetHandleMethod(handlerContract, commandLineType);
-            var task = (Task)handleMethod.Invoke(handler, new[] {commandLine});
+            var task = (Task) handleMethod.Invoke(handler, new[] { commandLine });
             return task;
         }
         private static MethodInfo GetHandleMethod(Type handlerType, Type commandLineType)

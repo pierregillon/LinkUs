@@ -52,6 +52,9 @@
     <Compile Include="..\LinkUs.Core\Commands\ErrorMessage.cs">
       <Link>LinkUs.Core\Commands\ErrorMessage.cs</Link>
     </Compile>
+    <Compile Include="..\LinkUs.Core\Commands\ErrorOccuredOnRemoteClientException.cs">
+      <Link>LinkUs.Core\Commands\ErrorOccuredOnRemoteClientException.cs</Link>
+    </Compile>
     <Compile Include="..\LinkUs.Core\Commands\ExecuteCommandTimeoutException.cs">
       <Link>LinkUs.Core\Commands\ExecuteCommandTimeoutException.cs</Link>
     </Compile>

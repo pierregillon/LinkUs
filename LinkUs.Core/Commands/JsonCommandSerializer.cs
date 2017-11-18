@@ -27,7 +27,7 @@ namespace LinkUs.Core.Commands
                 var info = SimpleJson.DeserializeObject<CommandDescriptor>(json);
                 if (info.CommandName == typeof(ErrorMessage).Name) {
                     var errorMessage = SimpleJson.DeserializeObject<ErrorMessage>(json);
-                    throw new Exception(errorMessage.Error);
+                    throw new ErrorOccuredOnRemoteClientException(errorMessage.Message, errorMessage.FullError);
                 }
                 return SimpleJson.DeserializeObject(json, type);
             }
