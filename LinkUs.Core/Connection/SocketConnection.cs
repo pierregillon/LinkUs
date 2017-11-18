@@ -7,7 +7,7 @@ namespace LinkUs.Core.Connection
     {
         private readonly SocketAsyncOperationPool _operationPool;
         private readonly Socket _socket;
-        
+
         public event Action<byte[]> DataReceived;
         public event Action<int> DataSent;
         public event Action Closed;
@@ -43,7 +43,8 @@ namespace LinkUs.Core.Connection
         }
         private void EndReceiveOperation(SocketAsyncOperation operation)
         {
-            if (operation.SocketError == SocketError.ConnectionReset) {
+            if (operation.SocketError == SocketError.ConnectionReset ||
+                operation.SocketError == SocketError.OperationAborted) {
                 CloseSocket(operation.AcceptSocket);
                 RecycleOperation(operation);
                 return;

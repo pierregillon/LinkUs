@@ -21,3 +21,5 @@
 * Modify list-modules to set target as not mandatory. If no target, list the modules available from commandline.
 * Check module install command ? get Module
 * display client id in color to be visually better (dark red)
+* generic config ini reading with int.parse() automatically
+* close connection after each command

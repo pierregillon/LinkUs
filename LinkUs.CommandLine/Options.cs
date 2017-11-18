@@ -30,5 +30,8 @@ namespace LinkUs.CommandLine
 
         [VerbOption("download", HelpText = "Download a file from remote client.")]
         public DownloadFileCommandLine DownloadFile { get; set; }
+
+        [VerbOption("config", HelpText = "Configure options for the lkus command line.")]
+        public ConfigCommandLine Config { get; set; }
     }
 }

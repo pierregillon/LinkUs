@@ -1,6 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using CommandLine;
 using LinkUs.CommandLine.ConsoleLib;
+using LinkUs.CommandLine.Handlers;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Packages;
@@ -14,10 +16,6 @@ namespace LinkUs.CommandLine
         static void Main(string[] arguments)
         {
             var container = BuildContainer();
-            var connection = ConnectToServer(container);
-            container.Inject(typeof(IConnection), connection);
-            var commandDispatcher = container.GetInstance<CommandSender>();
-            commandDispatcher.ExecuteAsync(new SetStatus { Status = "Consumer" });
 
             try {
                 var commandReader = container.GetInstance<ConsoleCommandReader>();
@@ -29,17 +27,8 @@ namespace LinkUs.CommandLine
                 }
             }
             finally {
-                connection.Close();
+                //connection.Close();
             }
-        }
-
-        private static IConnection ConnectToServer(IContainer container)
-        {
-            var host = "127.0.0.1";
-            var port = 9000;
-            var connector = container.GetInstance<Connector>();
-            var connection = connector.Connect(host, port);
-            return connection;
         }
 
 
@@ -53,6 +42,7 @@ namespace LinkUs.CommandLine
                 configuration.For<IConsole>().Use<WindowsConsole>();
                 configuration.For<ICommandSerializer>().Use<JsonCommandSerializer>();
                 configuration.For<Parser>().Use(Parser.Default);
+                configuration.For<GlobalParameters>().Singleton();
                 configuration
                     .For<SocketAsyncOperationPool>()
                     .Use(new SocketAsyncOperationPool(10))
