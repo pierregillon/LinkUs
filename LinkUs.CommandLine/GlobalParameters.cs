@@ -64,5 +64,10 @@ namespace LinkUs.CommandLine
             // for .net < 4 : System.Environment.GetEnvironmentVariable("USERPROFILE");
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), FILE_NAME);
         }
+        public void Edit()
+        {
+            var process = System.Diagnostics.Process.Start(_filePath);
+            process?.WaitForExit();
+        }
     }
 }

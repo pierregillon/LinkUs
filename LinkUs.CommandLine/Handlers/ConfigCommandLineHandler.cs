@@ -25,6 +25,9 @@ namespace LinkUs.CommandLine.Handlers
                 }
                 _parameters.Save();
             }
+            else {
+                _parameters.Edit();
+            }
 
             return Task.Delay(0);
         }
