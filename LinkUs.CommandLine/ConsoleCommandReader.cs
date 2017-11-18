@@ -43,6 +43,7 @@ namespace LinkUs.CommandLine
                     }
                     var commandArguments = command.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     action(commandArguments);
+                    _console.NewLine();
                 }
             }
         }

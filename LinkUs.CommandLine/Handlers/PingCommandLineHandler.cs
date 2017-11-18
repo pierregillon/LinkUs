@@ -28,7 +28,6 @@ namespace LinkUs.CommandLine.Handlers
                     Thread.Sleep(commandLine.DelayMs);
                 }
             }
-            _console.NewLine();
         }
     }
 }
