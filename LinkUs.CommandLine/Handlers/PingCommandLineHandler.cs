@@ -9,9 +9,9 @@ namespace LinkUs.CommandLine.Handlers
     public class PingCommandLineHandler : ICommandLineHandler<PingCommandLine>
     {
         private readonly IConsole _console;
-        private readonly Server _server;
+        private readonly ModuleIntegration.Default.Server _server;
 
-        public PingCommandLineHandler(IConsole console, Server server)
+        public PingCommandLineHandler(IConsole console, ModuleIntegration.Default.Server server)
         {
             _console = console;
             _server = server;

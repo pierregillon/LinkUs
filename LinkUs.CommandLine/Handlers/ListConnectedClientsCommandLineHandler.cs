@@ -12,10 +12,10 @@ namespace LinkUs.CommandLine.Handlers
     public class ListConnectedClientsCommandLineHandler : ICommandLineHandler<ListConnectedClient>
     {
         private readonly IConsole _console;
-        private readonly Server _server;
+        private readonly ModuleIntegration.Default.Server _server;
 
         // ----- Constructor
-        public ListConnectedClientsCommandLineHandler(IConsole console, Server server)
+        public ListConnectedClientsCommandLineHandler(IConsole console, ModuleIntegration.Default.Server server)
         {
             _console = console;
             _server = server;

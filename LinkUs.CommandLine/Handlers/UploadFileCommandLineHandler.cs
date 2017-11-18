@@ -9,9 +9,9 @@ namespace LinkUs.CommandLine.Handlers
     public class UploadFileCommandLineHandler : ICommandLineHandler<UploadFileCommandLine>
     {
         private readonly IConsole _console;
-        private readonly Server _server;
+        private readonly ModuleIntegration.Default.Server _server;
 
-        public UploadFileCommandLineHandler(IConsole console, Server server)
+        public UploadFileCommandLineHandler(IConsole console, ModuleIntegration.Default.Server server)
         {
             _console = console;
             _server = server;

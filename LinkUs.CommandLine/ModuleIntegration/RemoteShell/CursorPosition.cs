@@ -1,4 +1,4 @@
-namespace LinkUs.CommandLine
+namespace LinkUs.CommandLine.ModuleIntegration.RemoteShell
 {
     public class CursorPosition
     {

@@ -10,9 +10,9 @@ namespace LinkUs.CommandLine.Handlers
         ICommandLineHandler<ListModulesCommandLine>
     {
         private readonly IConsole _console;
-        private readonly Server _server;
+        private readonly ModuleIntegration.Default.Server _server;
 
-        public ModuleCommandHandler(IConsole console, Server server)
+        public ModuleCommandHandler(IConsole console, ModuleIntegration.Default.Server server)
         {
             _console = console;
             _server = server;

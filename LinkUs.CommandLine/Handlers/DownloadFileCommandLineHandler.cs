@@ -9,9 +9,9 @@ namespace LinkUs.CommandLine.Handlers
     public class DownloadFileCommandLineHandler : ICommandLineHandler<DownloadFileCommandLine>
     {
         private readonly IConsole _console;
-        private readonly Server _server;
+        private readonly ModuleIntegration.Default.Server _server;
 
-        public DownloadFileCommandLineHandler(IConsole console, Server server)
+        public DownloadFileCommandLineHandler(IConsole console, ModuleIntegration.Default.Server server)
         {
             _console = console;
             _server = server;

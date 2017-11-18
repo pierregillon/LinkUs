@@ -1,14 +1,11 @@
 using System;
 using System.Linq;
-using LinkUs.Core;
 using LinkUs.Core.Commands;
-using LinkUs.Core.Connection;
-using LinkUs.Core.Json;
 using LinkUs.Core.Packages;
 using LinkUs.Modules.RemoteShell.Commands;
 using LinkUs.Modules.RemoteShell.Events;
 
-namespace LinkUs.CommandLine
+namespace LinkUs.CommandLine.ModuleIntegration.RemoteShell
 {
     public class ConsoleRemoteShellController
     {
@@ -28,10 +25,10 @@ namespace LinkUs.CommandLine
         }
 
         // ----- Public methods
-        public void SendInputs(ClientId target)
+        public void StartRemoteShellSession(ClientId target, string command)
         {
-            _processId = StartRemoteShell(target);
-            _remoteShellIsActive = true;
+            command = command ?? AskUserForCommandToExecute();
+            _processId = StartRemoteShell(target, command);
             _lastCursorPosition = _lastCursorPosition = new CursorPosition {
                 Left = Console.CursorLeft,
                 Top = Console.CursorTop
@@ -73,13 +70,17 @@ namespace LinkUs.CommandLine
         }
 
         // ----- Internal logic
-        private int StartRemoteShell(ClientId target)
+        private string AskUserForCommandToExecute()
         {
             Console.Write("Command to execute on remote client > ");
-            var commandInput = Console.ReadLine();
+            return Console.ReadLine();
+        }
+        private int StartRemoteShell(ClientId target, string commandInput)
+        {
             var command = BuildStartShellCommand(commandInput);
             var response = _commandSender.ExecuteAsync<StartShell, ShellStarted>(command, target).Result;
             Console.WriteLine($"Shell started on remote host {target}, pid: {response.ProcessId}.");
+            _remoteShellIsActive = true;
             return response.ProcessId;
         }
         private void ReadConsoleInputWhileShellActive(ClientId target)
@@ -104,7 +105,7 @@ namespace LinkUs.CommandLine
         }
         private static StartShell BuildStartShellCommand(string commandInput)
         {
-            var arguments = commandInput.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+            var arguments = commandInput.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             var commandLine = arguments.First();
             return new StartShell {
                 CommandLine = commandLine,

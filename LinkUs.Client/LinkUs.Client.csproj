@@ -106,6 +106,9 @@
     <Compile Include="..\LinkUs.Core\Ioc.cs">
       <Link>LinkUs.Core\Ioc.cs</Link>
     </Compile>
+    <Compile Include="..\LinkUs.Core\Json\SimpleJson.cs">
+      <Link>LinkUs.Core\Json\SimpleJson.cs</Link>
+    </Compile>
     <Compile Include="..\LinkUs.Core\Packages\ClientId.cs">
       <Link>LinkUs.Core\Packages\ClientId.cs</Link>
     </Compile>
@@ -242,7 +245,6 @@
       <Link>LinkUs.Modules.Default\PingOk.cs</Link>
     </Compile>
     <Compile Include="DedicatedBus.cs" />
-    <Compile Include="LinkUs.Core\Json\SimpleJson.cs" />
     <Compile Include="PackageProcessor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

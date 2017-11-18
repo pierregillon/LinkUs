@@ -6,7 +6,7 @@ using LinkUs.Commands;
 using LinkUs.Core.Commands;
 using LinkUs.Responses;
 
-namespace LinkUs.CommandLine
+namespace LinkUs.CommandLine.ModuleIntegration.Default
 {
     public class Server
     {

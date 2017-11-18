@@ -1,18 +1,15 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using LinkUs.CommandLine.FileTransferts;
-using LinkUs.Core;
 using LinkUs.Core.Commands;
-using LinkUs.Core.Connection;
 using LinkUs.Core.Packages;
 using LinkUs.Modules.Default.Modules;
 using LinkUs.Modules.Default.Modules.Commands;
 using LinkUs.Modules.Default.PingLib;
 using LinkUs.Responses;
 
-namespace LinkUs.CommandLine
+namespace LinkUs.CommandLine.ModuleIntegration.Default
 {
     public class RemoteClient
     {
