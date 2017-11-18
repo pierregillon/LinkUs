@@ -46,6 +46,9 @@
     <Compile Include="..\LinkUs.Core\Commands\CommandStream.cs">
       <Link>LinkUs.Core\Commands\CommandStream.cs</Link>
     </Compile>
+    <Compile Include="..\LinkUs.Core\Commands\CommandSubscription.cs">
+      <Link>LinkUs.Core\Commands\CommandSubscription.cs</Link>
+    </Compile>
     <Compile Include="..\LinkUs.Core\Commands\ErrorMessage.cs">
       <Link>LinkUs.Core\Commands\ErrorMessage.cs</Link>
     </Compile>

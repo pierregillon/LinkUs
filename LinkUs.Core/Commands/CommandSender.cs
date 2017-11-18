@@ -49,7 +49,7 @@ namespace LinkUs.Core.Commands
             var commandPackage = new Package(source, destination, _serializer.Serialize(command));
             var completionSource = new TaskCompletionSource<TResponse>();
 
-            EventHandler <Package> packageReceivedAction = (sender, responsePackage) => {
+            EventHandler<Package> packageReceivedAction = (sender, responsePackage) => {
                 if (Equals(responsePackage.TransactionId, commandPackage.TransactionId)) {
                     try {
                         var response = _serializer.Deserialize<TResponse>(responsePackage.Content);
@@ -138,23 +138,42 @@ namespace LinkUs.Core.Commands
         {
             return new CommandStream<T>(_packageTransmitter, _serializer);
         }
-    }
-
-    public sealed class CancellationTokenTaskSource<T> : IDisposable
-    {
-        private readonly IDisposable _registration;
-
-        public CancellationTokenTaskSource(CancellationToken cancellationToken)
+        public CommandSubscription Subscribe<T>(Action<T> callback, Predicate<T> predicate)
         {
-            var tcs = new TaskCompletionSource<T>();
-            _registration = cancellationToken.Register(() => tcs.TrySetCanceled(), false);
-            Task = tcs.Task;
+            EventHandler<Package> subscription = (sender, package) => {
+                if (_serializer.IsPrimitifMessage(package.Content)) {
+                    return;
+                }
+                var messageDescriptor = _serializer.Deserialize<CommandDescriptor>(package.Content);
+                if (messageDescriptor.CommandName == typeof(T).Name) {
+                    var response = _serializer.Deserialize<T>(package.Content);
+                    if (predicate(response)) {
+                        callback(response);
+                    }
+                }
+            };
+
+            _packageTransmitter.PackageReceived += subscription;
+
+            return new CommandSubscription(_packageTransmitter, subscription);
         }
 
-        public Task<T> Task { get; }
-        public void Dispose()
+        public sealed class CancellationTokenTaskSource<T> : IDisposable
         {
-            _registration?.Dispose();
+            private readonly IDisposable _registration;
+
+            public CancellationTokenTaskSource(CancellationToken cancellationToken)
+            {
+                var tcs = new TaskCompletionSource<T>();
+                _registration = cancellationToken.Register(() => tcs.TrySetCanceled(), false);
+                Task = tcs.Task;
+            }
+
+            public Task<T> Task { get; }
+            public void Dispose()
+            {
+                _registration?.Dispose();
+            }
         }
     }
 }

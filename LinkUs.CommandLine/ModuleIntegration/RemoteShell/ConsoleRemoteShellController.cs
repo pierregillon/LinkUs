@@ -9,19 +9,15 @@ namespace LinkUs.CommandLine.ModuleIntegration.RemoteShell
 {
     public class ConsoleRemoteShellController
     {
-        private readonly PackageTransmitter _packageTransmitter;
         private readonly ICommandSender _commandSender;
-        private readonly ICommandSerializer _serializer;
         private bool _remoteShellIsActive;
         private CursorPosition _lastCursorPosition;
         private int _processId;
 
         // ----- Constructor
-        public ConsoleRemoteShellController(ICommandSender commandSender, PackageTransmitter package, ICommandSerializer serializer)
+        public ConsoleRemoteShellController(ICommandSender commandSender)
         {
-            _packageTransmitter = package;
             _commandSender = commandSender;
-            _serializer = serializer;
         }
 
         // ----- Public methods
@@ -33,40 +29,32 @@ namespace LinkUs.CommandLine.ModuleIntegration.RemoteShell
                 Left = Console.CursorLeft,
                 Top = Console.CursorTop
             };
-            _packageTransmitter.PackageReceived += PackageTransmitterOnPackageReceived;
+
+            var outputReceivedSubscription = _commandSender.Subscribe<ShellOutputReceived>(OnShellOutputReceived, response => response.ProcessId == _processId);
+            var shellEndedSubscription = _commandSender.Subscribe<ShellEnded>(OnShellEndedReceived, response => response.ProcessId == _processId);
 
             try {
                 ReadConsoleInputWhileShellActive(target);
             }
             finally {
-                _packageTransmitter.PackageReceived -= PackageTransmitterOnPackageReceived;
+                outputReceivedSubscription.Dispose();
+                shellEndedSubscription.Dispose();
             }
         }
 
         // ----- Callbacks
-        private void PackageTransmitterOnPackageReceived(object sender, Package package)
+        private void OnShellOutputReceived(ShellOutputReceived @event)
         {
-            try {
-                var command = _serializer.Deserialize<CommandDescriptor>(package.Content);
-                if (command.CommandName == typeof(ShellOutputReceived).Name) {
-                    var response = _serializer.Deserialize<ShellOutputReceived>(package.Content);
-                    if (response.ProcessId != _processId) return;
-                    Console.Write(response.Output);
-                    _lastCursorPosition = new CursorPosition {
-                        Left = Console.CursorLeft,
-                        Top = Console.CursorTop
-                    };
-                }
-                else if (command.CommandName == typeof(ShellEnded).Name) {
-                    var response = _serializer.Deserialize<ShellEnded>(package.Content);
-                    if (response.ProcessId != _processId) return;
-                    Console.Write($"Process ended, exit code: {response.ExitCode}. Press any key to continue.");
-                    _remoteShellIsActive = false;
-                }
-            }
-            catch (Exception ex) {
-                Console.WriteLine(ex);
-            }
+            Console.Write(@event.Output);
+            _lastCursorPosition = new CursorPosition {
+                Left = Console.CursorLeft,
+                Top = Console.CursorTop
+            };
+        }
+        private void OnShellEndedReceived(ShellEnded @event)
+        {
+            Console.Write($"Process ended, exit code: {@event.ExitCode}. Press any key to continue.");
+            _remoteShellIsActive = false;
         }
 
         // ----- Internal logic
@@ -96,11 +84,11 @@ namespace LinkUs.CommandLine.ModuleIntegration.RemoteShell
         private void ProcessInput(ClientId target, string input)
         {
             if (input == "kill" + Environment.NewLine) {
-                SendObject(target, new KillShell(_processId));
+                _commandSender.ExecuteAsync(new KillShell(_processId), target);
             }
             else {
                 Console.SetCursorPosition(_lastCursorPosition.Left, _lastCursorPosition.Top);
-                SendObject(target, new SendInputToShell(input, _processId));
+                _commandSender.ExecuteAsync(new SendInputToShell(input, _processId), target);
             }
         }
         private static StartShell BuildStartShellCommand(string commandInput)
@@ -111,11 +99,6 @@ namespace LinkUs.CommandLine.ModuleIntegration.RemoteShell
                 CommandLine = commandLine,
                 Arguments = arguments.Skip(1).OfType<object>().ToList()
             };
-        }
-        private void SendObject(ClientId target, object command)
-        {
-            var package = new Package(ClientId.Unknown, target, _serializer.Serialize(command));
-            _packageTransmitter.Send(package);
         }
     }
 }

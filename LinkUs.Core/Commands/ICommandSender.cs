@@ -12,5 +12,6 @@ namespace LinkUs.Core.Commands
         Task<T> Receive<T>(ClientId @from, Predicate<T> predicate, CancellationToken token);
         void AnswerAsync<T>(T message, Package package);
         CommandStream<T> BuildStream<T>(Predicate<T> predicate);
+        CommandSubscription Subscribe<T>(Action<T> callback, Predicate<T> predicate);
     }
 }
