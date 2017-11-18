@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using LinkUs.CommandLine.FileTransferts;
+using LinkUs.CommandLine.ModuleIntegration.RemoteShell;
 
 namespace LinkUs.CommandLine.ConsoleLib
 {
@@ -18,5 +19,8 @@ namespace LinkUs.CommandLine.ConsoleLib
         void WriteProgress(Task task, IProgressable progressable);
         void CleanLine();
         string ReadLine();
+        CursorPosition GetCursorPosition();
+        void SetCursorPosition(CursorPosition cursorPosition);
+        int Read(char[] buffer, int offset, int length);
     }
 }

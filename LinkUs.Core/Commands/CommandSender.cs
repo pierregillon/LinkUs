@@ -138,7 +138,7 @@ namespace LinkUs.Core.Commands
         {
             return new CommandStream<T>(_packageTransmitter, _serializer);
         }
-        public CommandSubscription Subscribe<T>(Action<T> callback, Predicate<T> predicate)
+        public CommandSubscription Subscribe<T>(Action<T> callback, Predicate<T> predicate=null)
         {
             EventHandler<Package> subscription = (sender, package) => {
                 if (_serializer.IsPrimitifMessage(package.Content)) {
@@ -147,7 +147,7 @@ namespace LinkUs.Core.Commands
                 var messageDescriptor = _serializer.Deserialize<CommandDescriptor>(package.Content);
                 if (messageDescriptor.CommandName == typeof(T).Name) {
                     var response = _serializer.Deserialize<T>(package.Content);
-                    if (predicate(response)) {
+                    if (predicate == null || predicate(response)) {
                         callback(response);
                     }
                 }

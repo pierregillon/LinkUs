@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Packages;
 using LinkUs.Modules.RemoteShell.Commands;
@@ -9,32 +9,28 @@ namespace LinkUs.CommandLine.ModuleIntegration.RemoteShell
 {
     public class ConsoleRemoteShellController
     {
+        private readonly IConsole _console;
         private readonly ICommandSender _commandSender;
         private bool _remoteShellIsActive;
         private CursorPosition _lastCursorPosition;
-        private int _processId;
 
         // ----- Constructor
-        public ConsoleRemoteShellController(ICommandSender commandSender)
+        public ConsoleRemoteShellController(IConsole console, ICommandSender commandSender)
         {
+            _console = console;
             _commandSender = commandSender;
         }
 
         // ----- Public methods
-        public void StartRemoteShellSession(ClientId target, string command)
+        public void ProcessRemoteShellSession(ClientId target, string command)
         {
             command = command ?? AskUserForCommandToExecute();
-            _processId = StartRemoteShell(target, command);
-            _lastCursorPosition = _lastCursorPosition = new CursorPosition {
-                Left = Console.CursorLeft,
-                Top = Console.CursorTop
-            };
-
-            var outputReceivedSubscription = _commandSender.Subscribe<ShellOutputReceived>(OnShellOutputReceived, response => response.ProcessId == _processId);
-            var shellEndedSubscription = _commandSender.Subscribe<ShellEnded>(OnShellEndedReceived, response => response.ProcessId == _processId);
+            var processId = StartRemoteShell(target, command);
+            var outputReceivedSubscription = _commandSender.Subscribe<ShellOutputReceived>(OnShellOutputReceived, response => response.ProcessId == processId);
+            var shellEndedSubscription = _commandSender.Subscribe<ShellEnded>(OnShellEndedReceived, response => response.ProcessId == processId);
 
             try {
-                ReadConsoleInputWhileShellActive(target);
+                ReadConsoleInputWhileShellActive(target, processId);
             }
             finally {
                 outputReceivedSubscription.Dispose();
@@ -45,60 +41,51 @@ namespace LinkUs.CommandLine.ModuleIntegration.RemoteShell
         // ----- Callbacks
         private void OnShellOutputReceived(ShellOutputReceived @event)
         {
-            Console.Write(@event.Output);
-            _lastCursorPosition = new CursorPosition {
-                Left = Console.CursorLeft,
-                Top = Console.CursorTop
-            };
+            if (string.IsNullOrEmpty(@event.Output) == false) {
+                _console.Write(@event.Output);
+                _lastCursorPosition = _console.GetCursorPosition();
+            }
         }
         private void OnShellEndedReceived(ShellEnded @event)
         {
-            Console.Write($"Process ended, exit code: {@event.ExitCode}. Press any key to continue.");
+            _console.Write($"Process ended, exit code: {@event.ExitCode}. Press any key to continue.");
             _remoteShellIsActive = false;
         }
 
         // ----- Internal logic
         private string AskUserForCommandToExecute()
         {
-            Console.Write("Command to execute on remote client > ");
-            return Console.ReadLine();
+            _console.Write("Command to execute on remote client > ");
+            return _console.ReadLine();
         }
         private int StartRemoteShell(ClientId target, string commandInput)
         {
-            var command = BuildStartShellCommand(commandInput);
+            var command = StartShell.Parse(commandInput);
             var response = _commandSender.ExecuteAsync<StartShell, ShellStarted>(command, target).Result;
-            Console.WriteLine($"Shell started on remote host {target}, pid: {response.ProcessId}.");
+            _console.WriteLine($"Shell started on remote host {target}, pid: {response.ProcessId}.");
             _remoteShellIsActive = true;
+            _lastCursorPosition = _console.GetCursorPosition();
             return response.ProcessId;
         }
-        private void ReadConsoleInputWhileShellActive(ClientId target)
+        private void ReadConsoleInputWhileShellActive(ClientId target, int processId)
         {
             var buffer = new char[1024];
             while (_remoteShellIsActive) {
-                var bytesReadCount = Console.In.Read(buffer, 0, buffer.Length);
+                var bytesReadCount = _console.Read(buffer, 0, buffer.Length);
                 if (_remoteShellIsActive && bytesReadCount > 0) {
-                    ProcessInput(target, new string(buffer, 0, bytesReadCount));
+                    ProcessInput(target, processId, new string(buffer, 0, bytesReadCount));
                 }
             }
         }
-        private void ProcessInput(ClientId target, string input)
+        private void ProcessInput(ClientId target, int processId, string input)
         {
             if (input == "kill" + Environment.NewLine) {
-                _commandSender.ExecuteAsync(new KillShell(_processId), target);
+                _commandSender.ExecuteAsync(new KillShell(processId), target);
             }
             else {
-                Console.SetCursorPosition(_lastCursorPosition.Left, _lastCursorPosition.Top);
-                _commandSender.ExecuteAsync(new SendInputToShell(input, _processId), target);
+                _console.SetCursorPosition(_lastCursorPosition);
+                _commandSender.ExecuteAsync(new SendInputToShell(input, processId), target);
             }
-        }
-        private static StartShell BuildStartShellCommand(string commandInput)
-        {
-            var arguments = commandInput.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            var commandLine = arguments.First();
-            return new StartShell {
-                CommandLine = commandLine,
-                Arguments = arguments.Skip(1).OfType<object>().ToList()
-            };
         }
     }
 }

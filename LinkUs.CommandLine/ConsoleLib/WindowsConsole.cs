@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using LinkUs.CommandLine.FileTransferts;
 using LinkUs.CommandLine.Handlers;
+using LinkUs.CommandLine.ModuleIntegration.RemoteShell;
 
 namespace LinkUs.CommandLine.ConsoleLib
 {
@@ -104,6 +105,19 @@ namespace LinkUs.CommandLine.ConsoleLib
         public string ReadLine()
         {
             return Console.ReadLine();
+        }
+        public CursorPosition GetCursorPosition()
+        {
+            return new CursorPosition(Console.CursorLeft, Console.CursorTop);
+        }
+        public void SetCursorPosition(CursorPosition cursorPosition)
+        {
+            Console.CursorLeft = cursorPosition.Left;
+            Console.CursorTop = cursorPosition.Top;
+        }
+        public int Read(char[] buffer, int offset, int length)
+        {
+            return Console.In.Read(buffer, offset, length);
         }
 
         // ----- Utils
