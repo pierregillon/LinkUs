@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommandLine;
 using CommandLine.Text;
 using LinkUs.CommandLine.ConsoleLib;
+using LinkUs.Core.Commands;
 using StructureMap;
 
 namespace LinkUs.CommandLine
@@ -24,15 +25,19 @@ namespace LinkUs.CommandLine
         }
 
         // ----- Public methods
-        public Task Process(string[] arguments)
+        public async Task Process(string[] arguments)
         {
             if (arguments == null) throw new ArgumentNullException(nameof(arguments));
 
-            object commandLine;
-            if (TryParseArguments(arguments, out commandLine)) {
-                return ExecuteCommand(commandLine);
+            try {
+                object commandLine;
+                if (TryParseArguments(arguments, out commandLine)) {
+                    await ExecuteCommand(commandLine);
+                }
             }
-            return Task.Delay(0);
+            catch (Exception exception) {
+                WriteException(exception);
+            }
         }
         private bool TryParseArguments(string[] arguments, out object commandLine)
         {
@@ -52,8 +57,6 @@ namespace LinkUs.CommandLine
                 return true;
             }
         }
-
-        // ----- Internal logic
         private Task ExecuteCommand(object commandLine)
         {
             var commandLineType = commandLine.GetType();
@@ -63,6 +66,33 @@ namespace LinkUs.CommandLine
             var task = (Task) handleMethod.Invoke(handler, new[] { commandLine });
             return task;
         }
+        private void WriteException(Exception exception)
+        {
+            if (exception is AggregateException) {
+                WriteException(((AggregateException) exception).InnerException);
+                return;
+            }
+
+            if (exception is ErrorOccuredOnRemoteClientException) {
+                var remoteException = (ErrorOccuredOnRemoteClientException) exception;
+                _console.WriteLineError("An unexpected exception occurred on the remote client.");
+#if DEBUG
+                _console.WriteLineError(remoteException.FullMessage);
+#else
+                _console.WriteLineError(remoteException.Message);
+#endif
+            }
+            else {
+                _console.WriteLineError("An unexpected exception occurred during the command process.");
+#if DEBUG
+                _console.WriteLineError(exception.ToString());
+#else
+                _console.WriteLineError(exception.Message);
+#endif
+            }
+        }
+
+        // ----- Internal logic
         private static MethodInfo GetHandleMethod(Type handlerType, Type commandLineType)
         {
             return handlerType

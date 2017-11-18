@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Linq;
-using System.Reflection;
 using LinkUs.CommandLine.ConsoleLib;
-using LinkUs.Core.Commands;
-using LinkUs.Core.Connection;
-using LinkUs.Modules.Default.ClientInformation;
-using StructureMap;
 
 namespace LinkUs.CommandLine
 {
@@ -36,37 +30,7 @@ namespace LinkUs.CommandLine
         // ----- Internal logic
         private void ProcessCommand(string[] arguments)
         {
-            try {
-                _commandLineProcessor.Process(arguments).Wait();
-            }
-            catch (Exception ex) {
-                WriteException(ex);
-            }
-        }
-        private void WriteException(Exception exception)
-        {
-            if (exception is AggregateException) {
-                WriteException(((AggregateException)exception).InnerException);
-                return;
-            }
-
-            if (exception is ErrorOccuredOnRemoteClientException) {
-                var remoteException = (ErrorOccuredOnRemoteClientException) exception;
-                _console.WriteLineError("An unexpected exception occurred on the remote client.");
-#if DEBUG
-                _console.WriteLineError(remoteException.FullMessage);
-#else
-                _console.WriteLineError(remoteException.Message);
-#endif
-            }
-            else {
-                _console.WriteLineError("An unexpected exception occurred during the command process.");
-#if DEBUG
-                _console.WriteLineError(exception.ToString());
-#else
-                _console.WriteLineError(exception.Message);
-#endif
-            }
+            _commandLineProcessor.Process(arguments).Wait();
         }
         private void WhileReadingCommands(Action<string[]> action)
         {
