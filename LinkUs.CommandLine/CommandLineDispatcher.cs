@@ -9,28 +9,24 @@ using StructureMap;
 
 namespace LinkUs.CommandLine
 {
-    public class CommandLineProcessor : ICommandLineProcessor
+    public class CommandLineDispatcher : ICommandLineDispatcher
     {
         private readonly IContainer _container;
 
         // ----- Constructor
-        public CommandLineProcessor(IContainer container)
+        public CommandLineDispatcher(IContainer container)
         {
             _container = container;
         }
 
         // ----- Public methods
-        public async Task Process(object commandLine)
-        {
-            await ExecuteCommand(commandLine);
-        }
-        private Task ExecuteCommand(object commandLine)
+        public Task Dispatch(object commandLine)
         {
             var commandLineType = commandLine.GetType();
             var handlerContract = typeof(ICommandLineHandler<>).MakeGenericType(commandLineType);
             var handler = GetInstance(handlerContract);
             var handleMethod = GetHandleMethod(handlerContract, commandLineType);
-            var task = (Task) handleMethod.Invoke(handler, new[] { commandLine });
+            var task = (Task)handleMethod.Invoke(handler, new[] { commandLine });
             return task.ContinueWith(x => {
                 //var connection = _container.TryGetInstance<IConnection>();
                 //if (connection != null) {

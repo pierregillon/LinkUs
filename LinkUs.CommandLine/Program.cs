@@ -30,7 +30,7 @@ namespace LinkUs.CommandLine
                 configuration.For<IConnection>().Singleton();
                 configuration.For<PackageTransmitter>();
                 configuration.For<ICommandSender>().Use<CommandSender>();
-                configuration.For<ICommandLineProcessor>().Use<CommandLineProcessor>();
+                configuration.For<ICommandLineDispatcher>().Use<CommandLineDispatcher>();
                 configuration.For<ICommandLineParser>().Use<CommandLineParserLib>();
                 configuration.For<IConsole>().Use<WindowsConsole>();
                 configuration.For<ICommandSerializer>().Use<JsonCommandSerializer>();

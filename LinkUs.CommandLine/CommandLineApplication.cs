@@ -9,16 +9,16 @@ namespace LinkUs.CommandLine
     {
         private readonly IConsole _console;
         private readonly ICommandLineParser _parser;
-        private readonly ICommandLineProcessor _processor;
+        private readonly ICommandLineDispatcher _dispatcher;
 
         public CommandLineApplication(
             IConsole console,
             ICommandLineParser parser,
-            ICommandLineProcessor processor)
+            ICommandLineDispatcher dispatcher)
         {
             _console = console;
             _parser = parser;
-            _processor = processor;
+            _dispatcher = dispatcher;
         }
 
         public async Task Process(string[] arguments)
@@ -27,7 +27,7 @@ namespace LinkUs.CommandLine
 
             try {
                 var commandLine = _parser.Parse(arguments);
-                await _processor.Process(commandLine);
+                await _dispatcher.Dispatch(commandLine);
             }
             catch (ArgumentParseException ex) {
                 _console.WriteLine(ex.Message);
