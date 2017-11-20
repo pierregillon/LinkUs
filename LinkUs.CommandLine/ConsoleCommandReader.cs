@@ -6,15 +6,15 @@ namespace LinkUs.CommandLine
     public class ConsoleCommandReader
     {
         private readonly IConsole _console;
-        private readonly ICommandLineProcessor _commandLineProcessor;
+        private readonly CommandLineApplication _commandLineApplication;
 
         // ----- Constructors
         public ConsoleCommandReader(
             IConsole console,
-            ICommandLineProcessor commandLineProcessor)
+            CommandLineApplication commandLineApplication)
         {
             _console = console;
-            _commandLineProcessor = commandLineProcessor;
+            _commandLineApplication = commandLineApplication;
         }
 
         // ----- Public methods
@@ -30,7 +30,7 @@ namespace LinkUs.CommandLine
         // ----- Internal logic
         private void ProcessCommand(string[] arguments)
         {
-            _commandLineProcessor.Process(arguments).Wait();
+            _commandLineApplication.Process(arguments).Wait();
         }
         private void WhileReadingCommands(Action<string[]> action)
         {

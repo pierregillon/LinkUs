@@ -2,9 +2,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using CommandLine;
-using CommandLine.Text;
-using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
 using LinkUs.Modules.Default.ClientInformation;
@@ -15,49 +12,17 @@ namespace LinkUs.CommandLine
     public class CommandLineProcessor : ICommandLineProcessor
     {
         private readonly IContainer _container;
-        private readonly IConsole _console;
-        private readonly Parser _parser;
 
         // ----- Constructor
-        public CommandLineProcessor(IContainer container, IConsole console, Parser parser)
+        public CommandLineProcessor(IContainer container)
         {
             _container = container;
-            _console = console;
-            _parser = parser;
         }
 
         // ----- Public methods
-        public async Task Process(string[] arguments)
+        public async Task Process(object commandLine)
         {
-            if (arguments == null) throw new ArgumentNullException(nameof(arguments));
-
-            try {
-                object commandLine;
-                if (TryParseArguments(arguments, out commandLine)) {
-                    await ExecuteCommand(commandLine);
-                }
-            }
-            catch (Exception exception) {
-                WriteException(exception);
-            }
-        }
-        private bool TryParseArguments(string[] arguments, out object commandLine)
-        {
-            var options = new Options();
-            string verbName = null;
-            object commandLineIntance = null;
-            if (!_parser.ParseArguments(arguments, options, (verb, subOptions) => {
-                verbName = verb;
-                commandLineIntance = subOptions;
-            })) {
-                _console.WriteLine(HelpText.AutoBuild(options, verbName));
-                commandLine = null;
-                return false;
-            }
-            else {
-                commandLine = commandLineIntance;
-                return true;
-            }
+            await ExecuteCommand(commandLine);
         }
         private Task ExecuteCommand(object commandLine)
         {
@@ -88,31 +53,6 @@ namespace LinkUs.CommandLine
                     return GetInstance(handlerContract);
                 }
                 throw;
-            }
-        }
-        private void WriteException(Exception exception)
-        {
-            if (exception is AggregateException) {
-                WriteException(((AggregateException) exception).InnerException);
-                return;
-            }
-
-            if (exception is ErrorOccuredOnRemoteClientException) {
-                var remoteException = (ErrorOccuredOnRemoteClientException) exception;
-                _console.WriteLineError("An unexpected exception occurred on the remote client.");
-#if DEBUG
-                _console.WriteLineError(remoteException.FullMessage);
-#else
-                _console.WriteLineError(remoteException.Message);
-#endif
-            }
-            else {
-                _console.WriteLineError("An unexpected exception occurred during the command process.");
-#if DEBUG
-                _console.WriteLineError(exception.ToString());
-#else
-                _console.WriteLineError(exception.Message);
-#endif
             }
         }
 

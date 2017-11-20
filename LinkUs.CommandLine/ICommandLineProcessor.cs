@@ -4,6 +4,6 @@ namespace LinkUs.CommandLine
 {
     public interface ICommandLineProcessor
     {
-        Task Process(string[] arguments);
+        Task Process(object commandLine);
     }
 }

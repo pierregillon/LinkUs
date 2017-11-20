@@ -55,6 +55,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArgumentParseException.cs" />
+    <Compile Include="CommandLineApplication.cs" />
+    <Compile Include="CommandLineParserLib.cs" />
     <Compile Include="ConsoleCommandReader.cs" />
     <Compile Include="CommandLineProcessor.cs" />
     <Compile Include="ConsoleLib\WindowsConsole.cs" />
@@ -64,6 +67,7 @@
     <Compile Include="FileTransferts\IProgressable.cs" />
     <Compile Include="Handlers\ConfigCommandLineHandler.cs" />
     <Compile Include="GlobalParameters.cs" />
+    <Compile Include="ICommandLineParser.cs" />
     <Compile Include="Verbs\ConfigCommandLine.cs" />
     <Compile Include="Verbs\DownloadFileCommandLine.cs" />
     <Compile Include="Handlers\DownloadFileCommandLineHandler.cs" />

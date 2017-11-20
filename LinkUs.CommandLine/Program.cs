@@ -1,12 +1,9 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using CommandLine;
 using LinkUs.CommandLine.ConsoleLib;
-using LinkUs.CommandLine.Handlers;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Packages;
-using LinkUs.Modules.Default.ClientInformation;
 using StructureMap;
 
 namespace LinkUs.CommandLine
@@ -17,17 +14,12 @@ namespace LinkUs.CommandLine
         {
             var container = BuildContainer();
 
-            try {
-                var commandReader = container.GetInstance<ConsoleCommandReader>();
-                if (arguments != null && arguments.Any()) {
-                    commandReader.ExecuteSingleCommand(arguments);
-                }
-                else {
-                    commandReader.ExecuteMultipleCommands();
-                }
+            var commandReader = container.GetInstance<ConsoleCommandReader>();
+            if (arguments != null && arguments.Any()) {
+                commandReader.ExecuteSingleCommand(arguments);
             }
-            finally {
-                //connection.Close();
+            else {
+                commandReader.ExecuteMultipleCommands();
             }
         }
 
@@ -39,6 +31,7 @@ namespace LinkUs.CommandLine
                 configuration.For<PackageTransmitter>();
                 configuration.For<ICommandSender>().Use<CommandSender>();
                 configuration.For<ICommandLineProcessor>().Use<CommandLineProcessor>();
+                configuration.For<ICommandLineParser>().Use<CommandLineParserLib>();
                 configuration.For<IConsole>().Use<WindowsConsole>();
                 configuration.For<ICommandSerializer>().Use<JsonCommandSerializer>();
                 configuration.For<Parser>().Use(Parser.Default);
