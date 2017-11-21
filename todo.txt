@@ -9,17 +9,11 @@
 * upload with directory path as destination.
 * Deserialization with typeof(TCommand) to replace with command.GetType() => let dev to serialize partial data .
 * dont use handler with return type, only void, and pass IBus systematically to interact with host process.
-* when client not responding for a period of time during the Receive/Stream, free resource and throw exception.
-* use of the stream for shell command line handler.
-* catch exception in downloader/uploader and try to send message to client to close the file.
-* better error display of uncatch exception. Base exception for known that display message and not stacktrace.
 * Refactor server to use 0 dependencies (file injection)
 * free the asyncOperation before to call the DataReceived delegate.
 * When bad clientId is send to server, respond cliendId not found.
-* Close commandline when connection closed.
 * Create install-module that upload and load a module
 * Modify list-modules to set target as not mandatory. If no target, list the modules available from commandline.
 * Check module install command ? get Module
 * display client id in color to be visually better (dark red)
 * generic config ini reading with int.parse() automatically
-* close connection after each command
