@@ -1,9 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using LinkUs.Core;
 using LinkUs.Core.Commands;
-using LinkUs.Core.Connection;
 using LinkUs.Core.Packages;
 using LinkUs.Modules.Default.FileTransfert.Commands;
 using LinkUs.Modules.Default.FileTransfert.Events;
@@ -17,6 +15,7 @@ namespace LinkUs.CommandLine.FileTransferts
 
         public int Pourcentage { get; private set; }
 
+        // ----- Constructor
         public FileUploader(
             ICommandSender commandSender,
             ClientId clientId)
@@ -25,32 +24,61 @@ namespace LinkUs.CommandLine.FileTransferts
             _clientId = clientId;
         }
 
+        // ----- Public methods
         public async Task UploadAsync(string sourceFilePath, string destinationFilePath)
         {
             if (File.Exists(sourceFilePath) == false) {
                 throw new Exception($"Unable to start the upload: the file path '{sourceFilePath}' is invalid.");
             }
+            var fileLength = new FileInfo(sourceFilePath).Length;
+            var startedEvent = await StartUpload(destinationFilePath, fileLength);
+            await UploadFile(sourceFilePath, startedEvent.FileId, fileLength);
+            await EndUpload(startedEvent.FileId);
+        }
+
+        // ----- Internal logic
+        private async Task<FileUploadStarted> StartUpload(string destinationFilePath, long fileLength)
+        {
             var startCommand = new StartFileUpload {
                 DestinationFilePath = destinationFilePath,
-                Length = new FileInfo(sourceFilePath).Length
+                Length = fileLength
             };
-            var startedEvent = await _commandSender.ExecuteAsync<StartFileUpload, FileUploadStarted>(startCommand, _clientId);
-            await SendSourceFile(sourceFilePath, startedEvent.FileId, startCommand.Length);
-            var endCommand = new EndFileUpload { FileId = startedEvent.FileId };
+            return await _commandSender.ExecuteAsync<StartFileUpload, FileUploadStarted>(startCommand, _clientId);
+        }
+        private async Task UploadFile(string sourceFilePath, Guid fileId, long fileLength)
+        {
+            try {
+                var totalBytesTransferred = 0;
+                await ForEachFileRead(sourceFilePath, async buffer => {
+                    await SendNextFileDataCommand(fileId, buffer);
+                    totalBytesTransferred += buffer.Length;
+                    Pourcentage = (int) (totalBytesTransferred * 100 / fileLength);
+                });
+            }
+            catch (ExecuteCommandTimeoutException) {
+                throw;
+            }
+            catch (Exception) {
+                await EndUpload(fileId);
+                throw;
+            }
+        }
+        private async Task SendNextFileDataCommand(Guid fileId, byte[] buffer)
+        {
+            var sendCommand = new SendNextFileData {
+                FileId = fileId,
+                Buffer = buffer
+            };
+            await _commandSender.ExecuteAsync<SendNextFileData, bool>(sendCommand, _clientId);
+        }
+        private async Task EndUpload(Guid fileId)
+        {
+            var endCommand = new EndFileUpload { FileId = fileId };
             await _commandSender.ExecuteAsync<EndFileUpload, FileUploadEnded>(endCommand, _clientId);
         }
 
-        private async Task SendSourceFile(string sourceFilePath, Guid fileId, long fileLength)
-        {
-            var totalBytesTransferred = 0;
-            await ForEachFileRead(sourceFilePath, async buffer => {
-                await SendNextFileDataCommand(fileId, buffer);
-                totalBytesTransferred += buffer.Length;
-                Pourcentage = (int) (totalBytesTransferred * 100 / fileLength);
-            });
-        }
-
-        private async Task ForEachFileRead(string sourceFilePath, Func<byte[], Task> action)
+        // ----- Utils
+        private static async Task ForEachFileRead(string sourceFilePath, Func<byte[], Task> action)
         {
             var buffer = new byte[1024];
             using (var stream = File.OpenRead(sourceFilePath)) {
@@ -71,14 +99,6 @@ namespace LinkUs.CommandLine.FileTransferts
                 buffer = endBuffer;
             }
             return buffer;
-        }
-        private async Task SendNextFileDataCommand(Guid fileId, byte[] buffer)
-        {
-            var sendCommand = new SendNextFileData {
-                FileId = fileId,
-                Buffer = buffer
-            };
-            await _commandSender.ExecuteAsync<SendNextFileData, bool>(sendCommand, _clientId);
         }
     }
 }
