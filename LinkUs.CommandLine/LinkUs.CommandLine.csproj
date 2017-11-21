@@ -78,6 +78,7 @@
     <Compile Include="ICommandLineDispatcher.cs" />
     <Compile Include="ModuleIntegration\Default\RemoteClient.cs" />
     <Compile Include="ModuleIntegration\Default\Server.cs" />
+    <Compile Include="Verbs\ListConnectedClientsCommandLine.cs" />
     <Compile Include="Verbs\ListModulesCommandLine.cs" />
     <Compile Include="Handlers\PingCommandLineHandler.cs" />
     <Compile Include="Verbs\ClientTargettedCommandLine.cs" />

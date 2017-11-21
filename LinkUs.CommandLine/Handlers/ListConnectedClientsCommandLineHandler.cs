@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using LinkUs.CommandLine.ConsoleLib;
-using LinkUs.Commands;
-using LinkUs.Core;
+using LinkUs.CommandLine.Verbs;
 using LinkUs.Responses;
 
 namespace LinkUs.CommandLine.Handlers
 {
-    public class ListConnectedClientsCommandLineHandler : ICommandLineHandler<ListConnectedClient>
+    public class ListConnectedClientsCommandLineHandler : ICommandLineHandler<ListConnectedClientsCommandLine>
     {
         private readonly IConsole _console;
         private readonly ModuleIntegration.Default.Server _server;
@@ -22,7 +21,7 @@ namespace LinkUs.CommandLine.Handlers
         }
 
         // ----- Public methods
-        public async Task Handle(ListConnectedClient commandLine)
+        public async Task Handle(ListConnectedClientsCommandLine commandLine)
         {
             var clients = await _server.GetConnectedClients();
             var clientList = clients.ToList();
