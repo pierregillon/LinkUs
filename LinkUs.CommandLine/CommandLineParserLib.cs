@@ -1,3 +1,4 @@
+using System.Linq;
 using CommandLine;
 using CommandLine.Text;
 
@@ -15,6 +16,11 @@ namespace LinkUs.CommandLine
         public object Parse(string[] arguments)
         {
             var options = new Options();
+
+            if (arguments.Any() == false) {
+                throw new ArgumentParseException(HelpText.AutoBuild(options));
+            }
+
             string verbName = null;
             object commandLineIntance = null;
 

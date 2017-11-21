@@ -58,7 +58,6 @@
     <Compile Include="ArgumentParseException.cs" />
     <Compile Include="CommandLineApplication.cs" />
     <Compile Include="CommandLineParserLib.cs" />
-    <Compile Include="ConsoleCommandReader.cs" />
     <Compile Include="CommandLineDispatcher.cs" />
     <Compile Include="ConsoleLib\WindowsConsole.cs" />
     <Compile Include="ConsoleLib\IConsole.cs" />

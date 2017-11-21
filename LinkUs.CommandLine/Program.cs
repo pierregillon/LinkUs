@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using CommandLine;
+﻿using CommandLine;
 using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
@@ -13,16 +12,9 @@ namespace LinkUs.CommandLine
         static void Main(string[] arguments)
         {
             var container = BuildContainer();
-
-            var commandReader = container.GetInstance<ConsoleCommandReader>();
-            if (arguments != null && arguments.Any()) {
-                commandReader.ExecuteSingleCommand(arguments);
-            }
-            else {
-                commandReader.ExecuteMultipleCommands();
-            }
+            var commandReader = container.GetInstance<CommandLineApplication>();
+            commandReader.Process(arguments).Wait();
         }
-
 
         private static Container BuildContainer()
         {

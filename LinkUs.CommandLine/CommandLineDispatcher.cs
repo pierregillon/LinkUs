@@ -22,33 +22,41 @@ namespace LinkUs.CommandLine
         // ----- Public methods
         public Task Dispatch(object commandLine)
         {
-            var commandLineType = commandLine.GetType();
-            var handlerContract = typeof(ICommandLineHandler<>).MakeGenericType(commandLineType);
-            var handler = GetInstance(handlerContract);
-            var handleMethod = GetHandleMethod(handlerContract, commandLineType);
-            var task = (Task)handleMethod.Invoke(handler, new[] { commandLine });
-            return task.ContinueWith(x => {
-                //var connection = _container.TryGetInstance<IConnection>();
-                //if (connection != null) {
-                //    connection.Close();
-                //    _container.Release(connection);
-                //}
-            });
+            ConnectToServerIfNeeded(commandLine);
+            return HandleCommandLine(commandLine)
+                .ContinueWith(CloseConnectionIfNeeded);
         }
-        private object GetInstance(Type handlerContract)
+        private void ConnectToServerIfNeeded(object commandLine)
         {
             try {
-                return _container.GetInstance(handlerContract);
+                var commandLineType = commandLine.GetType();
+                var handlerContract = typeof(ICommandLineHandler<>).MakeGenericType(commandLineType);
+                _container.GetInstance(handlerContract);
             }
             catch (StructureMapConfigurationException ex) {
-                if (ex.Message.Contains(typeof(IConnection).FullName)) {
-                    var connection = ConnectToServer(_container);
-                    _container.Inject(typeof(IConnection), connection);
-                    var commandDispatcher = _container.GetInstance<CommandSender>();
-                    commandDispatcher.ExecuteAsync(new SetStatus { Status = "Consumer" });
-                    return GetInstance(handlerContract);
+                var fullName = typeof(IConnection).FullName;
+                if (ex.Message.Contains(fullName)) {
+                    ConnectToServer(_container);
+                    return;
                 }
                 throw;
+            }
+        }
+        private Task HandleCommandLine(object commandLine)
+        {
+            var commandLineType = commandLine.GetType();
+            var handlerContract = typeof(ICommandLineHandler<>).MakeGenericType(commandLineType);
+            var handler = _container.GetInstance(handlerContract);
+            var handleMethod = GetHandleMethod(handlerContract, commandLineType);
+            var task = (Task) handleMethod.Invoke(handler, new[] { commandLine });
+            return task;
+        }
+        private void CloseConnectionIfNeeded(Task task)
+        {
+            var connection = _container.TryGetInstance<IConnection>();
+            if (connection != null) {
+                connection.Close();
+                _container.Release(connection);
             }
         }
 
@@ -60,13 +68,15 @@ namespace LinkUs.CommandLine
                 .Where(x => x.Name == "Handle")
                 .Single(x => x.GetParameters()[0].ParameterType == commandLineType);
         }
-        private static IConnection ConnectToServer(IContainer container)
+        private static void ConnectToServer(IContainer container)
         {
             var globalParameters = container.GetInstance<GlobalParameters>();
             globalParameters.Load();
             var connector = container.GetInstance<Connector>();
             var connection = connector.Connect(globalParameters.ServerHost, globalParameters.ServerPort);
-            return connection;
+            container.Inject(typeof(IConnection), connection);
+            var commandDispatcher = container.GetInstance<CommandSender>();
+            commandDispatcher.ExecuteAsync(new SetStatus { Status = "Consumer" });
         }
     }
 }
