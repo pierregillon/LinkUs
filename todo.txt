@@ -28,6 +28,7 @@ CommandLine
 Client
 * admin mode for app, need to write to c:\
 * install the client
+** localModule => use ioc to instanciate handler!
 
 Studies
 * Send command without return result. (underlying sync call with byte result)

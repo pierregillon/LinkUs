@@ -52,10 +52,13 @@ namespace LinkUs.Modules.Default.Modules
             if (commandInstance is UnloadModule) {
                 return GetModuleCommandHandler().Handle((UnloadModule) commandInstance);
             }
+            if (commandInstance is IsModuleInstalled) {
+                return GetModuleCommandHandler().Handle((IsModuleInstalled) commandInstance);
+            }
             var handlerType = _assemblyTypes.SingleOrDefault(
                 x => x.GetInterfaces()
-                    .Any(y => y.GetGenericArguments().Length != 0 &&
-                              y.GetGenericArguments()[0] == commandType));
+                      .Any(y => y.GetGenericArguments().Length != 0 &&
+                                y.GetGenericArguments()[0] == commandType));
 
 
             object handler;
@@ -72,7 +75,7 @@ namespace LinkUs.Modules.Default.Modules
                 .Where(x => x.Name == "Handle")
                 .Single(x => x.GetParameters()[0].ParameterType == commandType);
 
-            return handle.Invoke(handler, new[] {commandInstance});
+            return handle.Invoke(handler, new[] { commandInstance });
         }
         public void Dispose() { }
 

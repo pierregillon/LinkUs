@@ -1,7 +1,5 @@
 using CommandLine;
 using LinkUs.CommandLine.Verbs;
-using LinkUs.Commands;
-using LinkUs.Core;
 
 namespace LinkUs.CommandLine
 {
@@ -9,6 +7,14 @@ namespace LinkUs.CommandLine
     {
         [VerbOption("ping", HelpText = "Send a ping request to a client.")]
         public PingCommandLine Ping { get; set; }
+
+        // ----- Modules
+
+        [VerbOption("install-module", HelpText = "Install a specific module to a remote client.")]
+        public InstallModuleCommandLine InstallModule { get; set; }
+
+        [VerbOption("uninstall-module", HelpText = "Uninstall a specific module to a remote client.")]
+        public UninstallModuleCommandLine UninstallModule { get; set; }
 
         [VerbOption("load-module", HelpText = "Load a specific module of a client.")]
         public LoadModuleCommandLine LoadModule { get; set; }

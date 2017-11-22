@@ -53,5 +53,10 @@ namespace LinkUs.CommandLine.ModuleIntegration.Default
             var command = new UnloadModule(moduleName);
             return _commandSender.ExecuteAsync<UnloadModule, bool>(command, TargetId);
         }
+        public Task<bool> IsModuleInstalled(string moduleName)
+        {
+            var command = new IsModuleInstalled(moduleName);
+            return _commandSender.ExecuteAsync<IsModuleInstalled, bool>(command, TargetId);
+        }
     }
 }

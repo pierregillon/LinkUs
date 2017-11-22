@@ -58,6 +58,10 @@ namespace LinkUs.CommandLine
                 connection.Close();
                 _container.Release(connection);
             }
+
+            if (task.IsFaulted) {
+                throw task.Exception;
+            }
         }
 
         // ----- Internal logic

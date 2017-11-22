@@ -60,6 +60,7 @@
     <Compile Include="FileTransfert\IFilePointer.cs" />
     <Compile Include="FileTransfert\UploadFileCommandHandler.cs" />
     <Compile Include="Modules\AssemblyHandlerScanner.cs" />
+    <Compile Include="Modules\Commands\IsModuleInstalled.cs" />
     <Compile Include="Modules\Commands\ListModules.cs" />
     <Compile Include="Modules\Commands\LoadModule.cs" />
     <Compile Include="Modules\Commands\UnloadModule.cs" />

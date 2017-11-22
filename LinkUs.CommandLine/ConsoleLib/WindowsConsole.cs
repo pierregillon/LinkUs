@@ -37,10 +37,15 @@ namespace LinkUs.CommandLine.ConsoleLib
 
             var propertiesToProcess = typeof(T)
                 .GetProperties()
-                .Where(x => x.CanRead);
+                .Where(x => x.CanRead)
+                .ToArray();
 
-            if (properties != null && properties.Any()) {
-                propertiesToProcess = propertiesToProcess.Where(x => properties.Contains(x.Name));
+            if (propertiesToProcess.Any() == false) {
+                throw new Exception("No properties can be read to generate data.");
+            }
+
+            if (properties?.Any() == true) {
+                propertiesToProcess = propertiesToProcess.Where(x => properties.Contains(x.Name)).ToArray();
             }
 
             var dico = propertiesToProcess

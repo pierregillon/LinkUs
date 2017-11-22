@@ -10,7 +10,8 @@ namespace LinkUs.Modules.Default.Modules
     public class ModuleCommandHandler :
         ICommandHandler<ListModules, ModuleInformation[]>,
         ICommandHandler<LoadModule, bool>,
-        ICommandHandler<UnloadModule, bool>
+        ICommandHandler<UnloadModule, bool>,
+        ICommandHandler<IsModuleInstalled, bool>
     {
         private readonly ModuleManager _moduleManager;
         private readonly ExternalAssemblyModuleLocator _moduleLocator;
@@ -59,6 +60,12 @@ namespace LinkUs.Modules.Default.Modules
             module.Dispose();
             _moduleManager.Unregister(module);
             return true;
+        }
+
+        public bool Handle(IsModuleInstalled command)
+        {
+            var module = _moduleManager.GetModule(command.ModuleName);
+            return module != null;
         }
     }
 }
