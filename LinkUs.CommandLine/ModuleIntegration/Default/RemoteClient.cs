@@ -14,44 +14,44 @@ namespace LinkUs.CommandLine.ModuleIntegration.Default
     {
         private readonly ICommandSender _commandSender;
 
-        public ClientId Id { get; }
+        public ClientId TargetId { get; }
         public ConnectedClient Information { get; }
 
         public RemoteClient(ICommandSender commandSender, ConnectedClient information)
         {
-            Id = ClientId.Parse(information.Id);
+            TargetId = ClientId.Parse(information.Id);
             Information = information;
             _commandSender = commandSender;
         }
 
         public Task<TResponse> ExecuteAsync<TCommand, TResponse>(TCommand command)
         {
-            return _commandSender.ExecuteAsync<TCommand, TResponse>(command, Id);
+            return _commandSender.ExecuteAsync<TCommand, TResponse>(command, TargetId);
         }
         public async Task<long> Ping()
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var pingCommand = new Ping();
-            await _commandSender.ExecuteAsync<Ping, PingOk>(pingCommand, Id);
+            await _commandSender.ExecuteAsync<Ping, PingOk>(pingCommand, TargetId);
             stopWatch.Stop();
             return stopWatch.ElapsedMilliseconds;
         }
         public async Task<IReadOnlyCollection<ModuleInformation>> GetModules()
         {
             var command = new ListModules();
-            var response = await _commandSender.ExecuteAsync<ListModules, ModuleInformation[]>(command, Id);
+            var response = await _commandSender.ExecuteAsync<ListModules, ModuleInformation[]>(command, TargetId);
             return response;
         }
         public Task<bool> LoadModule(string moduleName)
         {
             var command = new LoadModule(moduleName);
-            return _commandSender.ExecuteAsync<LoadModule, bool>(command, Id);
+            return _commandSender.ExecuteAsync<LoadModule, bool>(command, TargetId);
         }
         public Task<bool> UnLoadModule(string moduleName)
         {
             var command = new UnloadModule(moduleName);
-            return _commandSender.ExecuteAsync<UnloadModule, bool>(command, Id);
+            return _commandSender.ExecuteAsync<UnloadModule, bool>(command, TargetId);
         }
     }
 }

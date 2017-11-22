@@ -10,10 +10,11 @@ namespace LinkUs.CommandLine.Verbs
         public string RemoteSourceFilePath { get; set; }
 
         [Option('d', "destination", 
-            Required = true, 
+            Required = false, 
             HelpText = "The local path where the file should be downloaded. " +
                        "It can be a file or a directory. When it is a directory, the downloaded file name will be the " +
-                       "remote file name.")]
+                       "remote file name. " +
+                       "When not defined, the file will be downloaded at [lkus directory]/downloads/{cliendId}/{remoteFileName}")]
         public string LocalDestinationFilePath { get; set; }
     }
 }

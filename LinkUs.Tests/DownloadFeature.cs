@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using LinkUs.CommandLine.FileTransferts;
+using LinkUs.Core.Packages;
 using LinkUs.Modules.Default.FileTransfert;
 using LinkUs.Tests.Helpers;
 using NFluent;
@@ -11,12 +12,13 @@ namespace LinkUs.Tests
     public class DownloadFeature
     {
         private readonly FileDownloader _downloader;
+        private readonly DirectCallCommandSender _commandSender;
 
         public DownloadFeature()
         {
             var downloadCommandHandler = new DownloadFileCommandHandler();
-            var commandSender = new DirectCallCommandSender(downloadCommandHandler);
-            _downloader = new FileDownloader(commandSender);
+            _commandSender = new DirectCallCommandSender(downloadCommandHandler);
+            _downloader = new FileDownloader(_commandSender);
         }
 
         [Theory]
@@ -46,5 +48,20 @@ namespace LinkUs.Tests
             Check.That(File.ReadAllText(sourceFilePath)).IsEqualTo(File.ReadAllText(destinationFilePath));
         }
 
+        [Fact]
+        public async Task when_no_destination_path_the_downloaded_file_is_in_a_cliendId_folder()
+        {
+            // Actors
+            const string cliendId = "d8a14e";
+            const string sourceFilePath = "Resources\\some_file.txt";
+            var expectedDestinationFilePath = Directory.GetCurrentDirectory() + $"\\downloads\\{cliendId}\\some_file.txt";
+
+            // Acts
+            _commandSender.SetTarget(ClientId.Parse($"{cliendId}a9-e4fd-4f14-bc42-2b69b5ee52e4"));
+            await _downloader.DownloadAsync(sourceFilePath);
+
+            // Asserts
+            Check.That(File.ReadAllText(sourceFilePath)).IsEqualTo(File.ReadAllText(expectedDestinationFilePath));
+        }
     }
 }

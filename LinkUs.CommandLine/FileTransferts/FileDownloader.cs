@@ -10,7 +10,10 @@ namespace LinkUs.CommandLine.FileTransferts
 {
     public class FileDownloader : IProgressable
     {
+        private const string DOWNLOADS_DIRECTORY = "downloads";
+
         private readonly IDedicatedCommandSender _client;
+
         public int Pourcentage { get; private set; }
 
         // ----- Constructors
@@ -20,7 +23,7 @@ namespace LinkUs.CommandLine.FileTransferts
         }
 
         // ----- Public methods
-        public async Task DownloadAsync(string remoteSourceFilePath, string localPath)
+        public async Task DownloadAsync(string remoteSourceFilePath, string localPath = null)
         {
             var localFilePath = GetLocalFilePath(remoteSourceFilePath, localPath);
             PrepareFileLocation(localFilePath);
@@ -32,13 +35,6 @@ namespace LinkUs.CommandLine.FileTransferts
             if (totalBytesTransferred != startedEvent.TotalLength) {
                 throw new Exception("The total amount of bytes received is not correct, file must be corrupted.");
             }
-        }
-        private static string GetLocalFilePath(string remoteSourceFilePath, string localDestinationFilePath)
-        {
-            if (Directory.Exists(localDestinationFilePath)) {
-                localDestinationFilePath = Path.Combine(localDestinationFilePath, Path.GetFileName(remoteSourceFilePath));
-            }
-            return localDestinationFilePath;
         }
 
         // ----- Internal logics
@@ -78,6 +74,21 @@ namespace LinkUs.CommandLine.FileTransferts
         {
             var endCommand = new EndFileDownload { FileId = startedEvent.FileId };
             await _client.ExecuteAsync<EndFileDownload, FileDownloadEnded>(endCommand);
+        }
+        private string GetLocalFilePath(string remoteSourceFilePath, string localDestinationFilePath)
+        {
+            if (string.IsNullOrEmpty(localDestinationFilePath)) {
+                localDestinationFilePath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    DOWNLOADS_DIRECTORY,
+                    _client.TargetId.ToShortString(),
+                    Path.GetFileName(remoteSourceFilePath)
+                );
+            }
+            if (Directory.Exists(localDestinationFilePath)) {
+                localDestinationFilePath = Path.Combine(localDestinationFilePath, Path.GetFileName(remoteSourceFilePath));
+            }
+            return localDestinationFilePath;
         }
 
         // ----- Utils

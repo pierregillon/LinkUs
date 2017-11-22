@@ -18,7 +18,7 @@ namespace LinkUs.CommandLine.Handlers
         public async Task Handle(ShellCommandLine commandLine)
         {
             var client = await _server.FindRemoteClient(commandLine.Target);
-            _remoteShellController.ProcessRemoteShellSession(client.Id, commandLine.Command);
+            _remoteShellController.ProcessRemoteShellSession(client.TargetId, commandLine.Command);
         }
     }
 }
