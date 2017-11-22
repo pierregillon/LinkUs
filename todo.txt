@@ -1,19 +1,34 @@
-* lock on queue for SocketConnection => "exit" on remote shell
+Core
 * ILogger in ExternalAssemblyModule to do the Console Printing.
-* Request frequently the basic information to keep information up to date.
 * remove -Exception at the end of custom exception name
-* retain -target in file to simplify command.
-* admin mode for app, need to write to c:\
-* The message size for uploading/downloading is huge because of UTF8 conversion. Find something to reduce the size (before compression)
-* Send command without return result. (underlying sync call with byte result)
-* upload with directory path as destination.
 * Deserialization with typeof(TCommand) to replace with command.GetType() => let dev to serialize partial data .
-* dont use handler with return type, only void, and pass IBus systematically to interact with host process.
-* Refactor server to use 0 dependencies (file injection)
 * free the asyncOperation before to call the DataReceived delegate.
+* do a charge test with 100 connections downloading files
+* try to reproduce the bug when executing a remote command : dir /s *.*
+* Compress data exchange to reduce network charge.
+
+Server
+* Request frequently the basic information to keep information up to date.
+* Refactor server to use 0 dependencies (file injection)
 * When bad clientId is send to server, respond cliendId not found.
+* When overloaded send a command for incoming connection to inform the address of another server.
+
+CommandLine
+* retain -target in file to simplify command.
+* The message size for uploading/downloading is huge because of UTF8 conversion. 
+* Download a file with directory path as destination.
+* Download a file in a default location, like clientId/Download when no destination.
+* Download a full folder
 * Create install-module that upload and load a module
 * Modify list-modules to set target as not mandatory. If no target, list the modules available from commandline.
 * Check module install command ? get Module
 * display client id in color to be visually better (dark red)
 * generic config ini reading with int.parse() automatically
+
+Client
+* admin mode for app, need to write to c:\
+* install the client
+
+Studies
+* Send command without return result. (underlying sync call with byte result)
+* dont use handler with return type, only void, and pass IBus systematically to interact with host process.
