@@ -32,3 +32,4 @@ Client
 Studies
 * Send command without return result. (underlying sync call with byte result)
 * dont use handler with return type, only void, and pass IBus systematically to interact with host process.
+* Dedicated CommandSender to avoid to pass the cliendId every time.

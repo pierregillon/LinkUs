@@ -1,7 +1,7 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 using LinkUs.CommandLine.ConsoleLib;
+using LinkUs.CommandLine.FileTransferts;
 using LinkUs.CommandLine.Verbs;
 
 namespace LinkUs.CommandLine.Handlers
@@ -20,7 +20,7 @@ namespace LinkUs.CommandLine.Handlers
         public async Task Handle(DownloadFileCommandLine commandLine)
         {
             var client = await _server.FindRemoteClient(commandLine.Target);
-            var downloader = client.GetFileDownloader();
+            var downloader = new FileDownloader(client);
             _console.WriteLine("Download started.");
             var task = downloader.DownloadAsync(commandLine.RemoteSourceFilePath, commandLine.LocalDestinationFilePath);
             _console.WriteProgress(task, downloader);

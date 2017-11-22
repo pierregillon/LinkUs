@@ -1,8 +1,8 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using LinkUs.CommandLine.ModuleIntegration.Default;
 using LinkUs.Core.Commands;
-using LinkUs.Core.Packages;
 using LinkUs.Modules.Default.FileTransfert.Commands;
 using LinkUs.Modules.Default.FileTransfert.Events;
 
@@ -10,18 +10,14 @@ namespace LinkUs.CommandLine.FileTransferts
 {
     public class FileUploader : IProgressable
     {
-        private readonly ICommandSender _commandSender;
-        private readonly ClientId _clientId;
+        private readonly RemoteClient _client;
 
         public int Pourcentage { get; private set; }
 
         // ----- Constructor
-        public FileUploader(
-            ICommandSender commandSender,
-            ClientId clientId)
+        public FileUploader(RemoteClient client)
         {
-            _commandSender = commandSender;
-            _clientId = clientId;
+            _client = client;
         }
 
         // ----- Public methods
@@ -37,13 +33,13 @@ namespace LinkUs.CommandLine.FileTransferts
         }
 
         // ----- Internal logic
-        private async Task<FileUploadStarted> StartUpload(string destinationFilePath, long fileLength)
+        private Task<FileUploadStarted> StartUpload(string destinationFilePath, long fileLength)
         {
             var startCommand = new StartFileUpload {
                 DestinationFilePath = destinationFilePath,
                 Length = fileLength
             };
-            return await _commandSender.ExecuteAsync<StartFileUpload, FileUploadStarted>(startCommand, _clientId);
+            return _client.ExecuteAsync<StartFileUpload, FileUploadStarted>(startCommand);
         }
         private async Task UploadFile(string sourceFilePath, Guid fileId, long fileLength)
         {
@@ -69,12 +65,12 @@ namespace LinkUs.CommandLine.FileTransferts
                 FileId = fileId,
                 Buffer = buffer
             };
-            await _commandSender.ExecuteAsync<SendNextFileData, bool>(sendCommand, _clientId);
+            await _client.ExecuteAsync<SendNextFileData, bool>(sendCommand);
         }
         private async Task EndUpload(Guid fileId)
         {
             var endCommand = new EndFileUpload { FileId = fileId };
-            await _commandSender.ExecuteAsync<EndFileUpload, FileUploadEnded>(endCommand, _clientId);
+            await _client.ExecuteAsync<EndFileUpload, FileUploadEnded>(endCommand);
         }
 
         // ----- Utils

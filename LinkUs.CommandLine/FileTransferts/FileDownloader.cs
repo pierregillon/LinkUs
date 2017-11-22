@@ -1,10 +1,8 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using LinkUs.Core;
+using LinkUs.CommandLine.ModuleIntegration.Default;
 using LinkUs.Core.Commands;
-using LinkUs.Core.Connection;
-using LinkUs.Core.Packages;
 using LinkUs.Modules.Default.FileTransfert.Commands;
 using LinkUs.Modules.Default.FileTransfert.Events;
 
@@ -12,23 +10,19 @@ namespace LinkUs.CommandLine.FileTransferts
 {
     public class FileDownloader : IProgressable
     {
-        private readonly ICommandSender _commandSender;
-        private readonly ClientId _clientId;
+        private readonly IDedicatedCommandSender _client;
         public int Pourcentage { get; private set; }
 
         // ----- Constructors
-        public FileDownloader(ICommandSender commandSender, ClientId clientId)
+        public FileDownloader(IDedicatedCommandSender client)
         {
-            _commandSender = commandSender;
-            _clientId = clientId;
+            _client = client;
         }
 
         // ----- Public methods
         public async Task DownloadAsync(string remoteSourceFilePath, string localDestinationFilePath)
         {
-            if (File.Exists(localDestinationFilePath)) {
-                File.Delete(localDestinationFilePath);
-            }
+            PrepareFileLocation(localDestinationFilePath);
 
             var startedEvent = await StartDownload(remoteSourceFilePath);
             var totalBytesTransferred = await CopyDataToLocalFile(startedEvent, localDestinationFilePath);
@@ -43,7 +37,7 @@ namespace LinkUs.CommandLine.FileTransferts
         private async Task<FileDownloadStarted> StartDownload(string remoteSourceFilePath)
         {
             var startCommand = new StartFileDownload { SourceFilePath = remoteSourceFilePath };
-            var startedEvent = await _commandSender.ExecuteAsync<StartFileDownload, FileDownloadStarted>(startCommand, _clientId);
+            var startedEvent = await _client.ExecuteAsync<StartFileDownload, FileDownloadStarted>(startCommand);
             return startedEvent;
         }
         private async Task<int> CopyDataToLocalFile(FileDownloadStarted startedEvent, string filePath)
@@ -53,7 +47,7 @@ namespace LinkUs.CommandLine.FileTransferts
                 using (var stream = File.OpenWrite(filePath)) {
                     var nextFileDataCommand = new GetNextFileData { FileId = startedEvent.FileId };
                     while (true) {
-                        var fileDataRead = await _commandSender.ExecuteAsync<GetNextFileData, NextFileDataRead>(nextFileDataCommand, _clientId);
+                        var fileDataRead = await _client.ExecuteAsync<GetNextFileData, NextFileDataRead>(nextFileDataCommand);
                         if (fileDataRead.Data.Length == 0) {
                             break;
                         }
@@ -75,7 +69,19 @@ namespace LinkUs.CommandLine.FileTransferts
         private async Task EndDownload(FileDownloadStarted startedEvent)
         {
             var endCommand = new EndFileDownload { FileId = startedEvent.FileId };
-            await _commandSender.ExecuteAsync<EndFileDownload, FileDownloadEnded>(endCommand, _clientId);
+            await _client.ExecuteAsync<EndFileDownload, FileDownloadEnded>(endCommand);
+        }
+
+        // ----- Utils
+        private static void PrepareFileLocation(string localDestinationFilePath)
+        {
+            if (File.Exists(localDestinationFilePath)) {
+                File.Delete(localDestinationFilePath);
+            }
+            var parent = Directory.GetParent(localDestinationFilePath).FullName;
+            if (string.IsNullOrEmpty(parent) == false) {
+                Directory.CreateDirectory(parent);
+            }
         }
     }
 }

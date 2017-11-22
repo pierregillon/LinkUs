@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using LinkUs.CommandLine.FileTransferts;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Packages;
 using LinkUs.Modules.Default.Modules;
@@ -11,7 +10,7 @@ using LinkUs.Responses;
 
 namespace LinkUs.CommandLine.ModuleIntegration.Default
 {
-    public class RemoteClient
+    public class RemoteClient : IDedicatedCommandSender
     {
         private readonly ICommandSender _commandSender;
 
@@ -25,6 +24,10 @@ namespace LinkUs.CommandLine.ModuleIntegration.Default
             _commandSender = commandSender;
         }
 
+        public Task<TResponse> ExecuteAsync<TCommand, TResponse>(TCommand command)
+        {
+            return _commandSender.ExecuteAsync<TCommand, TResponse>(command, Id);
+        }
         public async Task<long> Ping()
         {
             var stopWatch = new Stopwatch();
@@ -49,14 +52,6 @@ namespace LinkUs.CommandLine.ModuleIntegration.Default
         {
             var command = new UnloadModule(moduleName);
             return _commandSender.ExecuteAsync<UnloadModule, bool>(command, Id);
-        }
-        public FileUploader GetFileUploader()
-        {
-            return new FileUploader(_commandSender, Id);
-        }
-        public FileDownloader GetFileDownloader()
-        {
-            return new FileDownloader(_commandSender, Id);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using LinkUs.CommandLine.ConsoleLib;
+using LinkUs.CommandLine.FileTransferts;
 using LinkUs.CommandLine.Verbs;
 
 namespace LinkUs.CommandLine.Handlers
@@ -20,7 +21,7 @@ namespace LinkUs.CommandLine.Handlers
         public async Task Handle(UploadFileCommandLine commandLine)
         {
             var client = await _server.FindRemoteClient(commandLine.Target);
-            var uploader = client.GetFileUploader();
+            var uploader = new FileUploader(client);
             _console.WriteLine("Upload started.");
             var task = uploader.UploadAsync(commandLine.LocalSourceFilePath, commandLine.RemoteDestinationFilePath);
             _console.WriteProgress(task, uploader);

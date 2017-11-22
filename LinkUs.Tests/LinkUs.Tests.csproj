@@ -64,6 +64,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ByteArraySliceAggregatorShould.cs" />
+    <Compile Include="Helpers\DirectCallCommandSender.cs" />
+    <Compile Include="DownloadFeature.cs" />
     <Compile Include="Helpers\ConnectedSocketConnectionSample.cs" />
     <Compile Include="Helpers\NetworkSimulationSample.cs" />
     <Compile Include="ByteArraySlicer.cs" />
@@ -78,10 +80,23 @@
     <Analyzer Include="..\packages\xunit.analyzers.0.7.0\analyzers\dotnet\cs\xunit.analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\LinkUs.CommandLine\LinkUs.CommandLine.csproj">
+      <Project>{EE5016C8-1091-4EBC-B098-BCC102DE002B}</Project>
+      <Name>LinkUs.CommandLine</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LinkUs.Core\0 - LinkUs.Core.csproj">
       <Project>{511C52CB-31E3-43AE-92E7-481FF4C82ACB}</Project>
       <Name>0 - LinkUs.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\LinkUs.Modules.Default\LinkUs.Modules.Default.csproj">
+      <Project>{524D93DA-5DBF-42DE-929B-2BE349FA4E97}</Project>
+      <Name>LinkUs.Modules.Default</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\some_file.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
