@@ -19,9 +19,7 @@ namespace LinkUs.Modules.Default.FileTransfert
         public FileUploadStarted Handle(StartFileUpload command)
         {
             try {
-                if (File.Exists(command.DestinationFilePath)) {
-                    File.Delete(command.DestinationFilePath);
-                }
+                PrepareFileLocation(command);
                 var newId = Guid.NewGuid();
                 OpenedStreams.Add(newId, File.Open(command.DestinationFilePath, FileMode.Append));
                 return new FileUploadStarted { FileId = newId };
@@ -63,6 +61,16 @@ namespace LinkUs.Modules.Default.FileTransfert
                 throw new Exception($"Unable to upload, the file id '{fileId}' does not exist.");
             }
             return fileStream;
+        }
+        private static void PrepareFileLocation(StartFileUpload command)
+        {
+            if (File.Exists(command.DestinationFilePath)) {
+                File.Delete(command.DestinationFilePath);
+            }
+            var parent = Directory.GetParent(command.DestinationFilePath).FullName;
+            if (string.IsNullOrEmpty(parent) == false) {
+                Directory.CreateDirectory(parent);
+            }
         }
     }
 }

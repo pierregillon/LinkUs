@@ -10,12 +10,12 @@ namespace LinkUs.CommandLine.FileTransferts
 {
     public class FileUploader : IProgressable
     {
-        private readonly RemoteClient _client;
+        private readonly IDedicatedCommandSender _client;
 
         public int Pourcentage { get; private set; }
 
         // ----- Constructor
-        public FileUploader(RemoteClient client)
+        public FileUploader(IDedicatedCommandSender client)
         {
             _client = client;
         }

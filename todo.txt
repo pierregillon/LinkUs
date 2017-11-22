@@ -24,6 +24,7 @@ CommandLine
 * Check module install command ? get Module
 * display client id in color to be visually better (dark red)
 * generic config ini reading with int.parse() automatically
+* allow the multiple download of same file (openfile in read only mode with no lock)
 
 Client
 * admin mode for app, need to write to c:\

@@ -72,6 +72,7 @@
     <Compile Include="SocketConnectionListener.cs" />
     <Compile Include="SocketConnectionShould.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UploadFeature.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -94,6 +95,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\some_file2.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\some_file.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
