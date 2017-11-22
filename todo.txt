@@ -17,9 +17,6 @@ CommandLine
 * retain -target in file to simplify command.
 * The message size for uploading/downloading is huge because of UTF8 conversion.
 * Download a full folder
-* Create install-module that upload and load a module
-* Modify list-modules to set target as not mandatory. If no target, list the modules available from commandline.
-* Check module install command ? get Module
 * display client id in color to be visually better (dark red)
 * generic config ini reading with int.parse() automatically
 * allow the multiple download of same file (openfile in read only mode with no lock)

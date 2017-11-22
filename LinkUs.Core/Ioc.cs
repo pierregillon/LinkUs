@@ -51,6 +51,9 @@ namespace LinkUs.Core
         }
         public object GetInstance(Type type)
         {
+            if (type == GetType()) {
+                return this;
+            }
             if (_singletons.ContainsKey(type)) {
                 if (_singletons[type] == null) {
                     _singletons[type] = CreateNewInstance(_registration[type]);
@@ -59,6 +62,9 @@ namespace LinkUs.Core
             }
             else if (_registration.ContainsKey(type)) {
                 return CreateNewInstance(_registration[type]);
+            }
+            else if (type.IsInterface == false) {
+                return CreateNewInstance(type);
             }
             else {
                 throw new Exception($"The type '{type.Name}' is unknown.");

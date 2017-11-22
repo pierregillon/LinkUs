@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,7 +6,6 @@ using System.Threading.Tasks;
 using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.CommandLine.FileTransferts;
 using LinkUs.CommandLine.Verbs;
-using LinkUs.Modules.Default.Modules;
 
 namespace LinkUs.CommandLine.Handlers
 {

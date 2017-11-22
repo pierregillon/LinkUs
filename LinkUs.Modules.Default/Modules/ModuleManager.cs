@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LinkUs.Core;
 using LinkUs.Core.Packages;
 using LinkUs.Modules.Default.Modules.Exceptions;
 
@@ -9,20 +10,20 @@ namespace LinkUs.Modules.Default.Modules
     public class ModuleManager
     {
         private readonly PackageParser _packageParser;
-        private readonly ExternalAssemblyModuleLocator _moduleLocator;
         private readonly ExternalAssemblyModuleScanner _moduleScanner;
+        private readonly Ioc _ioc;
         private readonly List<IModule> _modules = new List<IModule>();
 
         public IEnumerable<IModule> Modules => _modules;
 
         public ModuleManager(
             PackageParser packageParser,
-            ExternalAssemblyModuleLocator moduleLocator,
-            ExternalAssemblyModuleScanner moduleScanner)
+            ExternalAssemblyModuleScanner moduleScanner,
+            Ioc ioc)
         {
             _packageParser = packageParser;
-            _moduleLocator = moduleLocator;
             _moduleScanner = moduleScanner;
+            _ioc = ioc;
         }
 
         public void Register(IModule module)
@@ -47,7 +48,7 @@ namespace LinkUs.Modules.Default.Modules
         }
         public void LoadModules()
         {
-            Register(new LocalAssemblyModule(this, _moduleLocator, _packageParser));
+            Register(new LocalAssemblyModule(_packageParser, _ioc));
 
             foreach (var module in _moduleScanner.Scan()) {
                 Register(module);
