@@ -20,17 +20,25 @@ namespace LinkUs.CommandLine.FileTransferts
         }
 
         // ----- Public methods
-        public async Task DownloadAsync(string remoteSourceFilePath, string localDestinationFilePath)
+        public async Task DownloadAsync(string remoteSourceFilePath, string localPath)
         {
-            PrepareFileLocation(localDestinationFilePath);
+            var localFilePath = GetLocalFilePath(remoteSourceFilePath, localPath);
+            PrepareFileLocation(localFilePath);
 
             var startedEvent = await StartDownload(remoteSourceFilePath);
-            var totalBytesTransferred = await CopyDataToLocalFile(startedEvent, localDestinationFilePath);
+            var totalBytesTransferred = await CopyDataToLocalFile(startedEvent, localFilePath);
             await EndDownload(startedEvent);
 
             if (totalBytesTransferred != startedEvent.TotalLength) {
                 throw new Exception("The total amount of bytes received is not correct, file must be corrupted.");
             }
+        }
+        private static string GetLocalFilePath(string remoteSourceFilePath, string localDestinationFilePath)
+        {
+            if (Directory.Exists(localDestinationFilePath)) {
+                localDestinationFilePath = Path.Combine(localDestinationFilePath, Path.GetFileName(remoteSourceFilePath));
+            }
+            return localDestinationFilePath;
         }
 
         // ----- Internal logics
