@@ -5,10 +5,10 @@ namespace LinkUs.CommandLine
 {
     public class Options
     {
-        [VerbOption("ping", HelpText = "Send a ping request to a client.")]
-        public PingCommandLine Ping { get; set; }
-
         // ----- Modules
+
+        [VerbOption("list-modules", HelpText = "Display the list of the module installed on a client.")]
+        public ListModulesCommandLine ListModules { get; set; }
 
         [VerbOption("install-module", HelpText = "Install a specific module to a remote client.")]
         public InstallModuleCommandLine InstallModule { get; set; }
@@ -16,14 +16,9 @@ namespace LinkUs.CommandLine
         [VerbOption("uninstall-module", HelpText = "Uninstall a specific module to a remote client.")]
         public UninstallModuleCommandLine UninstallModule { get; set; }
 
-        [VerbOption("load-module", HelpText = "Load a specific module of a client.")]
-        public LoadModuleCommandLine LoadModule { get; set; }
-
-        [VerbOption("unload-module", HelpText = "Unload a specific module of a client.")]
-        public UnloadModuleCommandLine UnloadModule { get; set; }
-
-        [VerbOption("list-modules", HelpText = "Display the list of the module installed on a client.")]
-        public ListModulesCommandLine ListModules { get; set; }
+        // ----- Others
+        [VerbOption("ping", HelpText = "Send a ping request to a client.")]
+        public PingCommandLine Ping { get; set; }
 
         [VerbOption("list-clients", HelpText = "Display the list of connected clients.")]
         public ListConnectedClientsCommandLine ListConnectedClient { get; set; }

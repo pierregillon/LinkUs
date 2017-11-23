@@ -86,7 +86,6 @@
     <Compile Include="Verbs\ClientTargettedCommandLine.cs" />
     <Compile Include="ConsoleLib\CursorPosition.cs" />
     <Compile Include="Handlers\ModuleCommandLineHandler.cs" />
-    <Compile Include="Verbs\LoadModuleCommandLine.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Verbs\PingCommandLine.cs" />
     <Compile Include="Program.cs" />
@@ -94,7 +93,6 @@
     <Compile Include="ModuleIntegration\RemoteShell\ConsoleRemoteShellController.cs" />
     <Compile Include="Verbs\ShellCommandLine.cs" />
     <Compile Include="Verbs\UninstallModuleCommandLine.cs" />
-    <Compile Include="Verbs\UnloadModuleCommandLine.cs" />
     <Compile Include="Verbs\UploadFileCommandLine.cs" />
   </ItemGroup>
   <ItemGroup>

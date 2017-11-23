@@ -11,8 +11,6 @@ using LinkUs.CommandLine.Verbs;
 namespace LinkUs.CommandLine.Handlers
 {
     public class ModuleCommandLineHandler :
-        ICommandLineHandler<LoadModuleCommandLine>,
-        ICommandLineHandler<UnloadModuleCommandLine>,
         ICommandLineHandler<ListModulesCommandLine>,
         ICommandLineHandler<InstallModuleCommandLine>,
         ICommandLineHandler<UninstallModuleCommandLine>
@@ -31,28 +29,6 @@ namespace LinkUs.CommandLine.Handlers
             _moduleLocator = moduleLocator;
         }
 
-        public async Task Handle(LoadModuleCommandLine commandLine)
-        {
-            var remoteClient = await _server.FindRemoteClient(commandLine.Target);
-            var moduleManager = new RemoteModuleManager(remoteClient);
-            if (await moduleManager.IsModuleInstalled(commandLine.ModuleName)) {
-                _console.WriteLine($"Module '{commandLine.ModuleName}' is already loaded. Did you mean 'unload-module' ?");
-            }
-            else {
-                await moduleManager.LoadModule(commandLine.ModuleName);
-            }
-        }
-        public async Task Handle(UnloadModuleCommandLine commandLine)
-        {
-            var remoteClient = await _server.FindRemoteClient(commandLine.Target);
-            var moduleManager = new RemoteModuleManager(remoteClient);
-            if (await moduleManager.IsModuleInstalled(commandLine.ModuleName) == false) {
-                _console.WriteLine($"Module '{commandLine.ModuleName}' is not loaded. Did you mean 'load-module' ?");
-            }
-            else {
-                await moduleManager.UnLoadModule(commandLine.ModuleName);
-            }
-        }
         public async Task Handle(ListModulesCommandLine commandLine)
         {
             if (commandLine.ListAvailableModules) {
@@ -105,8 +81,7 @@ namespace LinkUs.CommandLine.Handlers
                 _console.WriteLine($"Module '{commandLine.ModuleName}' is not installed. Did you mean 'install-module' ?");
             }
             else {
-                _console.WriteLine("Unload module => [DONE]");
-                await moduleManager.UnLoadModule(commandLine.ModuleName);
+                await _console.WriteTaskStatus("Unload module", moduleManager.UnLoadModule(commandLine.ModuleName));
                 //_console.WriteLine("Delete module => [DONE]");
                 //var fullModulePath = _moduleLocator.GetFullPath(commandLine.ModuleName);
             }
