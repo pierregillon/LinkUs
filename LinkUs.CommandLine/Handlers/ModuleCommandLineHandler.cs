@@ -82,8 +82,8 @@ namespace LinkUs.CommandLine.Handlers
             }
             else {
                 await _console.WriteTaskStatus("Unload module", moduleManager.UnLoadModule(commandLine.ModuleName));
-                //_console.WriteLine("Delete module => [DONE]");
-                //var fullModulePath = _moduleLocator.GetFullPath(commandLine.ModuleName);
+                await _console.WriteTaskStatus("Delete file  ", moduleManager.DeleteFile(commandLine.ModuleName));
+                _console.WriteLine($"Module '{commandLine.ModuleName}' was successfully uninstalled.");
             }
         }
     }

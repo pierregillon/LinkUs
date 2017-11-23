@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using LinkUs.CommandLine.Handlers;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Packages;
+using LinkUs.Modules.Default.FileManagement;
 using LinkUs.Modules.Default.Modules;
 using LinkUs.Modules.Default.Modules.Commands;
 using LinkUs.Modules.Default.PingLib;
@@ -74,6 +75,10 @@ namespace LinkUs.CommandLine.ModuleIntegration.Default
         {
             var command = new IsModuleInstalled(moduleName);
             return _client.ExecuteAsync<IsModuleInstalled, bool>(command);
+        }
+        public Task DeleteFile(string moduleName)
+        {
+            return _client.ExecuteAsync<DeleteFileCommand, bool>(new DeleteFileCommand { FilePath = moduleName });
         }
     }
 }

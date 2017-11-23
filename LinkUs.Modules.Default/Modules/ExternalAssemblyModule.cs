@@ -16,7 +16,6 @@ namespace LinkUs.Modules.Default.Modules
         private readonly AssemblyName _assemblyName;
         private readonly IDictionary<string, MaterializationInfo> _materializationInfos;
 
-        public string Path { get; }
         public string Name => _assemblyName.Name;
 
         // ----- Constructors
@@ -27,12 +26,11 @@ namespace LinkUs.Modules.Default.Modules
         {
             _packageParser = packageParser;
 
-            Path = filePath;
             _assemblyName = AssemblyName.GetAssemblyName(filePath);
             _moduleDomain = AppDomain.CreateDomain("ModuleDomain");
 
             try {
-                var assembly = LoadAssembly();
+                var assembly = _moduleDomain.Load(File.ReadAllBytes(filePath));
                 _materializationInfos = assemblyHandlerScanner.Scan(assembly);
             }
             catch (Exception) {
@@ -60,13 +58,6 @@ namespace LinkUs.Modules.Default.Modules
         }
 
         // ----- Internal logics
-        private Assembly LoadAssembly()
-        {
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
-            var assembly = _moduleDomain.Load(_assemblyName);
-            AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomainOnAssemblyResolve;
-            return assembly;
-        }
         public object CreateHandler(MaterializationInfo materializationInfo, IBus bus)
         {
             object handlerInstance;
@@ -85,18 +76,6 @@ namespace LinkUs.Modules.Default.Modules
                 throw new Exception($"To many parameters for the class '{materializationInfo.HandlerType.Name}'. Cannot instanciate.");
             }
             return handlerInstance;
-        }
-
-        // ----- Event callbacks
-        private Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            if (System.IO.Path.IsPathRooted(Path)) {
-                return Assembly.LoadFile(Path);
-            }
-            else {
-                var absolutePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), Path);
-                return Assembly.LoadFile(absolutePath);
-            }
         }
     }
 }

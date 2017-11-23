@@ -45,6 +45,8 @@
     <Compile Include="ClientInformation\GetBasicInformationCommandHandler.cs" />
     <Compile Include="ClientInformation\NetHelper.cs" />
     <Compile Include="ClientInformation\SetStatus.cs" />
+    <Compile Include="FileManagement\DeleteFileCommand.cs" />
+    <Compile Include="FileManagement\DeleteFileCommandHandler.cs" />
     <Compile Include="FileTransfert\Commands\EndFileDownload.cs" />
     <Compile Include="FileTransfert\Commands\EndFileUpload.cs" />
     <Compile Include="FileTransfert\Commands\GetNextFileData.cs" />
