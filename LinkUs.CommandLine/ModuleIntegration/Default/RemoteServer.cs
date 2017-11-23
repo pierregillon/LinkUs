@@ -8,12 +8,12 @@ using LinkUs.Responses;
 
 namespace LinkUs.CommandLine.ModuleIntegration.Default
 {
-    public class Server
+    public class RemoteServer
     {
         private readonly ICommandSender _commandSender;
 
         // ----- Constructor
-        public Server(ICommandSender commandSender)
+        public RemoteServer(ICommandSender commandSender)
         {
             _commandSender = commandSender;
         }

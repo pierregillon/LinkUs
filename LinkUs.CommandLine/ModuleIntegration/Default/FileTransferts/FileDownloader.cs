@@ -1,12 +1,12 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using LinkUs.CommandLine.ModuleIntegration.Default;
+using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.Core.Commands;
 using LinkUs.Modules.Default.FileTransfert.Commands;
 using LinkUs.Modules.Default.FileTransfert.Events;
 
-namespace LinkUs.CommandLine.FileTransferts
+namespace LinkUs.CommandLine.ModuleIntegration.Default.FileTransferts
 {
     public class FileDownloader : IProgressable
     {
@@ -23,7 +23,7 @@ namespace LinkUs.CommandLine.FileTransferts
         }
 
         // ----- Public methods
-        public async Task DownloadAsync(string remoteSourceFilePath, string localPath = null)
+        public async Task<string> DownloadAsync(string remoteSourceFilePath, string localPath = null)
         {
             var localFilePath = GetLocalFilePath(remoteSourceFilePath, localPath);
             PrepareFileLocation(localFilePath);
@@ -35,6 +35,8 @@ namespace LinkUs.CommandLine.FileTransferts
             if (totalBytesTransferred != startedEvent.TotalLength) {
                 throw new Exception("The total amount of bytes received is not correct, file must be corrupted.");
             }
+
+            return localFilePath;
         }
 
         // ----- Internal logics

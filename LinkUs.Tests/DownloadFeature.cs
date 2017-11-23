@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
-using LinkUs.CommandLine.FileTransferts;
+using LinkUs.CommandLine.ModuleIntegration.Default.FileTransferts;
 using LinkUs.Core.Packages;
 using LinkUs.Modules.Default.FileTransfert;
 using LinkUs.Tests.Helpers;

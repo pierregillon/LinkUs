@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using LinkUs.CommandLine.FileTransferts;
+using LinkUs.CommandLine.ModuleIntegration.Default.FileTransferts;
 
 namespace LinkUs.CommandLine.ConsoleLib
 {
@@ -16,7 +16,9 @@ namespace LinkUs.CommandLine.ConsoleLib
         void NewLine();
         void MoveCursorLeftBack(int length);
         void SetCursorLeft(int left);
-        void WriteProgress(Task task, IProgressable progressable);
+        Task<T> WriteProgress<T>(string text, IProgressable progressable, Task<T> task);
+        Task WriteProgress(string text, IProgressable progressable, Task task);
+        Task WriteTaskStatus(string text, Task task);
         void CleanLine();
         string ReadLine();
         CursorPosition GetCursorPosition();

@@ -61,9 +61,9 @@
     <Compile Include="CommandLineDispatcher.cs" />
     <Compile Include="ConsoleLib\WindowsConsole.cs" />
     <Compile Include="ConsoleLib\IConsole.cs" />
-    <Compile Include="FileTransferts\FileDownloader.cs" />
-    <Compile Include="FileTransferts\FileUploader.cs" />
-    <Compile Include="FileTransferts\IProgressable.cs" />
+    <Compile Include="ModuleIntegration\Default\FileTransferts\FileDownloader.cs" />
+    <Compile Include="ModuleIntegration\Default\FileTransferts\FileUploader.cs" />
+    <Compile Include="ConsoleLib\IProgressable.cs" />
     <Compile Include="Handlers\ConfigCommandLineHandler.cs" />
     <Compile Include="GlobalParameters.cs" />
     <Compile Include="ICommandLineParser.cs" />
@@ -78,7 +78,7 @@
     <Compile Include="ICommandLineHandler.cs" />
     <Compile Include="ICommandLineDispatcher.cs" />
     <Compile Include="ModuleIntegration\Default\RemoteClient.cs" />
-    <Compile Include="ModuleIntegration\Default\Server.cs" />
+    <Compile Include="ModuleIntegration\Default\RemoteServer.cs" />
     <Compile Include="Verbs\InstallModuleCommandLine.cs" />
     <Compile Include="Verbs\ListConnectedClientsCommandLine.cs" />
     <Compile Include="Verbs\ListModulesCommandLine.cs" />

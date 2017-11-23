@@ -4,7 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using LinkUs.CommandLine.ConsoleLib;
-using LinkUs.CommandLine.FileTransferts;
+using LinkUs.CommandLine.ModuleIntegration.Default;
+using LinkUs.CommandLine.ModuleIntegration.Default.FileTransferts;
 using LinkUs.CommandLine.Verbs;
 
 namespace LinkUs.CommandLine.Handlers
@@ -17,12 +18,12 @@ namespace LinkUs.CommandLine.Handlers
         ICommandLineHandler<UninstallModuleCommandLine>
     {
         private readonly IConsole _console;
-        private readonly ModuleIntegration.Default.Server _server;
+        private readonly RemoteServer _server;
         private readonly ModuleLocator _moduleLocator;
 
         public ModuleCommandLineHandler(
             IConsole console,
-            ModuleIntegration.Default.Server server,
+            RemoteServer server,
             ModuleLocator moduleLocator)
         {
             _console = console;
@@ -33,17 +34,23 @@ namespace LinkUs.CommandLine.Handlers
         public async Task Handle(LoadModuleCommandLine commandLine)
         {
             var remoteClient = await _server.FindRemoteClient(commandLine.Target);
-            var isSucceded = await remoteClient.LoadModule(commandLine.ModuleName);
-            if (!isSucceded) {
-                _console.WriteLine($"Failed to load module {commandLine.ModuleName}.");
+            var moduleManager = new RemoteModuleManager(remoteClient);
+            if (await moduleManager.IsModuleInstalled(commandLine.ModuleName)) {
+                _console.WriteLine($"Module '{commandLine.ModuleName}' is already loaded. Did you mean 'unload-module' ?");
+            }
+            else {
+                await moduleManager.LoadModule(commandLine.ModuleName);
             }
         }
         public async Task Handle(UnloadModuleCommandLine commandLine)
         {
             var remoteClient = await _server.FindRemoteClient(commandLine.Target);
-            var isSucceded = await remoteClient.UnLoadModule(commandLine.ModuleName);
-            if (!isSucceded) {
-                _console.WriteLine($"Failed to load module {commandLine.ModuleName}.");
+            var moduleManager = new RemoteModuleManager(remoteClient);
+            if (await moduleManager.IsModuleInstalled(commandLine.ModuleName) == false) {
+                _console.WriteLine($"Module '{commandLine.ModuleName}' is not loaded. Did you mean 'load-module' ?");
+            }
+            else {
+                await moduleManager.UnLoadModule(commandLine.ModuleName);
             }
         }
         public async Task Handle(ListModulesCommandLine commandLine)
@@ -54,8 +61,10 @@ namespace LinkUs.CommandLine.Handlers
             }
             else {
                 var remoteClient = await _server.FindRemoteClient(commandLine.Target);
+                var moduleManager = new RemoteModuleManager(remoteClient);
+
                 var allModules = _moduleLocator.GetAvailableModules().ToArray();
-                var installedModules = await remoteClient.GetModules();
+                var installedModules = await moduleManager.GetInstalledModules();
                 foreach (var module in allModules) {
                     var installedModule = installedModules.SingleOrDefault(x => x.Name == module.Name);
                     if (installedModule != null) {
@@ -76,29 +85,28 @@ namespace LinkUs.CommandLine.Handlers
         public async Task Handle(InstallModuleCommandLine commandLine)
         {
             var remoteClient = await _server.FindRemoteClient(commandLine.Target);
-            if (await remoteClient.IsModuleInstalled(commandLine.ModuleName)) {
+            var moduleManager = new RemoteModuleManager(remoteClient);
+            if (await moduleManager.IsModuleInstalled(commandLine.ModuleName)) {
                 _console.WriteLine($"Module '{commandLine.ModuleName}' is already installed. Did you mean 'uninstall-module' ?");
             }
             else {
-                var fullModulePath = _moduleLocator.GetFullPath(commandLine.ModuleName);
                 var uploader = new FileUploader(remoteClient);
-                _console.WriteLine("Downloading module");
-                await uploader.UploadAsync(fullModulePath, Path.GetFileName(fullModulePath));
-                _console.WriteLine("Loading module");
-                await remoteClient.LoadModule(commandLine.ModuleName);
+                var fullModulePath = _moduleLocator.GetFullPath(commandLine.ModuleName);
+                await _console.WriteProgress("Downloading module", uploader, uploader.UploadAsync(fullModulePath, Path.GetFileName(fullModulePath)));
+                await _console.WriteTaskStatus("Loading module    ", moduleManager.LoadModule(commandLine.ModuleName));
                 _console.WriteLine($"Module '{commandLine.ModuleName}' was successfully installed.");
             }
         }
-
         public async Task Handle(UninstallModuleCommandLine commandLine)
         {
             var remoteClient = await _server.FindRemoteClient(commandLine.Target);
-            if (await remoteClient.IsModuleInstalled(commandLine.ModuleName) == false) {
+            var moduleManager = new RemoteModuleManager(remoteClient);
+            if (await moduleManager.IsModuleInstalled(commandLine.ModuleName) == false) {
                 _console.WriteLine($"Module '{commandLine.ModuleName}' is not installed. Did you mean 'install-module' ?");
             }
             else {
                 _console.WriteLine("Unload module => [DONE]");
-                await remoteClient.UnLoadModule(commandLine.ModuleName);
+                await moduleManager.UnLoadModule(commandLine.ModuleName);
                 //_console.WriteLine("Delete module => [DONE]");
                 //var fullModulePath = _moduleLocator.GetFullPath(commandLine.ModuleName);
             }

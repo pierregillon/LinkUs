@@ -1,4 +1,4 @@
-namespace LinkUs.CommandLine.FileTransferts
+namespace LinkUs.CommandLine.ConsoleLib
 {
     public interface IProgressable
     {

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
+using LinkUs.CommandLine.Handlers;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Packages;
 using LinkUs.Modules.Default.Modules;
@@ -14,9 +16,12 @@ namespace LinkUs.CommandLine.ModuleIntegration.Default
     {
         private readonly ICommandSender _commandSender;
 
+        // ----- Properties
         public ClientId TargetId { get; }
+
         public ConnectedClient Information { get; }
 
+        // ----- Constructor
         public RemoteClient(ICommandSender commandSender, ConnectedClient information)
         {
             TargetId = ClientId.Parse(information.Id);
@@ -24,6 +29,7 @@ namespace LinkUs.CommandLine.ModuleIntegration.Default
             _commandSender = commandSender;
         }
 
+        // ----- Public methods
         public Task<TResponse> ExecuteAsync<TCommand, TResponse>(TCommand command)
         {
             return _commandSender.ExecuteAsync<TCommand, TResponse>(command, TargetId);
@@ -37,26 +43,37 @@ namespace LinkUs.CommandLine.ModuleIntegration.Default
             stopWatch.Stop();
             return stopWatch.ElapsedMilliseconds;
         }
-        public async Task<IReadOnlyCollection<ModuleInformation>> GetModules()
+    }
+
+    public class RemoteModuleManager
+    {
+        private readonly IDedicatedCommandSender _client;
+
+        public RemoteModuleManager(IDedicatedCommandSender client)
+        {
+            _client = client;
+        }
+
+        public async Task<IReadOnlyCollection<ModuleInformation>> GetInstalledModules()
         {
             var command = new ListModules();
-            var response = await _commandSender.ExecuteAsync<ListModules, ModuleInformation[]>(command, TargetId);
+            var response = await _client.ExecuteAsync<ListModules, ModuleInformation[]>(command);
             return response;
         }
-        public Task<bool> LoadModule(string moduleName)
+        public Task LoadModule(string moduleName)
         {
             var command = new LoadModule(moduleName);
-            return _commandSender.ExecuteAsync<LoadModule, bool>(command, TargetId);
+            return _client.ExecuteAsync<LoadModule, bool>(command);
         }
-        public Task<bool> UnLoadModule(string moduleName)
+        public Task UnLoadModule(string moduleName)
         {
             var command = new UnloadModule(moduleName);
-            return _commandSender.ExecuteAsync<UnloadModule, bool>(command, TargetId);
+            return _client.ExecuteAsync<UnloadModule, bool>(command);
         }
         public Task<bool> IsModuleInstalled(string moduleName)
         {
             var command = new IsModuleInstalled(moduleName);
-            return _commandSender.ExecuteAsync<IsModuleInstalled, bool>(command, TargetId);
+            return _client.ExecuteAsync<IsModuleInstalled, bool>(command);
         }
     }
 }

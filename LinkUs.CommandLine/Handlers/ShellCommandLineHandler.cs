@@ -7,9 +7,9 @@ namespace LinkUs.CommandLine.Handlers
     public class ShellCommandLineHandler : ICommandLineHandler<ShellCommandLine>
     {
         private readonly ConsoleRemoteShellController _remoteShellController;
-        private readonly ModuleIntegration.Default.Server _server;
+        private readonly ModuleIntegration.Default.RemoteServer _server;
 
-        public ShellCommandLineHandler(ConsoleRemoteShellController remoteShellController, ModuleIntegration.Default.Server server)
+        public ShellCommandLineHandler(ConsoleRemoteShellController remoteShellController, ModuleIntegration.Default.RemoteServer server)
         {
             _remoteShellController = remoteShellController;
             _server = server;

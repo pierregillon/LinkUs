@@ -4,8 +4,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using LinkUs.CommandLine.FileTransferts;
 using LinkUs.CommandLine.Handlers;
+using LinkUs.CommandLine.ModuleIntegration.Default.FileTransferts;
 using LinkUs.CommandLine.ModuleIntegration.RemoteShell;
 
 namespace LinkUs.CommandLine.ConsoleLib
@@ -19,15 +19,15 @@ namespace LinkUs.CommandLine.ConsoleLib
         // ----- Public methods
         public void WriteLineInfo(string message, params object[] parameters)
         {
-            WriteWithColor(string.Format(message, parameters), InfoColor);
+            WriteLineWithColor(string.Format(message, parameters), InfoColor);
         }
         public void WriteLineError(string message, params object[] parameters)
         {
-            WriteWithColor(string.Format(message, parameters), ErrorColor);
+            WriteLineWithColor(string.Format(message, parameters), ErrorColor);
         }
         public void WriteLineWarning(string message, params object[] parameters)
         {
-            WriteWithColor(string.Format(message, parameters), WarningColor);
+            WriteLineWithColor(string.Format(message, parameters), WarningColor);
         }
         public void WriteObjects<T>(IReadOnlyCollection<T> list, params string[] properties)
         {
@@ -80,29 +80,29 @@ namespace LinkUs.CommandLine.ConsoleLib
         {
             Console.CursorLeft = left;
         }
-        public void WriteProgress(Task task, IProgressable progressable)
+        public Task<T> WriteProgress<T>(string text, IProgressable progressable, Task<T> task)
         {
-            try {
-                var watch = new Stopwatch();
-                watch.Start();
-                while (task.Wait(500) == false) {
-                    SetCursorLeft(0);
-                    WriteProgress(progressable.Pourcentage, watch.Elapsed);
-                }
-                watch.Stop();
-                SetCursorLeft(0);
-                WriteProgress(progressable.Pourcentage, watch.Elapsed);
-                NewLine();
-            }
-            catch (Exception) {
-                CleanLine();
-                throw;
-            }
+            return WriteProgressInternal(text, progressable, task)
+                .ContinueWith(x => {
+                    if (x.IsFaulted) {
+                        throw task.Exception;
+                    }
+                    return task.Result;
+                });
+        }
+        public Task WriteProgress(string text, IProgressable progressable, Task task)
+        {
+            return WriteProgressInternal(text, progressable, task);
+        }
+        public Task WriteTaskStatus(string text, Task task)
+        {
+            Write($"{text}\t=> ");
+            return task.ContinueWith(WriteTaskStatus);
         }
         public void CleanLine()
         {
             SetCursorLeft(0);
-            for (int i = 0; i < Console.WindowWidth; i++) {
+            for (int i = 0; i < Console.WindowWidth - 1; i++) {
                 Console.Write(" ");
             }
             SetCursorLeft(0);
@@ -125,17 +125,49 @@ namespace LinkUs.CommandLine.ConsoleLib
             return Console.In.Read(buffer, offset, length);
         }
 
+        // ----- Internal logics
+        private Task WriteProgressInternal(string text, IProgressable progressable, Task task)
+        {
+            return Task.Factory.StartNew(() => {
+                           var watch = new Stopwatch();
+                           watch.Start();
+                           while (task.Wait(500) == false) {
+                               CleanLine();
+                               Write($"{text}\t=> {progressable.Pourcentage}%  (from {watch.Elapsed:hh\\:mm\\:ss})");
+                           }
+                           watch.Stop();
+                       })
+                       .ContinueWith(x => {
+                           CleanLine();
+                           Write($"{text}\t=> ");
+                           WriteTaskStatus(task);
+                       });
+        }
+        private void WriteTaskStatus(Task task)
+        {
+            if (task.IsCanceled) {
+                WriteLineWarning("[CANCELED]");
+            }
+            else if (task.IsCompleted) {
+                WriteLineSuccess("[DONE]");
+            }
+            else if (task.IsFaulted) {
+                WriteLineError("[FAILED]");
+                throw task.Exception;
+            }
+        }
+
         // ----- Utils
-        private void WriteWithColor(string message, ConsoleColor color)
+        private void WriteLineWithColor(string message, ConsoleColor color)
         {
             var previousColor = Console.ForegroundColor;
             Console.ForegroundColor = color;
             Console.WriteLine(message);
             Console.ForegroundColor = previousColor;
         }
-        private void WriteProgress(int pourcentage, TimeSpan ellapsed)
+        private void WriteLineSuccess(string message)
         {
-            Write($"Progress: {pourcentage.ToString().PadLeft(3)}%\t{ellapsed:hh\\:mm\\:ss}");
+            WriteLineWithColor(message, ConsoleColor.Green);
         }
     }
 }

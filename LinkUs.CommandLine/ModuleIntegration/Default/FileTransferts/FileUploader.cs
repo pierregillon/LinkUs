@@ -1,12 +1,12 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using LinkUs.CommandLine.ModuleIntegration.Default;
+using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.Core.Commands;
 using LinkUs.Modules.Default.FileTransfert.Commands;
 using LinkUs.Modules.Default.FileTransfert.Events;
 
-namespace LinkUs.CommandLine.FileTransferts
+namespace LinkUs.CommandLine.ModuleIntegration.Default.FileTransferts
 {
     public class FileUploader : IProgressable
     {
