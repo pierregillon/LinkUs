@@ -74,7 +74,8 @@ namespace LinkUs.Modules.RemoteShell
                     ErrorDialog = false,
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
-                    RedirectStandardError = true
+                    RedirectStandardError = true,
+                    Verb = "runas"
                 },
                 EnableRaisingEvents = true
             };
