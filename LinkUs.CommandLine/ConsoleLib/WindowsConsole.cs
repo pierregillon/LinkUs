@@ -17,6 +17,17 @@ namespace LinkUs.CommandLine.ConsoleLib
         private const ConsoleColor WarningColor = ConsoleColor.DarkYellow;
 
         // ----- Public methods
+        public void WriteLineWithColor(string message, ConsoleColor color)
+        {
+            WriteWithColor(message + Environment.NewLine, color);
+        }
+        public void WriteWithColor(string message, ConsoleColor color)
+        {
+            var previousColor = Console.ForegroundColor;
+            Console.ForegroundColor = color;
+            Console.Write(message);
+            Console.ForegroundColor = previousColor;
+        }
         public void WriteLineInfo(string message, params object[] parameters)
         {
             WriteLineWithColor(string.Format(message, parameters), InfoColor);
@@ -161,13 +172,6 @@ namespace LinkUs.CommandLine.ConsoleLib
         }
 
         // ----- Utils
-        private void WriteLineWithColor(string message, ConsoleColor color)
-        {
-            var previousColor = Console.ForegroundColor;
-            Console.ForegroundColor = color;
-            Console.WriteLine(message);
-            Console.ForegroundColor = previousColor;
-        }
         private void WriteLineSuccess(string message)
         {
             WriteLineWithColor(message, ConsoleColor.Green);

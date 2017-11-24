@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using LinkUs.CommandLine.ModuleIntegration.Default.FileTransferts;
 
 namespace LinkUs.CommandLine.ConsoleLib
 {
     public interface IConsole
     {
+        void WriteLineWithColor(string message, ConsoleColor color);
+        void WriteWithColor(string message, ConsoleColor color);
         void WriteLineError(string message, params object[] parameters);
         void WriteLineInfo(string message, params object[] parameters);
         void WriteLineWarning(string message, params object[] parameters);

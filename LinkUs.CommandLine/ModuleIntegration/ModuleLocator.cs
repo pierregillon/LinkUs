@@ -31,10 +31,16 @@ namespace LinkUs.CommandLine.ModuleIntegration
                 };
             }
         }
-        public string GetFullPath(string moduleName)
+        public Module GetAvailableModule(string moduleName)
         {
-            var fileName = moduleName + ".dll";
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            return (from filePath in GetAssembliesInModuleDirectory()
+                    let assemblyName = AssemblyName.GetAssemblyName(filePath)
+                    where assemblyName.Name == moduleName
+                    select new Module {
+                        Name = assemblyName.Name,
+                        Description = GetDescription(assemblyName),
+                        FileLocation = filePath
+                    }).FirstOrDefault();
         }
 
         // ----- Utils

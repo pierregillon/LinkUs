@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Packages;
 using LinkUs.Modules.Default.Modules.Commands;
@@ -32,7 +31,6 @@ namespace LinkUs.Modules.Default.Modules
         {
             return _moduleManager.Modules.Select(x => new ModuleInformation {
                 Name = x.Name,
-                Version = x.Version,
                 FileLocation = x.FileLocation
             }).ToArray();
         }

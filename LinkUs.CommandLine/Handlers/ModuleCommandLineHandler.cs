@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,29 +32,21 @@ namespace LinkUs.CommandLine.Handlers
 
         public async Task Handle(ListModulesCommandLine commandLine)
         {
-            if (commandLine.ListAvailableModules) {
+            if (string.IsNullOrEmpty(commandLine.Target)) {
                 var modules = _moduleLocator.GetAvailableModules().ToArray();
                 _console.WriteObjects(modules, "Name", "Description");
             }
             else {
                 var remoteClient = await _server.FindRemoteClient(commandLine.Target);
                 var moduleManager = new RemoteModuleManager(remoteClient);
-
                 var availableModules = _moduleLocator.GetAvailableModules().ToArray();
                 var installedModules = await moduleManager.GetInstalledModules();
-
-                var results = new List<ModuleDisplay>();
                 foreach (var module in availableModules) {
-                    var moduleDisplay = new ModuleDisplay() {
-                        Name = module.Name
-                    };
-                    var installedModule = installedModules.SingleOrDefault(x => x.Name == module.Name);
-                    if (installedModule != null) {
-                        moduleDisplay.Status = "[enabled]";
+                    if (installedModules.Any(x => x.Name == module.Name)) {
+                        _console.WriteWithColor("[enabled]", ConsoleColor.Green);
                     }
-                    results.Add(moduleDisplay);
+                    _console.WriteLine($"\t{module.Name}\t{module.Description}");
                 }
-                _console.WriteObjects(results);
             }
         }
         public async Task Handle(InstallModuleCommandLine commandLine)
@@ -65,10 +58,10 @@ namespace LinkUs.CommandLine.Handlers
             }
             else {
                 var uploader = new FileUploader(remoteClient);
-                var moduleLocalFilePath = _moduleLocator.GetFullPath(commandLine.ModuleName);
+                var module = _moduleLocator.GetAvailableModule(commandLine.ModuleName);
                 var remoteModuleDirectoryPath = await moduleManager.GetModuleDirectory();
                 var remoteFilePath = Path.Combine(remoteModuleDirectoryPath, Path.GetRandomFileName());
-                await _console.WriteProgress("Uploading module", uploader, uploader.UploadAsync(moduleLocalFilePath, remoteFilePath));
+                await _console.WriteProgress("Uploading module", uploader, uploader.UploadAsync(module.FileLocation, remoteFilePath));
                 await _console.WriteTaskStatus("Loading module    ", moduleManager.LoadModule(commandLine.ModuleName));
                 _console.WriteLine($"Module '{commandLine.ModuleName}' was successfully installed.");
             }
@@ -87,11 +80,5 @@ namespace LinkUs.CommandLine.Handlers
                 _console.WriteLine($"Module '{commandLine.ModuleName}' was successfully uninstalled.");
             }
         }
-    }
-
-    public class ModuleDisplay
-    {
-        public string Name { get; set; }
-        public string Status { get; set; }
     }
 }

@@ -17,7 +17,6 @@ namespace LinkUs.Modules.Default.Modules
         private readonly IDictionary<string, MaterializationInfo> _materializationInfos;
 
         public string Name => _assemblyName.Name;
-        public string Version => _assemblyName.Version.ToString().Split('.').Take(2).Aggregate(".", (c, s) => s + c.ToString());
         public string FileLocation { get; }
 
         // ----- Constructors

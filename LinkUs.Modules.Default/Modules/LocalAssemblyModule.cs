@@ -16,7 +16,6 @@ namespace LinkUs.Modules.Default.Modules
 
         // ----- Properties
         public string Name => "LinkUs.Modules.Default";
-        public string Version => "-";
         public string FileLocation => "";
 
         // ----- Constructor
