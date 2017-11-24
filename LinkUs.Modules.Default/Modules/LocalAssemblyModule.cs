@@ -4,7 +4,6 @@ using System.Reflection;
 using LinkUs.Core;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Packages;
-using LinkUs.Modules.Default.Modules.Commands;
 using LinkUs.Modules.Default.Modules.Exceptions;
 
 namespace LinkUs.Modules.Default.Modules
@@ -17,6 +16,8 @@ namespace LinkUs.Modules.Default.Modules
 
         // ----- Properties
         public string Name => "LinkUs.Modules.Default";
+        public string Version => "-";
+        public string FileLocation => "";
 
         // ----- Constructor
         public LocalAssemblyModule(PackageParser packageParser, Ioc ioc)

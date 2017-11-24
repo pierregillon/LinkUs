@@ -25,7 +25,11 @@ CommandLine
 Client
 * admin mode for app, need to write to c:\
 * install the client
-** localModule => use ioc to instanciate handler!
+* do not allow multiple load of the same assembly.
+	* at startup
+	* if multiple user ask for the same load
+* get the module directory from the client
+* get the module information of a specific moduleName.
 
 Studies
 * Send command without return result. (underlying sync call with byte result)

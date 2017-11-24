@@ -27,33 +27,29 @@ namespace LinkUs.Modules.Default.Modules
             _packageParser = packageParser;
         }
 
+        // ----- Public methods
         public ModuleInformation[] Handle(ListModules command)
         {
-            var externalAssemblyModules = _moduleLocator.GetModules().ToList();
-            foreach (var loadedModule in _moduleManager.Modules) {
-                var module = externalAssemblyModules.SingleOrDefault(x => x.Name == loadedModule.Name);
-                if (module != null) {
-                    module.IsLoaded = true;
-                }
-            }
-            return externalAssemblyModules.ToArray();
+            return _moduleManager.Modules.Select(x => new ModuleInformation {
+                Name = x.Name,
+                Version = x.Version,
+                FileLocation = x.FileLocation
+            }).ToArray();
         }
-
         public bool Handle(LoadModule command)
         {
             var module = _moduleManager.GetModule(command.ModuleName);
             if (module != null) {
                 throw new ModuleAlreadyLoadedException(command.ModuleName);
             }
-            var filePath = _moduleLocator.GetFullPath(command.ModuleName);
-            if (File.Exists(filePath) == false) {
+            var moduleInformation = _moduleLocator.GetModuleInformation(command.ModuleName);
+            if (moduleInformation == null) {
                 throw new ModuleNotInstalledOnClientException(command.ModuleName);
             }
-            var externalAssemblyModule = new ExternalAssemblyModule(new AssemblyHandlerScanner(), _packageParser, filePath);
+            var externalAssemblyModule = new ExternalAssemblyModule(new AssemblyHandlerScanner(), _packageParser, moduleInformation.FileLocation);
             _moduleManager.Register(externalAssemblyModule);
             return true;
         }
-
         public bool Handle(UnloadModule command)
         {
             var module = _moduleManager.FindModule(command.ModuleName);
@@ -61,7 +57,6 @@ namespace LinkUs.Modules.Default.Modules
             _moduleManager.Unregister(module);
             return true;
         }
-
         public bool Handle(IsModuleInstalled command)
         {
             var module = _moduleManager.GetModule(command.ModuleName);

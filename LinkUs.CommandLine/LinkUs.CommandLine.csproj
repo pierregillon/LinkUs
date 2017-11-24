@@ -68,6 +68,7 @@
     <Compile Include="GlobalParameters.cs" />
     <Compile Include="ICommandLineParser.cs" />
     <Compile Include="ModuleIntegration\Default\IDedicatedCommandSender.cs" />
+    <Compile Include="ModuleIntegration\Default\RemoteModuleManager.cs" />
     <Compile Include="Verbs\ConfigCommandLine.cs" />
     <Compile Include="Verbs\DownloadFileCommandLine.cs" />
     <Compile Include="Handlers\DownloadFileCommandLineHandler.cs" />

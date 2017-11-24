@@ -17,6 +17,8 @@ namespace LinkUs.Modules.Default.Modules
         private readonly IDictionary<string, MaterializationInfo> _materializationInfos;
 
         public string Name => _assemblyName.Name;
+        public string Version => _assemblyName.Version.ToString().Split('.').Take(2).Aggregate(".", (c, s) => s + c.ToString());
+        public string FileLocation { get; }
 
         // ----- Constructors
         public ExternalAssemblyModule(
@@ -25,6 +27,7 @@ namespace LinkUs.Modules.Default.Modules
             string filePath)
         {
             _packageParser = packageParser;
+            FileLocation = filePath;
 
             _assemblyName = AssemblyName.GetAssemblyName(filePath);
             _moduleDomain = AppDomain.CreateDomain("ModuleDomain");

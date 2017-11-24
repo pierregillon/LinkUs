@@ -43,17 +43,7 @@ namespace LinkUs.CommandLine.Handlers
                 var installedModules = await moduleManager.GetInstalledModules();
                 foreach (var module in allModules) {
                     var installedModule = installedModules.SingleOrDefault(x => x.Name == module.Name);
-                    if (installedModule != null) {
-                        if (installedModule.IsLoaded) {
-                            module.Status = ModuleInformation2.ModuleStatus.Installed;
-                        }
-                        else {
-                            module.Status = ModuleInformation2.ModuleStatus.NotLoaded;
-                        }
-                    }
-                    else {
-                        module.Status = ModuleInformation2.ModuleStatus.Uninstalled;
-                    }
+                    module.Status = installedModule != null ? ModuleInformation2.ModuleStatus.Installed : ModuleInformation2.ModuleStatus.Uninstalled;
                 }
                 _console.WriteObjects(allModules);
             }
@@ -67,8 +57,10 @@ namespace LinkUs.CommandLine.Handlers
             }
             else {
                 var uploader = new FileUploader(remoteClient);
-                var fullModulePath = _moduleLocator.GetFullPath(commandLine.ModuleName);
-                await _console.WriteProgress("Downloading module", uploader, uploader.UploadAsync(fullModulePath, Path.GetFileName(fullModulePath)));
+                var moduleLocalFilePath = _moduleLocator.GetFullPath(commandLine.ModuleName);
+                var remoteModuleDirectoryPath = await moduleManager.GetModuleDirectory();
+                var remoteFilePath = Path.Combine(remoteModuleDirectoryPath, Path.GetRandomFileName());
+                await _console.WriteProgress("Uploading module", uploader, uploader.UploadAsync(moduleLocalFilePath, remoteFilePath));
                 await _console.WriteTaskStatus("Loading module    ", moduleManager.LoadModule(commandLine.ModuleName));
                 _console.WriteLine($"Module '{commandLine.ModuleName}' was successfully installed.");
             }
@@ -81,8 +73,9 @@ namespace LinkUs.CommandLine.Handlers
                 _console.WriteLine($"Module '{commandLine.ModuleName}' is not installed. Did you mean 'install-module' ?");
             }
             else {
-                await _console.WriteTaskStatus("Unload module", moduleManager.UnLoadModule(commandLine.ModuleName));
-                await _console.WriteTaskStatus("Delete file  ", moduleManager.DeleteFile(commandLine.ModuleName));
+                var moduleInformation = await moduleManager.GetInstalledModule(commandLine.ModuleName);
+                await _console.WriteTaskStatus("Unload module", moduleManager.UnLoadModule(moduleInformation.Name));
+                await _console.WriteTaskStatus("Delete file  ", moduleManager.DeleteFile(moduleInformation.FileLocation));
                 _console.WriteLine($"Module '{commandLine.ModuleName}' was successfully uninstalled.");
             }
         }
@@ -117,9 +110,7 @@ namespace LinkUs.CommandLine.Handlers
 
         public enum ModuleStatus
         {
-            Unknown,
             Installed,
-            NotLoaded,
             Uninstalled
         }
     }

@@ -19,18 +19,27 @@ namespace LinkUs.Modules.Default.Modules
         {
             var loadedModules = new List<ExternalAssemblyModule>();
             foreach (var moduleInfo in _moduleLocator.GetModules()) {
-                Console.Write($"* Loading module {moduleInfo.Name} \t ");
-                var fullPath = _moduleLocator.GetFullPath(moduleInfo.Name);
-                try {
-                    var module = new ExternalAssemblyModule(new AssemblyHandlerScanner(), _packageParser, fullPath);
+                var module = LoadModule(moduleInfo);
+                if (module != null) {
                     loadedModules.Add(module);
-                    Console.WriteLine("[OK]");
-                }
-                catch (Exception ex) {
-                    Console.WriteLine("[FAILED] " + ex.Message);
                 }
             }
             return loadedModules;
+        }
+
+        // ----- Internal logic
+        private ExternalAssemblyModule LoadModule(ModuleInformation moduleInfo)
+        {
+            try {
+                Console.Write($"* Loading module {moduleInfo.Name} \t ");
+                var module = new ExternalAssemblyModule(new AssemblyHandlerScanner(), _packageParser, moduleInfo.FileLocation);
+                Console.WriteLine("[OK]");
+                return module;
+            }
+            catch (Exception ex) {
+                Console.WriteLine("[FAILED] " + ex.Message);
+                return null;
+            }
         }
     }
 }

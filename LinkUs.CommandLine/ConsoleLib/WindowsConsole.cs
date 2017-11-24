@@ -148,12 +148,15 @@ namespace LinkUs.CommandLine.ConsoleLib
             if (task.IsCanceled) {
                 WriteLineWarning("[CANCELED]");
             }
-            else if (task.IsCompleted) {
-                WriteLineSuccess("[DONE]");
-            }
             else if (task.IsFaulted) {
                 WriteLineError("[FAILED]");
                 throw task.Exception;
+            }
+            else if (task.IsCompleted) {
+                WriteLineSuccess("[DONE]");
+            }
+            else {
+                throw new NotImplementedException("Unknown task status.");
             }
         }
 

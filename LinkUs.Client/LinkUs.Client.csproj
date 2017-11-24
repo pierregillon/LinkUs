@@ -145,6 +145,12 @@
     <Compile Include="..\LinkUs.Modules.Default\ClientInformation\SetStatus.cs">
       <Link>LinkUs.Modules.Default\SetStatus.cs</Link>
     </Compile>
+    <Compile Include="..\LinkUs.Modules.Default\FileManagement\DeleteFileCommand.cs">
+      <Link>LinkUs.Modules.Default\DeleteFileCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\LinkUs.Modules.Default\FileManagement\DeleteFileCommandHandler.cs">
+      <Link>LinkUs.Modules.Default\DeleteFileCommandHandler.cs</Link>
+    </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Commands\EndFileDownload.cs">
       <Link>LinkUs.Modules.Default\EndFileDownload.cs</Link>
     </Compile>
@@ -189,6 +195,9 @@
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\AssemblyHandlerScanner.cs">
       <Link>LinkUs.Modules.Default\AssemblyHandlerScanner.cs</Link>
+    </Compile>
+    <Compile Include="..\LinkUs.Modules.Default\Modules\Commands\IsModuleInstalled.cs">
+      <Link>LinkUs.Modules.Default\IsModuleInstalled.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\Commands\ListModules.cs">
       <Link>LinkUs.Modules.Default\ListModules.cs</Link>
@@ -251,7 +260,6 @@
       <Link>LinkUs.Modules.Default\PingOk.cs</Link>
     </Compile>
     <Compile Include="DedicatedBus.cs" />
-    <Compile Include="LinkUs.Modules.Default\IsModuleInstalled.cs" />
     <Compile Include="PackageProcessor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
