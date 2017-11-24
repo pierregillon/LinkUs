@@ -1,24 +1,29 @@
 using System;
 using System.Collections.Generic;
-using LinkUs.Core.Packages;
+using System.Linq;
 
 namespace LinkUs.Modules.Default.Modules
 {
     public class ExternalAssemblyModuleScanner
     {
         private readonly ExternalAssemblyModuleLocator _moduleLocator;
-        private readonly PackageParser _packageParser;
+        private readonly IModuleFactory<ExternalAssemblyModule> _externalAssemblyModuleFactory;
 
-        public ExternalAssemblyModuleScanner(ExternalAssemblyModuleLocator moduleLocator, PackageParser packageParser)
+        public ExternalAssemblyModuleScanner(
+            ExternalAssemblyModuleLocator moduleLocator,
+            IModuleFactory<ExternalAssemblyModule> externalAssemblyModuleFactory)
         {
             _moduleLocator = moduleLocator;
-            _packageParser = packageParser;
+            _externalAssemblyModuleFactory = externalAssemblyModuleFactory;
         }
 
         public IEnumerable<ExternalAssemblyModule> Scan()
         {
             var loadedModules = new List<ExternalAssemblyModule>();
-            foreach (var moduleInfo in _moduleLocator.GetModules()) {
+            foreach (var moduleInfo in _moduleLocator.GetModuleInformations()) {
+                if (loadedModules.Any(x => x.Name == moduleInfo.Name)) {
+                    continue;
+                }
                 var module = LoadModule(moduleInfo);
                 if (module != null) {
                     loadedModules.Add(module);
@@ -32,7 +37,7 @@ namespace LinkUs.Modules.Default.Modules
         {
             try {
                 Console.Write($"* Loading module {moduleInfo.Name} \t ");
-                var module = new ExternalAssemblyModule(new AssemblyHandlerScanner(), _packageParser, moduleInfo.FileLocation);
+                var module = _externalAssemblyModuleFactory.Build(moduleInfo.FileLocation);
                 Console.WriteLine("[OK]");
                 return module;
             }

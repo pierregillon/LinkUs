@@ -131,133 +131,139 @@
       <Link>LinkUs.Core\Packages\TransactionId.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\ClientInformation\ClientBasicInformation.cs">
-      <Link>LinkUs.Modules.Default\ClientBasicInformation.cs</Link>
+      <Link>LinkUs.Modules.Default\ClientInformation\ClientBasicInformation.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\ClientInformation\GetBasicInformation.cs">
-      <Link>LinkUs.Modules.Default\GetBasicInformation.cs</Link>
+      <Link>LinkUs.Modules.Default\ClientInformation\GetBasicInformation.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\ClientInformation\GetBasicInformationCommandHandler.cs">
-      <Link>LinkUs.Modules.Default\GetBasicInformationCommandHandler.cs</Link>
+      <Link>LinkUs.Modules.Default\ClientInformation\GetBasicInformationCommandHandler.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\ClientInformation\NetHelper.cs">
-      <Link>LinkUs.Modules.Default\NetHelper.cs</Link>
+      <Link>LinkUs.Modules.Default\ClientInformation\NetHelper.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\ClientInformation\SetStatus.cs">
-      <Link>LinkUs.Modules.Default\SetStatus.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\SetStatus.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileManagement\DeleteFileCommand.cs">
-      <Link>LinkUs.Modules.Default\DeleteFileCommand.cs</Link>
+      <Link>LinkUs.Modules.Default\FileManagement\DeleteFileCommand.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileManagement\DeleteFileCommandHandler.cs">
-      <Link>LinkUs.Modules.Default\DeleteFileCommandHandler.cs</Link>
+      <Link>LinkUs.Modules.Default\FileManagement\DeleteFileCommandHandler.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Commands\EndFileDownload.cs">
-      <Link>LinkUs.Modules.Default\EndFileDownload.cs</Link>
+      <Link>LinkUs.Modules.Default\FileTransfert\EndFileDownload.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Commands\EndFileUpload.cs">
-      <Link>LinkUs.Modules.Default\EndFileUpload.cs</Link>
+      <Link>LinkUs.Modules.Default\FileTransfert\EndFileUpload.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Commands\GetNextFileData.cs">
-      <Link>LinkUs.Modules.Default\GetNextFileData.cs</Link>
+      <Link>LinkUs.Modules.Default\FileTransfert\GetNextFileData.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Commands\SendNextFileData.cs">
-      <Link>LinkUs.Modules.Default\SendNextFileData.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\SendNextFileData.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Commands\StartFileDownload.cs">
-      <Link>LinkUs.Modules.Default\StartFileDownload.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\StartFileDownload.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Commands\StartFileUpload.cs">
-      <Link>LinkUs.Modules.Default\StartFileUpload.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\StartFileUpload.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\DownloadFileCommandHandler.cs">
-      <Link>LinkUs.Modules.Default\DownloadFileCommandHandler.cs</Link>
+      <Link>LinkUs.Modules.Default\FileTransfert\DownloadFileCommandHandler.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Events\FileDownloadEnded.cs">
-      <Link>LinkUs.Modules.Default\FileDownloadEnded.cs</Link>
+      <Link>LinkUs.Modules.Default\FileTransfert\FileDownloadEnded.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Events\FileDownloadStarted.cs">
-      <Link>LinkUs.Modules.Default\FileDownloadStarted.cs</Link>
+      <Link>LinkUs.Modules.Default\FileTransfert\FileDownloadStarted.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Events\FileUploadEnded.cs">
-      <Link>LinkUs.Modules.Default\FileUploadEnded.cs</Link>
+      <Link>LinkUs.Modules.Default\FileTransfert\FileUploadEnded.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Events\FileUploadStarted.cs">
-      <Link>LinkUs.Modules.Default\FileUploadStarted.cs</Link>
+      <Link>LinkUs.Modules.Default\FileTransfert\FileUploadStarted.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Events\NextFileDataRead.cs">
-      <Link>LinkUs.Modules.Default\NextFileDataRead.cs</Link>
+      <Link>LinkUs.Modules.Default\ClientInformation\NextFileDataRead.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\IFilePointer.cs">
-      <Link>LinkUs.Modules.Default\IFilePointer.cs</Link>
+      <Link>LinkUs.Modules.Default\FileTransfert\IFilePointer.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\FileTransfert\UploadFileCommandHandler.cs">
-      <Link>LinkUs.Modules.Default\UploadFileCommandHandler.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\UploadFileCommandHandler.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\AssemblyHandlerScanner.cs">
-      <Link>LinkUs.Modules.Default\AssemblyHandlerScanner.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\AssemblyHandlerScanner.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\Commands\IsModuleInstalled.cs">
-      <Link>LinkUs.Modules.Default\IsModuleInstalled.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\IsModuleInstalled.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\Commands\ListModules.cs">
-      <Link>LinkUs.Modules.Default\ListModules.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\ListModules.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\Commands\LoadModule.cs">
-      <Link>LinkUs.Modules.Default\LoadModule.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\LoadModule.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\Commands\UnloadModule.cs">
-      <Link>LinkUs.Modules.Default\UnloadModule.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\UnloadModule.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\Exceptions\ModuleAlreadyLoadedException.cs">
-      <Link>LinkUs.Modules.Default\ModuleAlreadyLoadedException.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\ModuleAlreadyLoadedException.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\Exceptions\ModuleException.cs">
-      <Link>LinkUs.Modules.Default\ModuleException.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\ModuleException.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\Exceptions\ModuleNotInstalledOnClientException.cs">
-      <Link>LinkUs.Modules.Default\ModuleNotInstalledOnClientException.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\ModuleNotInstalledOnClientException.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\Exceptions\ModuleNotLoadedException.cs">
-      <Link>LinkUs.Modules.Default\ModuleNotLoadedException.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\ModuleNotLoadedException.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\Exceptions\UnknownCommandException.cs">
-      <Link>LinkUs.Modules.Default\UnknownCommandException.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\UnknownCommandException.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\ExternalAssemblyModule.cs">
-      <Link>LinkUs.Modules.Default\ExternalAssemblyModule.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\ExternalAssemblyModule.cs</Link>
+    </Compile>
+    <Compile Include="..\LinkUs.Modules.Default\Modules\ExternalAssemblyModuleFactory.cs">
+      <Link>LinkUs.Modules.Default\Modules\ExternalAssemblyModuleFactory.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\ExternalAssemblyModuleLocator.cs">
-      <Link>LinkUs.Modules.Default\ExternalAssemblyModuleLocator.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\ExternalAssemblyModuleLocator.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\ExternalAssemblyModuleScanner.cs">
-      <Link>LinkUs.Modules.Default\ExternalAssemblyModuleScanner.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\ExternalAssemblyModuleScanner.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\IModule.cs">
-      <Link>LinkUs.Modules.Default\IModule.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\IModule.cs</Link>
+    </Compile>
+    <Compile Include="..\LinkUs.Modules.Default\Modules\IModuleFactory.cs">
+      <Link>LinkUs.Modules.Default\Modules\IModuleFactory.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\LocalAssemblyModule.cs">
-      <Link>LinkUs.Modules.Default\LocalAssemblyModule.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\LocalAssemblyModule.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\MaterializationInfo.cs">
-      <Link>LinkUs.Modules.Default\MaterializationInfo.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\MaterializationInfo.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\ModuleCommandHandler.cs">
-      <Link>LinkUs.Modules.Default\ModuleCommandHandler.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\ModuleCommandHandler.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\ModuleInformation.cs">
-      <Link>LinkUs.Modules.Default\ModuleInformation.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\ModuleInformation.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\Modules\ModuleManager.cs">
-      <Link>LinkUs.Modules.Default\ModuleManager.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\ModuleManager.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\PingLib\Ping.cs">
-      <Link>LinkUs.Modules.Default\Ping.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\Ping.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\PingLib\PingCommandHandler.cs">
-      <Link>LinkUs.Modules.Default\PingCommandHandler.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\PingCommandHandler.cs</Link>
     </Compile>
     <Compile Include="..\LinkUs.Modules.Default\PingLib\PingOk.cs">
-      <Link>LinkUs.Modules.Default\PingOk.cs</Link>
+      <Link>LinkUs.Modules.Default\Modules\PingOk.cs</Link>
     </Compile>
     <Compile Include="DedicatedBus.cs" />
     <Compile Include="PackageProcessor.cs" />

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -15,10 +16,16 @@ namespace LinkUs.Modules.Default.Modules
         }
 
         // ----- Public methods
-        public IEnumerable<ModuleInformation> GetModules()
+        public IEnumerable<ModuleInformation> GetModuleInformations()
         {
             foreach (var filePath in Directory.GetFiles(MODULE_DIRECTORY)) {
-                var assemblyName = AssemblyName.GetAssemblyName(filePath);
+                AssemblyName assemblyName;
+                try {
+                    assemblyName = AssemblyName.GetAssemblyName(filePath);
+                }
+                catch (BadImageFormatException) {
+                    continue;
+                }
                 yield return BuildModuleInformation(assemblyName, filePath);
             }
         }

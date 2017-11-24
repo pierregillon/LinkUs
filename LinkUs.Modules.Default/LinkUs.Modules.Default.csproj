@@ -72,9 +72,11 @@
     <Compile Include="Modules\Exceptions\ModuleNotLoadedException.cs" />
     <Compile Include="Modules\Exceptions\UnknownCommandException.cs" />
     <Compile Include="Modules\ExternalAssemblyModule.cs" />
+    <Compile Include="Modules\ExternalAssemblyModuleFactory.cs" />
     <Compile Include="Modules\ExternalAssemblyModuleLocator.cs" />
     <Compile Include="Modules\ExternalAssemblyModuleScanner.cs" />
     <Compile Include="Modules\IModule.cs" />
+    <Compile Include="Modules\IModuleFactory.cs" />
     <Compile Include="Modules\LocalAssemblyModule.cs" />
     <Compile Include="Modules\MaterializationInfo.cs" />
     <Compile Include="Modules\ModuleCommandHandler.cs" />

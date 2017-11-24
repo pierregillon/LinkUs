@@ -29,10 +29,13 @@ namespace LinkUs.Modules.Default.Modules
         // ----- Public methods
         public ModuleInformation[] Handle(ListModules command)
         {
-            return _moduleManager.Modules.Select(x => new ModuleInformation {
-                Name = x.Name,
-                FileLocation = x.FileLocation
-            }).ToArray();
+            return _moduleManager
+                .Modules.OfType<ExternalAssemblyModule>()
+                .Select(x => new ModuleInformation {
+                    Name = x.Name,
+                    FileLocation = x.FileLocation
+                })
+                .ToArray();
         }
         public bool Handle(LoadModule command)
         {

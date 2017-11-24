@@ -16,7 +16,6 @@ namespace LinkUs.Modules.Default.Modules
 
         // ----- Properties
         public string Name => "LinkUs.Modules.Default";
-        public string FileLocation => "";
 
         // ----- Constructor
         public LocalAssemblyModule(PackageParser packageParser, Ioc ioc)

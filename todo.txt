@@ -25,11 +25,11 @@ CommandLine
 Client
 * admin mode for app, need to write to c:\
 * install the client
-* do not allow multiple load of the same assembly.
-	* at startup
-	* if multiple user ask for the same load
 * get the module directory from the client
-* get the module information of a specific moduleName.
+* Fusionner la dll Modules.Default avec le Client et faire pointer les application dessus.
+
+RemoteShell
+* Cancel the Console.ReadLine() with win32 call.
 
 Studies
 * Send command without return result. (underlying sync call with byte result)

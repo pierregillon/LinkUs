@@ -70,6 +70,7 @@ namespace LinkUs.Client
             ioc.Register<ICommandSerializer, JsonCommandSerializer>();
             ioc.Register<ExternalAssemblyModuleLocator>();
             ioc.Register<ExternalAssemblyModuleScanner>();
+            ioc.Register<IModuleFactory<ExternalAssemblyModule>, ExternalAssemblyModuleFactory>();
             ioc.Register<ServerBrowser>();
             ioc.Register<ICommandSender, CommandSender>();
             ioc.Register<AssemblyHandlerScanner>();
