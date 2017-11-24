@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -36,7 +35,6 @@ namespace LinkUs.Modules.Default.Modules
         {
             return new ModuleInformation {
                 Name = assemblyName.Name,
-                Version = assemblyName.Version.ToString().Split('.').Take(2).Aggregate(".", (c, s) => s + c.ToString()),
                 FileLocation = filePath
             };
         }

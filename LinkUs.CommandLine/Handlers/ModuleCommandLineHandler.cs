@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using LinkUs.CommandLine.ConsoleLib;
+using LinkUs.CommandLine.ModuleIntegration;
 using LinkUs.CommandLine.ModuleIntegration.Default;
 using LinkUs.CommandLine.ModuleIntegration.Default.FileTransferts;
 using LinkUs.CommandLine.Verbs;
@@ -33,19 +33,27 @@ namespace LinkUs.CommandLine.Handlers
         {
             if (commandLine.ListAvailableModules) {
                 var modules = _moduleLocator.GetAvailableModules().ToArray();
-                _console.WriteObjects(modules, "Name", "Version");
+                _console.WriteObjects(modules, "Name", "Description");
             }
             else {
                 var remoteClient = await _server.FindRemoteClient(commandLine.Target);
                 var moduleManager = new RemoteModuleManager(remoteClient);
 
-                var allModules = _moduleLocator.GetAvailableModules().ToArray();
+                var availableModules = _moduleLocator.GetAvailableModules().ToArray();
                 var installedModules = await moduleManager.GetInstalledModules();
-                foreach (var module in allModules) {
+
+                var results = new List<ModuleDisplay>();
+                foreach (var module in availableModules) {
+                    var moduleDisplay = new ModuleDisplay() {
+                        Name = module.Name
+                    };
                     var installedModule = installedModules.SingleOrDefault(x => x.Name == module.Name);
-                    module.Status = installedModule != null ? ModuleInformation2.ModuleStatus.Installed : ModuleInformation2.ModuleStatus.Uninstalled;
+                    if (installedModule != null) {
+                        moduleDisplay.Status = "[enabled]";
+                    }
+                    results.Add(moduleDisplay);
                 }
-                _console.WriteObjects(allModules);
+                _console.WriteObjects(results);
             }
         }
         public async Task Handle(InstallModuleCommandLine commandLine)
@@ -81,37 +89,9 @@ namespace LinkUs.CommandLine.Handlers
         }
     }
 
-    public class ModuleLocator
-    {
-        private const string MODULE_DIRECTORY = ".";
-
-        public IEnumerable<ModuleInformation2> GetAvailableModules()
-        {
-            foreach (var filePath in Directory.GetFiles(MODULE_DIRECTORY, "LinkUs.Modules.*.dll")) {
-                var assemblyName = AssemblyName.GetAssemblyName(filePath);
-                yield return new ModuleInformation2 {
-                    Name = assemblyName.Name,
-                    Version = assemblyName.Version.ToString()
-                };
-            }
-        }
-        public string GetFullPath(string moduleName)
-        {
-            var fileName = moduleName + ".dll";
-            return Path.Combine(MODULE_DIRECTORY, fileName);
-        }
-    }
-
-    public class ModuleInformation2
+    public class ModuleDisplay
     {
         public string Name { get; set; }
-        public string Version { get; set; }
-        public ModuleStatus Status { get; set; }
-
-        public enum ModuleStatus
-        {
-            Installed,
-            Uninstalled
-        }
+        public string Status { get; set; }
     }
 }

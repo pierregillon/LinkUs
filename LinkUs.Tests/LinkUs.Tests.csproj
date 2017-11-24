@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ByteArraySliceAggregatorShould.cs" />
+    <Compile Include="CommandLineModuleLocatorShould.cs" />
     <Compile Include="Helpers\DirectCallCommandSender.cs" />
     <Compile Include="DownloadFeature.cs" />
     <Compile Include="Helpers\ConnectedSocketConnectionSample.cs" />
@@ -95,6 +96,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\Modules\LinkUs.Modules.Default.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Modules\LinkUs.Modules.RemoteShell.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\some_file2.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

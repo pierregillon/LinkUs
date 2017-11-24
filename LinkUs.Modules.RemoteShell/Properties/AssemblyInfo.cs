@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("LinkUs.Modules.RemoteShell")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("RemoteShell")]
+[assembly: AssemblyDescription("RemoteShell module allows to start a remote shell session with a client.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("LinkUs.Modules.RemoteShell")]

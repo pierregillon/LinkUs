@@ -61,6 +61,8 @@
     <Compile Include="CommandLineDispatcher.cs" />
     <Compile Include="ConsoleLib\WindowsConsole.cs" />
     <Compile Include="ConsoleLib\IConsole.cs" />
+    <Compile Include="ModuleIntegration\Module.cs" />
+    <Compile Include="ModuleIntegration\ModuleLocator.cs" />
     <Compile Include="ModuleIntegration\Default\FileTransferts\FileDownloader.cs" />
     <Compile Include="ModuleIntegration\Default\FileTransferts\FileUploader.cs" />
     <Compile Include="ConsoleLib\IProgressable.cs" />

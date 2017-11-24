@@ -1,5 +1,7 @@
-﻿using CommandLine;
+﻿using System;
+using CommandLine;
 using LinkUs.CommandLine.ConsoleLib;
+using LinkUs.CommandLine.ModuleIntegration;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Packages;
@@ -39,6 +41,12 @@ namespace LinkUs.CommandLine
                     y.ConnectImplementationsToTypesClosing(typeof(ICommandLineHandler<>));
                     y.WithDefaultConventions();
                 });
+
+                configuration
+                    .For<ModuleLocator>()
+                    .Use<ModuleLocator>()
+                    .Ctor<string>()
+                    .Is(AppDomain.CurrentDomain.BaseDirectory);
             });
         }
     }
