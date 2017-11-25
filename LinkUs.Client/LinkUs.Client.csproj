@@ -14,7 +14,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -265,15 +265,23 @@
     <Compile Include="..\LinkUs.Modules.Default\PingLib\PingOk.cs">
       <Link>LinkUs.Modules.Default\Modules\PingOk.cs</Link>
     </Compile>
+    <Compile Include="ClientEnvironment.cs" />
     <Compile Include="DedicatedBus.cs" />
+    <Compile Include="FileService.cs" />
+    <Compile Include="IEnvironment.cs" />
+    <Compile Include="IFileService.cs" />
+    <Compile Include="Installer.cs" />
+    <Compile Include="IRegistry.cs" />
     <Compile Include="PackageProcessor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestProcessor.cs" />
     <Compile Include="ServerBrowser.cs" />
+    <Compile Include="WindowsRegistry.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Security.Principal;
 using System.Threading;
 using LinkUs.Core;
 using LinkUs.Core.Commands;
@@ -15,8 +19,29 @@ namespace LinkUs.Client
 
         static void Main(string[] args)
         {
-            LoadModules();
-            FindHostAndProcessRequests();
+            if (args.Any(x => x == "--debug")) {
+                LoadModules();
+                FindHostAndProcessRequests();
+                return;
+            }
+
+            if (IsAdministrator() == false) {
+                RestartApplicationWithAdministratorPrivileges();
+                return;
+            }
+
+            var installer = Ioc.GetInstance<Installer>();
+            if (IsWellLocated()) {
+                installer.CheckInstall();
+                LoadModules();
+                FindHostAndProcessRequests();
+            }
+            else {
+                var filePath = installer.Install();
+                if (string.IsNullOrEmpty(filePath) == false) {
+                    StartExecutableWithAdministratorPrivileges(filePath);
+                }
+            }
         }
 
         // ----- Internal logics
@@ -57,6 +82,31 @@ namespace LinkUs.Client
             var requestProcessor = Ioc.GetInstance<RequestProcessor>();
             requestProcessor.ProcessRequests();
         }
+        private static bool IsAdministrator()
+        {
+            using (var identity = WindowsIdentity.GetCurrent()) {
+                var principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+        }
+        private static void RestartApplicationWithAdministratorPrivileges()
+        {
+            var exeName = Process.GetCurrentProcess().MainModule.FileName;
+            StartExecutableWithAdministratorPrivileges(exeName);
+        }
+        private static void StartExecutableWithAdministratorPrivileges(string filePath)
+        {
+            var startInfo = new ProcessStartInfo(filePath) {
+                Verb = "runas"
+            };
+            Process.Start(startInfo);
+        }
+        private static bool IsWellLocated()
+        {
+            var env = Ioc.GetInstance<IEnvironment>();
+            var parentDirectory = Path.GetDirectoryName(env.ApplicationPath);
+            return string.Equals(env.InstallationDirectory, parentDirectory, StringComparison.CurrentCultureIgnoreCase);
+        }
 
         // ----- Utils
         private static Ioc BuildIoc()
@@ -76,6 +126,9 @@ namespace LinkUs.Client
             ioc.Register<AssemblyHandlerScanner>();
             ioc.RegisterSingle(new SocketAsyncOperationPool(10));
             ioc.RegisterSingle<Connector>();
+            ioc.RegisterSingle<IRegistry, WindowsRegistry>();
+            ioc.RegisterSingle<IFileService, FileService>();
+            ioc.RegisterSingle<IEnvironment, ClientEnvironment>();
             return ioc;
         }
     }

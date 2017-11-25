@@ -25,6 +25,14 @@ CommandLine
 Client
 * admin mode for app, need to write to c:\
 * install the client
+* check install before starting when well located
+* verify that the admin mode is useful. if yes, disable uac
+* when booting, check if a better or equals version is already installed. If yes, do nothing. Else, install.
+* uninstall client by command
+	* reenable uac to default
+	* delete file
+	* delete modules
+	* reset registry
 * get the module directory from the client
 * Fusionner la dll Modules.Default avec le Client et faire pointer les application dessus.
 
