@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading;
 using LinkUs.Core;
@@ -20,8 +21,11 @@ namespace LinkUs.Client
         static void Main(string[] args)
         {
             if (args.Any(x => x == "--debug")) {
+                AllocConsole();
+                AttachConsole((uint)Process.GetCurrentProcess().Id);
                 LoadModules();
                 FindHostAndProcessRequests();
+                FreeConsole();
                 return;
             }
 
@@ -131,5 +135,13 @@ namespace LinkUs.Client
             ioc.RegisterSingle<IEnvironment, ClientEnvironment>();
             return ioc;
         }
+
+        // ----- Dll Import
+        [DllImport("kernel32.dll")]
+        private static extern bool AllocConsole();
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool AttachConsole(uint dwProcessId);
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        static extern bool FreeConsole();
     }
 }
