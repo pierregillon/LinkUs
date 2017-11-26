@@ -1,9 +1,8 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Security.Principal;
 using System.Threading;
 using LinkUs.Client.ClientInformation;
 using LinkUs.Client.Infrastructure;
@@ -24,33 +23,48 @@ namespace LinkUs.Client
         {
             if (args.Any(x => x == "--debug")) {
                 AllocConsole();
-                AttachConsole((uint)Process.GetCurrentProcess().Id);
+                AttachConsole((uint) Process.GetCurrentProcess().Id);
                 LoadModules();
                 FindHostAndProcessRequests();
                 FreeConsole();
                 return;
             }
 
-            if (IsAdministrator() == false) {
-                RestartApplicationWithAdministratorPrivileges();
-                return;
+            try {
+                InitializeClient();
             }
-
-            var installer = Ioc.GetInstance<Installer>();
-            if (IsWellLocated()) {
-                installer.CheckInstall();
-                LoadModules();
-                FindHostAndProcessRequests();
-            }
-            else {
-                var filePath = installer.Install();
-                if (string.IsNullOrEmpty(filePath) == false) {
-                    StartExecutableWithAdministratorPrivileges(filePath);
+            catch (UnauthorizedAccessException) {
+                if (TryRestartApplicationWithAdministratorPrivileges()) {
+                    // We succeded to start a new process in admin mode
+                    // we can quit.
+                    Environment.Exit(0);
+                }
+                else {
+                    // We failed to start the process in admin mode, we start
+                    // the client
                 }
             }
+
+            LoadModules();
+            FindHostAndProcessRequests();
         }
 
         // ----- Internal logics
+        private static void InitializeClient()
+        {
+            var installer = Ioc.GetInstance<Installer>();
+            var env = Ioc.GetInstance<IEnvironment>();
+            var exeFilePath = installer.GetCurrentInstalledApplicationPath();
+            if (string.IsNullOrEmpty(exeFilePath)) {
+                installer.Install();
+            }
+            else if (string.Equals(exeFilePath, env.ApplicationPath, StringComparison.InvariantCultureIgnoreCase)) {
+                // do nothing                
+            }
+            else {
+                throw new NotImplementedException("another client is installed");
+            }
+        }
         private static void LoadModules()
         {
             var moduleManager = Ioc.GetInstance<ModuleManager>();
@@ -88,17 +102,16 @@ namespace LinkUs.Client
             var requestProcessor = Ioc.GetInstance<RequestProcessor>();
             requestProcessor.ProcessRequests();
         }
-        private static bool IsAdministrator()
+        private static bool TryRestartApplicationWithAdministratorPrivileges()
         {
-            using (var identity = WindowsIdentity.GetCurrent()) {
-                var principal = new WindowsPrincipal(identity);
-                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            try {
+                var exeName = Process.GetCurrentProcess().MainModule.FileName;
+                StartExecutableWithAdministratorPrivileges(exeName);
+                return true;
             }
-        }
-        private static void RestartApplicationWithAdministratorPrivileges()
-        {
-            var exeName = Process.GetCurrentProcess().MainModule.FileName;
-            StartExecutableWithAdministratorPrivileges(exeName);
+            catch (Win32Exception) {
+                return false;
+            }
         }
         private static void StartExecutableWithAdministratorPrivileges(string filePath)
         {
@@ -106,12 +119,6 @@ namespace LinkUs.Client
                 Verb = "runas"
             };
             Process.Start(startInfo);
-        }
-        private static bool IsWellLocated()
-        {
-            var env = Ioc.GetInstance<IEnvironment>();
-            var parentDirectory = Path.GetDirectoryName(env.ApplicationPath);
-            return string.Equals(env.InstallationDirectory, parentDirectory, StringComparison.CurrentCultureIgnoreCase);
         }
 
         // ----- Utils

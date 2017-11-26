@@ -23,6 +23,9 @@ CommandLine
 * pass the RemoteClient to the remoteshellcontroller.
 * install module with lower case
 * install module with partial name?
+* need a command to get the client status. ./lkus status -t 21
+	1. Good state : well installed
+	2. Bad state : not installed properly
 
 Client
 * admin mode for app, need to write to c:\

