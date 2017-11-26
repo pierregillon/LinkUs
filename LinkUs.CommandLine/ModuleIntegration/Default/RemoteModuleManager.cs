@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using LinkUs.Modules.Default.FileManagement;
-using LinkUs.Modules.Default.Modules;
-using LinkUs.Modules.Default.Modules.Commands;
+using LinkUs.Client.FileManagement;
+using LinkUs.Client.Modules;
+using LinkUs.Client.Modules.Commands;
 
 namespace LinkUs.CommandLine.ModuleIntegration.Default
 {

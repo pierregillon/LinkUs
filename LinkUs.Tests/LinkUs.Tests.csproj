@@ -39,12 +39,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
     <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\packages\xunit.abstractions.2.0.1\lib\net35\xunit.abstractions.dll</HintPath>
       <Private>True</Private>
@@ -83,6 +77,10 @@
     <Analyzer Include="..\packages\xunit.analyzers.0.7.0\analyzers\dotnet\cs\xunit.analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\LinkUs.Client\LinkUs.Client.csproj">
+      <Project>{FE5906F7-B211-43FF-802D-8E229B50E16B}</Project>
+      <Name>LinkUs.Client</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LinkUs.CommandLine\LinkUs.CommandLine.csproj">
       <Project>{EE5016C8-1091-4EBC-B098-BCC102DE002B}</Project>
       <Name>LinkUs.CommandLine</Name>
@@ -90,10 +88,6 @@
     <ProjectReference Include="..\LinkUs.Core\0 - LinkUs.Core.csproj">
       <Project>{511C52CB-31E3-43AE-92E7-481FF4C82ACB}</Project>
       <Name>0 - LinkUs.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\LinkUs.Modules.Default\LinkUs.Modules.Default.csproj">
-      <Project>{524D93DA-5DBF-42DE-929B-2BE349FA4E97}</Project>
-      <Name>LinkUs.Modules.Default</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

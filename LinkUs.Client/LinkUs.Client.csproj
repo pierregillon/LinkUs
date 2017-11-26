@@ -14,7 +14,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -36,269 +36,86 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.XML" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\LinkUs.Core\Commands\CommandDescriptor.cs">
-      <Link>LinkUs.Core\Commands\CommandDescriptor.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Commands\CommandSender.cs">
-      <Link>LinkUs.Core\Commands\CommandSender.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Commands\CommandStream.cs">
-      <Link>LinkUs.Core\Commands\CommandStream.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Commands\CommandSubscription.cs">
-      <Link>LinkUs.Core\Commands\CommandSubscription.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Commands\ErrorMessage.cs">
-      <Link>LinkUs.Core\Commands\ErrorMessage.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Commands\ErrorOccuredOnRemoteClientException.cs">
-      <Link>LinkUs.Core\Commands\ErrorOccuredOnRemoteClientException.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Commands\ExecuteCommandTimeoutException.cs">
-      <Link>LinkUs.Core\Commands\ExecuteCommandTimeoutException.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Commands\IBus.cs">
-      <Link>LinkUs.Core\Commands\IBus.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Commands\ICommandHandler.cs">
-      <Link>LinkUs.Core\Commands\ICommandHandler.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Commands\ICommandSender.cs">
-      <Link>LinkUs.Core\Commands\ICommandSender.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Commands\ICommandSerializer.cs">
-      <Link>LinkUs.Core\Commands\ICommandSerializer.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Commands\JsonCommandSerializer.cs">
-      <Link>LinkUs.Core\Commands\JsonCommandSerializer.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Connection\ArrayExtensions.cs">
-      <Link>LinkUs.Core\Connection\ArrayExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Connection\ByteArraySlice.cs">
-      <Link>LinkUs.Core\Connection\ByteArraySlice.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Connection\ByteArraySliceAggregator.cs">
-      <Link>LinkUs.Core\Connection\ByteArraySliceAggregator.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Connection\ByteArraySlicer.cs">
-      <Link>LinkUs.Core\Connection\ByteArraySlicer.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Connection\Connector.cs">
-      <Link>LinkUs.Core\Connection\Connector.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Connection\IConnection.cs">
-      <Link>LinkUs.Core\Connection\IConnection.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Connection\IConnectionListener.cs">
-      <Link>LinkUs.Core\Connection\IConnectionListener.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Connection\SemaphoredQueue.cs">
-      <Link>LinkUs.Core\Connection\SemaphoredQueue.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Connection\SocketAsyncOperation.cs">
-      <Link>LinkUs.Core\Connection\SocketAsyncOperation.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Connection\SocketAsyncOperationPool.cs">
-      <Link>LinkUs.Core\Connection\SocketAsyncOperationPool.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Connection\SocketConnection.cs">
-      <Link>LinkUs.Core\Connection\SocketConnection.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Connection\SocketConnectionListener.cs">
-      <Link>LinkUs.Core\Connection\SocketConnectionListener.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Ioc.cs">
-      <Link>LinkUs.Core\Ioc.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Json\SimpleJson.cs">
-      <Link>LinkUs.Core\Json\SimpleJson.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Packages\ClientId.cs">
-      <Link>LinkUs.Core\Packages\ClientId.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Packages\Package.cs">
-      <Link>LinkUs.Core\Packages\Package.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Packages\PackageParser.cs">
-      <Link>LinkUs.Core\Packages\PackageParser.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Packages\PackageTransmitter.cs">
-      <Link>LinkUs.Core\Packages\PackageTransmitter.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Core\Packages\TransactionId.cs">
-      <Link>LinkUs.Core\Packages\TransactionId.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\ClientInformation\ClientBasicInformation.cs">
-      <Link>LinkUs.Modules.Default\ClientInformation\ClientBasicInformation.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\ClientInformation\GetBasicInformation.cs">
-      <Link>LinkUs.Modules.Default\ClientInformation\GetBasicInformation.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\ClientInformation\GetBasicInformationCommandHandler.cs">
-      <Link>LinkUs.Modules.Default\ClientInformation\GetBasicInformationCommandHandler.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\ClientInformation\NetHelper.cs">
-      <Link>LinkUs.Modules.Default\ClientInformation\NetHelper.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\ClientInformation\SetStatus.cs">
-      <Link>LinkUs.Modules.Default\Modules\SetStatus.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileManagement\DeleteFileCommand.cs">
-      <Link>LinkUs.Modules.Default\FileManagement\DeleteFileCommand.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileManagement\DeleteFileCommandHandler.cs">
-      <Link>LinkUs.Modules.Default\FileManagement\DeleteFileCommandHandler.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Commands\EndFileDownload.cs">
-      <Link>LinkUs.Modules.Default\FileTransfert\EndFileDownload.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Commands\EndFileUpload.cs">
-      <Link>LinkUs.Modules.Default\FileTransfert\EndFileUpload.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Commands\GetNextFileData.cs">
-      <Link>LinkUs.Modules.Default\FileTransfert\GetNextFileData.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Commands\SendNextFileData.cs">
-      <Link>LinkUs.Modules.Default\Modules\SendNextFileData.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Commands\StartFileDownload.cs">
-      <Link>LinkUs.Modules.Default\Modules\StartFileDownload.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Commands\StartFileUpload.cs">
-      <Link>LinkUs.Modules.Default\Modules\StartFileUpload.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileTransfert\DownloadFileCommandHandler.cs">
-      <Link>LinkUs.Modules.Default\FileTransfert\DownloadFileCommandHandler.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Events\FileDownloadEnded.cs">
-      <Link>LinkUs.Modules.Default\FileTransfert\FileDownloadEnded.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Events\FileDownloadStarted.cs">
-      <Link>LinkUs.Modules.Default\FileTransfert\FileDownloadStarted.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Events\FileUploadEnded.cs">
-      <Link>LinkUs.Modules.Default\FileTransfert\FileUploadEnded.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Events\FileUploadStarted.cs">
-      <Link>LinkUs.Modules.Default\FileTransfert\FileUploadStarted.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileTransfert\Events\NextFileDataRead.cs">
-      <Link>LinkUs.Modules.Default\ClientInformation\NextFileDataRead.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileTransfert\IFilePointer.cs">
-      <Link>LinkUs.Modules.Default\FileTransfert\IFilePointer.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\FileTransfert\UploadFileCommandHandler.cs">
-      <Link>LinkUs.Modules.Default\Modules\UploadFileCommandHandler.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Install\IEnvironment.cs">
-      <Link>LinkUs.Modules.Default\IEnvironment.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Install\IFileService.cs">
-      <Link>LinkUs.Modules.Default\IFileService.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Install\Installer.cs">
-      <Link>LinkUs.Modules.Default\Installer.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Install\IRegistry.cs">
-      <Link>LinkUs.Modules.Default\IRegistry.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Install\UninstallClient.cs">
-      <Link>LinkUs.Modules.Default\UninstallClient.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Install\UninstallClientHandler.cs">
-      <Link>LinkUs.Modules.Default\UninstallClientHandler.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\AssemblyHandlerScanner.cs">
-      <Link>LinkUs.Modules.Default\Modules\AssemblyHandlerScanner.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\Commands\IsModuleInstalled.cs">
-      <Link>LinkUs.Modules.Default\Modules\IsModuleInstalled.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\Commands\ListModules.cs">
-      <Link>LinkUs.Modules.Default\Modules\ListModules.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\Commands\LoadModule.cs">
-      <Link>LinkUs.Modules.Default\Modules\LoadModule.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\Commands\UnloadModule.cs">
-      <Link>LinkUs.Modules.Default\Modules\UnloadModule.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\Exceptions\ModuleAlreadyLoadedException.cs">
-      <Link>LinkUs.Modules.Default\Modules\ModuleAlreadyLoadedException.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\Exceptions\ModuleException.cs">
-      <Link>LinkUs.Modules.Default\Modules\ModuleException.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\Exceptions\ModuleNotInstalledOnClientException.cs">
-      <Link>LinkUs.Modules.Default\Modules\ModuleNotInstalledOnClientException.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\Exceptions\ModuleNotLoadedException.cs">
-      <Link>LinkUs.Modules.Default\Modules\ModuleNotLoadedException.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\Exceptions\UnknownCommandException.cs">
-      <Link>LinkUs.Modules.Default\Modules\UnknownCommandException.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\ExternalAssemblyModule.cs">
-      <Link>LinkUs.Modules.Default\Modules\ExternalAssemblyModule.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\ExternalAssemblyModuleFactory.cs">
-      <Link>LinkUs.Modules.Default\Modules\ExternalAssemblyModuleFactory.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\ExternalAssemblyModuleLocator.cs">
-      <Link>LinkUs.Modules.Default\Modules\ExternalAssemblyModuleLocator.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\ExternalAssemblyModuleScanner.cs">
-      <Link>LinkUs.Modules.Default\Modules\ExternalAssemblyModuleScanner.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\IModule.cs">
-      <Link>LinkUs.Modules.Default\Modules\IModule.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\IModuleFactory.cs">
-      <Link>LinkUs.Modules.Default\Modules\IModuleFactory.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\LocalAssemblyModule.cs">
-      <Link>LinkUs.Modules.Default\Modules\LocalAssemblyModule.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\MaterializationInfo.cs">
-      <Link>LinkUs.Modules.Default\Modules\MaterializationInfo.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\ModuleCommandHandler.cs">
-      <Link>LinkUs.Modules.Default\Modules\ModuleCommandHandler.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\ModuleInformation.cs">
-      <Link>LinkUs.Modules.Default\Modules\ModuleInformation.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\Modules\ModuleManager.cs">
-      <Link>LinkUs.Modules.Default\Modules\ModuleManager.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\PingLib\Ping.cs">
-      <Link>LinkUs.Modules.Default\Modules\Ping.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\PingLib\PingCommandHandler.cs">
-      <Link>LinkUs.Modules.Default\Modules\PingCommandHandler.cs</Link>
-    </Compile>
-    <Compile Include="..\LinkUs.Modules.Default\PingLib\PingOk.cs">
-      <Link>LinkUs.Modules.Default\Modules\PingOk.cs</Link>
-    </Compile>
-    <Compile Include="ClientEnvironment.cs" />
+    <Compile Include="Infrastructure\ClientEnvironment.cs" />
+    <Compile Include="ClientInformation\ClientBasicInformation.cs" />
+    <Compile Include="ClientInformation\GetBasicInformation.cs" />
+    <Compile Include="ClientInformation\GetBasicInformationCommandHandler.cs" />
+    <Compile Include="ClientInformation\NetHelper.cs" />
+    <Compile Include="ClientInformation\SetStatus.cs" />
     <Compile Include="DedicatedBus.cs" />
-    <Compile Include="FileService.cs" />
+    <Compile Include="FileManagement\DeleteFileCommand.cs" />
+    <Compile Include="FileManagement\DeleteFileCommandHandler.cs" />
+    <Compile Include="Infrastructure\FileService.cs" />
+    <Compile Include="FileTransfert\Commands\EndFileDownload.cs" />
+    <Compile Include="FileTransfert\Commands\EndFileUpload.cs" />
+    <Compile Include="FileTransfert\Commands\GetNextFileData.cs" />
+    <Compile Include="FileTransfert\Commands\SendNextFileData.cs" />
+    <Compile Include="FileTransfert\Commands\StartFileDownload.cs" />
+    <Compile Include="FileTransfert\Commands\StartFileUpload.cs" />
+    <Compile Include="FileTransfert\DownloadFileCommandHandler.cs" />
+    <Compile Include="FileTransfert\Events\FileDownloadEnded.cs" />
+    <Compile Include="FileTransfert\Events\FileDownloadStarted.cs" />
+    <Compile Include="FileTransfert\Events\FileUploadEnded.cs" />
+    <Compile Include="FileTransfert\Events\FileUploadStarted.cs" />
+    <Compile Include="FileTransfert\Events\NextFileDataRead.cs" />
+    <Compile Include="FileTransfert\IFilePointer.cs" />
+    <Compile Include="FileTransfert\UploadFileCommandHandler.cs" />
+    <Compile Include="IEnvironment.cs" />
+    <Compile Include="IFileService.cs" />
+    <Compile Include="Install\Installer.cs" />
+    <Compile Include="IRegistry.cs" />
+    <Compile Include="Install\UninstallClient.cs" />
+    <Compile Include="Install\UninstallClientHandler.cs" />
+    <Compile Include="Modules\AssemblyHandlerScanner.cs" />
+    <Compile Include="Modules\Commands\IsModuleInstalled.cs" />
+    <Compile Include="Modules\Commands\ListModules.cs" />
+    <Compile Include="Modules\Commands\LoadModule.cs" />
+    <Compile Include="Modules\Commands\UnloadModule.cs" />
+    <Compile Include="Modules\Exceptions\ModuleAlreadyLoadedException.cs" />
+    <Compile Include="Modules\Exceptions\ModuleException.cs" />
+    <Compile Include="Modules\Exceptions\ModuleNotInstalledOnClientException.cs" />
+    <Compile Include="Modules\Exceptions\ModuleNotLoadedException.cs" />
+    <Compile Include="Modules\Exceptions\UnknownCommandException.cs" />
+    <Compile Include="Modules\ExternalAssemblyModule.cs" />
+    <Compile Include="Modules\ExternalAssemblyModuleFactory.cs" />
+    <Compile Include="Modules\ExternalAssemblyModuleLocator.cs" />
+    <Compile Include="Modules\ExternalAssemblyModuleScanner.cs" />
+    <Compile Include="Modules\IModule.cs" />
+    <Compile Include="Modules\IModuleFactory.cs" />
+    <Compile Include="Modules\LocalAssemblyModule.cs" />
+    <Compile Include="Modules\MaterializationInfo.cs" />
+    <Compile Include="Modules\ModuleCommandHandler.cs" />
+    <Compile Include="Modules\ModuleInformation.cs" />
+    <Compile Include="Modules\ModuleManager.cs" />
     <Compile Include="PackageProcessor.cs" />
+    <Compile Include="PingLib\Ping.cs" />
+    <Compile Include="PingLib\PingCommandHandler.cs" />
+    <Compile Include="PingLib\PingOk.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestProcessor.cs" />
     <Compile Include="ServerBrowser.cs" />
-    <Compile Include="WindowsRegistry.cs" />
+    <Compile Include="Infrastructure\WindowsRegistry.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LinkUs.Core\0 - LinkUs.Core.csproj">
+      <Project>{511c52cb-31e3-43ae-92e7-481ff4c82acb}</Project>
+      <Name>0 - LinkUs.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

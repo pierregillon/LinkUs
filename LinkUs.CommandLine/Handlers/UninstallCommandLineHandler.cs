@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
+using LinkUs.Client.Install;
 using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.CommandLine.ModuleIntegration.Default;
 using LinkUs.CommandLine.Verbs;
-using LinkUs.Modules.Default.Install;
 
 namespace LinkUs.CommandLine.Handlers
 {

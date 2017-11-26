@@ -1,10 +1,10 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using LinkUs.Client.FileTransfert.Commands;
+using LinkUs.Client.FileTransfert.Events;
 using LinkUs.CommandLine.ConsoleLib;
 using LinkUs.Core.Commands;
-using LinkUs.Modules.Default.FileTransfert.Commands;
-using LinkUs.Modules.Default.FileTransfert.Events;
 
 namespace LinkUs.CommandLine.ModuleIntegration.Default.FileTransferts
 {

@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
+using LinkUs.Client.PingLib;
 using LinkUs.CommandLine.Handlers;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Packages;
-using LinkUs.Modules.Default.PingLib;
 using LinkUs.Responses;
 
 namespace LinkUs.CommandLine.ModuleIntegration.Default

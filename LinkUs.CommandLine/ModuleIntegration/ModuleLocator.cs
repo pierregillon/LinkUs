@@ -20,10 +20,6 @@ namespace LinkUs.CommandLine.ModuleIntegration
         {
             foreach (var filePath in GetAssembliesInModuleDirectory()) {
                 var assemblyName = AssemblyName.GetAssemblyName(filePath);
-                if (assemblyName.Name == "LinkUs.Modules.Default") {
-                    continue;
-                }
-
                 yield return new Module {
                     Name = assemblyName.Name,
                     Description = GetDescription(assemblyName),

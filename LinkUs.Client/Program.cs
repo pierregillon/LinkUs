@@ -5,13 +5,14 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading;
+using LinkUs.Client.ClientInformation;
+using LinkUs.Client.Infrastructure;
+using LinkUs.Client.Install;
+using LinkUs.Client.Modules;
 using LinkUs.Core;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Packages;
-using LinkUs.Modules.Default.ClientInformation;
-using LinkUs.Modules.Default.Install;
-using LinkUs.Modules.Default.Modules;
 
 namespace LinkUs.Client
 {

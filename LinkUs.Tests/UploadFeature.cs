@@ -1,7 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
+using LinkUs.Client.FileTransfert;
 using LinkUs.CommandLine.ModuleIntegration.Default.FileTransferts;
-using LinkUs.Modules.Default.FileTransfert;
 using LinkUs.Tests.Helpers;
 using NFluent;
 using Xunit;

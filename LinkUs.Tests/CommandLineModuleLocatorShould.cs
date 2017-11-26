@@ -17,20 +17,6 @@ namespace LinkUs.Tests
         }
 
         [Fact]
-        public void default_module_is_not_available()
-        {
-            // Arranges
-            var defaultModuleFileName = "LinkUs.Modules.Default";
-
-            // Acts
-            var availableModules = _moduleLocator.GetAvailableModules();
-
-            // Asserts
-            Check.That(availableModules.Select(x => x.Name)).Not.Contains(defaultModuleFileName);
-            Check.That(File.Exists($"Resources\\Modules\\{defaultModuleFileName}.dll")).IsTrue();
-        }
-
-        [Fact]
         public void modules_with_correct_name_convention_are_available()
         {
             // Arranges

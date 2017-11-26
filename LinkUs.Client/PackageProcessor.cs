@@ -1,9 +1,9 @@
 using System;
 using System.Reflection;
+using LinkUs.Client.Modules;
+using LinkUs.Client.Modules.Exceptions;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Packages;
-using LinkUs.Modules.Default.Modules;
-using LinkUs.Modules.Default.Modules.Exceptions;
 
 namespace LinkUs.Client
 {

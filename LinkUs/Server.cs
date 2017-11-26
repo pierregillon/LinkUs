@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using LinkUs.Client.ClientInformation;
 using LinkUs.Commands;
 using LinkUs.Core;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Json;
 using LinkUs.Core.Packages;
-using LinkUs.Modules.Default.ClientInformation;
 using LinkUs.Responses;
 
 namespace LinkUs

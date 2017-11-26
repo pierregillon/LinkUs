@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using LinkUs.Client.ClientInformation;
 using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
-using LinkUs.Modules.Default.ClientInformation;
 using StructureMap;
 
 namespace LinkUs.CommandLine

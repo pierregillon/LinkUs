@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using LinkUs.Modules.Default.Modules;
+using LinkUs.Client.Modules;
 using NFluent;
 using Xunit;
 
