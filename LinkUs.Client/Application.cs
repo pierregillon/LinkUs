@@ -1,6 +1,9 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using LinkUs.Client.ClientInformation;
 using LinkUs.Client.Install;
@@ -48,15 +51,28 @@ namespace LinkUs.Client
         private void InitializeClient()
         {
             try {
-                var exeFilePath = _installer.GetCurrentInstalledApplicationPath();
-                if (string.IsNullOrEmpty(exeFilePath)) {
+                var currentInstalledApplicationPath = _installer.GetCurrentInstalledApplicationPath();
+                if (string.IsNullOrEmpty(currentInstalledApplicationPath)) {
                     _installer.Install();
                 }
-                else if (string.Equals(exeFilePath, _environment.ApplicationPath, StringComparison.InvariantCultureIgnoreCase)) {
-                    // do nothing                
+                else if (string.Equals(currentInstalledApplicationPath, _environment.ApplicationPath, StringComparison.InvariantCultureIgnoreCase)) {
+                    _installer.CheckInstall();
                 }
                 else {
-                    throw new NotImplementedException("another client is installed");
+                    var installedAssemblyInfo = AssemblyName.GetAssemblyName(currentInstalledApplicationPath);
+                    if (installedAssemblyInfo.Version >= Assembly.GetEntryAssembly().GetName().Version) {
+                        var fileName = Path.GetFileName(currentInstalledApplicationPath);
+                        var processes = Process.GetProcessesByName(fileName);
+                        if (processes.Length == 0) {
+                            Process.Start(new ProcessStartInfo(currentInstalledApplicationPath));
+                            // todo: missing case where the existing client is not well installed.
+                            // when restarted, it will try to checkinstall() and open uac! bad.
+                        }
+                        Environment.Exit(0);
+                    }
+                    else {
+                        _installer.Install();
+                    }
                 }
             }
             catch (UnauthorizedAccessException) {

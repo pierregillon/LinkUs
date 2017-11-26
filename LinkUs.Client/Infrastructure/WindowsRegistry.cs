@@ -14,7 +14,7 @@ namespace LinkUs.Client.Infrastructure
             if (fileName == null) {
                 throw new Exception("Invalid file path");
             }
-            Add(StartUpRegistry, fileName, filePath);
+            Set(StartUpRegistry, fileName, filePath);
         }
         public void RemoveFileFromStartupRegistry(string filePath)
         {
@@ -46,7 +46,7 @@ namespace LinkUs.Client.Infrastructure
                 return value.ToString();
             }
         }
-        public void Add(string subkey, string name, string value)
+        public void Set(string subkey, string name, string value)
         {
             using (var registryKey = Registry.LocalMachine.OpenSubKey(subkey, true)) {
                 if (registryKey == null) {

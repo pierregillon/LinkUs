@@ -43,6 +43,7 @@ Client
 
 RemoteShell
 * Cancel the Console.ReadLine() with win32 call.
+* verify the runas! should not raise uac!
 
 Studies
 * Send command without return result. (underlying sync call with byte result)
