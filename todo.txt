@@ -21,6 +21,8 @@ CommandLine
 * generic config ini reading with int.parse() automatically
 * allow the multiple download of same file (openfile in read only mode with no lock)
 * pass the RemoteClient to the remoteshellcontroller.
+* install module with lower case
+* install module with partial name?
 
 Client
 * admin mode for app, need to write to c:\

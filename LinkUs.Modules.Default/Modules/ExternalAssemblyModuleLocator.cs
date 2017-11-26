@@ -36,6 +36,10 @@ namespace LinkUs.Modules.Default.Modules
                     where assemblyName.Name == moduleName
                     select BuildModuleInformation(assemblyName, filePath)).FirstOrDefault();
         }
+        public string GetModulesLocation()
+        {
+            return MODULE_DIRECTORY;
+        }
 
         // ----- Interal logics
         private static ModuleInformation BuildModuleInformation(AssemblyName assemblyName, string filePath)

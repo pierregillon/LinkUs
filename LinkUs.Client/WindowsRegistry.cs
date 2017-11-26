@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using LinkUs.Modules.Default.Install;
 using Microsoft.Win32;
 
 namespace LinkUs.Client

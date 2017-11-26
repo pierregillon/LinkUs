@@ -34,5 +34,8 @@ namespace LinkUs.CommandLine
 
         [VerbOption("config", HelpText = "Configure options for the lkus command line.")]
         public ConfigCommandLine Config { get; set; }
+
+        [VerbOption("uninstall", HelpText = "Completely uninstall a remote client.")]
+        public UninstallCommandLine UninstallCommandLine { get; set; }
     }
 }

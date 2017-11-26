@@ -10,6 +10,7 @@ using LinkUs.Core.Commands;
 using LinkUs.Core.Connection;
 using LinkUs.Core.Packages;
 using LinkUs.Modules.Default.ClientInformation;
+using LinkUs.Modules.Default.Install;
 using LinkUs.Modules.Default.Modules;
 
 namespace LinkUs.Client

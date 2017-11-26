@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using LinkUs.Modules.Default.Install;
 
 namespace LinkUs.Client
 {

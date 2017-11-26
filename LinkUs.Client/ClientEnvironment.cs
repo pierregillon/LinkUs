@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using LinkUs.Modules.Default.Install;
 
 namespace LinkUs.Client
 {

@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace LinkUs.Client
+namespace LinkUs.Modules.Default.Install
 {
     public class Installer
     {

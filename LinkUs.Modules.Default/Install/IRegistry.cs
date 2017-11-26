@@ -1,4 +1,4 @@
-namespace LinkUs.Client
+namespace LinkUs.Modules.Default.Install
 {
     public interface IRegistry
     {

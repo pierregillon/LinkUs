@@ -61,6 +61,12 @@
     <Compile Include="FileTransfert\Events\NextFileDataRead.cs" />
     <Compile Include="FileTransfert\IFilePointer.cs" />
     <Compile Include="FileTransfert\UploadFileCommandHandler.cs" />
+    <Compile Include="Install\IEnvironment.cs" />
+    <Compile Include="Install\IFileService.cs" />
+    <Compile Include="Install\Installer.cs" />
+    <Compile Include="Install\IRegistry.cs" />
+    <Compile Include="Install\UninstallClient.cs" />
+    <Compile Include="Install\UninstallClientHandler.cs" />
     <Compile Include="Modules\AssemblyHandlerScanner.cs" />
     <Compile Include="Modules\Commands\IsModuleInstalled.cs" />
     <Compile Include="Modules\Commands\ListModules.cs" />
