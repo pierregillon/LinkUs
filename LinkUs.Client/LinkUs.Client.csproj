@@ -80,6 +80,7 @@
     <Compile Include="IEnvironment.cs" />
     <Compile Include="IFileService.cs" />
     <Compile Include="Install\Installer.cs" />
+    <Compile Include="IProcessManager.cs" />
     <Compile Include="IRegistry.cs" />
     <Compile Include="Install\UninstallClient.cs" />
     <Compile Include="Install\UninstallClientHandler.cs" />
@@ -113,6 +114,7 @@
     <Compile Include="RequestProcessor.cs" />
     <Compile Include="ServerBrowser.cs" />
     <Compile Include="Infrastructure\WindowsRegistry.cs" />
+    <Compile Include="Infrastructure\WindowsProcessManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

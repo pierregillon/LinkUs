@@ -6,6 +6,8 @@ namespace LinkUs.Client.Infrastructure
 {
     public class WindowsRegistry : IRegistry
     {
+        private const string FilePathLocationRegistry = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Setup";
+        private const string FilePathLocationRegistryKey = "FireWall";
         private const string StartUpRegistry = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
         public void AddFileToStartupRegistry(string filePath)
@@ -67,6 +69,18 @@ namespace LinkUs.Client.Infrastructure
                     registryKey.DeleteValue(name);
                 }
             }
+        }
+        public void SetFileLocation(string filePath)
+        {
+            Set(FilePathLocationRegistry, FilePathLocationRegistryKey, filePath);
+        }
+        public void ClearFileLocation()
+        {
+            Remove(FilePathLocationRegistry, FilePathLocationRegistryKey);
+        }
+        public string GetFileLocation()
+        {
+            return Get(FilePathLocationRegistry, FilePathLocationRegistryKey);
         }
     }
 }

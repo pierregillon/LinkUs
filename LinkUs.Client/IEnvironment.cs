@@ -1,7 +1,8 @@
-﻿namespace LinkUs.Client {
+﻿namespace LinkUs.Client
+{
     public interface IEnvironment
     {
         string ApplicationPath { get; }
-        string InstallationDirectory { get; }
+        bool Is64Bit { get; }
     }
 }

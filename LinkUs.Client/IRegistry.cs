@@ -6,8 +6,8 @@ namespace LinkUs.Client
         void AddFileToStartupRegistry(string filePath);
         void RemoveFileFromStartupRegistry(string filePath);
 
-        string Get(string registry, string key);
-        void Set(string filePathLocationRegistry, string key, string value);
-        void Remove(string registry, string key);
+        void SetFileLocation(string filePath);
+        void ClearFileLocation();
+        string GetFileLocation();
     }
 }
