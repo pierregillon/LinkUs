@@ -79,6 +79,7 @@
     <Compile Include="FileTransfert\UploadFileCommandHandler.cs" />
     <Compile Include="IEnvironment.cs" />
     <Compile Include="IFileService.cs" />
+    <Compile Include="Install\HigherVersionAlreadyInstalled.cs" />
     <Compile Include="Install\Installer.cs" />
     <Compile Include="IProcessManager.cs" />
     <Compile Include="IRegistry.cs" />

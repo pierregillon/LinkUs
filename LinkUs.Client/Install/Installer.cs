@@ -10,19 +10,16 @@ namespace LinkUs.Client.Install
         private readonly IEnvironment _environment;
         private readonly IFileService _fileService;
         private readonly IRegistry _registry;
-        private readonly IProcessManager _processManager;
 
         // ----- Constructor
         public Installer(
             IEnvironment environment,
             IFileService fileService,
-            IRegistry registry,
-            IProcessManager processManager)
+            IRegistry registry)
         {
             _environment = environment;
             _fileService = fileService;
             _registry = registry;
-            _processManager = processManager;
         }
 
         // ----- Public methods
@@ -39,11 +36,7 @@ namespace LinkUs.Client.Install
             else {
                 var installedVersion = _fileService.GetAssemblyVersion(currentInstalledApplicationPath);
                 if (installedVersion >= _environment.CurrentVersion) {
-                    var fileName = Path.GetFileName(currentInstalledApplicationPath);
-                    if (_processManager.IsProcessStarted(fileName)) {
-                        return null;
-                    }
-                    return null;
+                    throw new HigherVersionAlreadyInstalled(currentInstalledApplicationPath);
                 }
                 else {
                     return ProcessInstall();

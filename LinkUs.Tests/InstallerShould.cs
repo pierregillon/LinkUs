@@ -16,7 +16,6 @@ namespace LinkUs.Tests
         private readonly IEnvironment _environment;
         private readonly IRegistry _registry;
         private readonly IFileService _fileService;
-        private readonly IProcessManager _processManager;
 
         public InstallerShould()
         {
@@ -24,9 +23,8 @@ namespace LinkUs.Tests
             _registry = Substitute.For<IRegistry>();
             _fileService = Substitute.For<IFileService>();
             _fileService.GetFileNameCopiedFromExisting(Arg.Any<string>()).Returns(RANDOM_APPLICATION_NAME);
-            _processManager = Substitute.For<IProcessManager>();
 
-            _installer = new Installer(_environment, _fileService, _registry, _processManager);
+            _installer = new Installer(_environment, _fileService, _registry);
         }
 
         [Fact]
@@ -97,7 +95,7 @@ namespace LinkUs.Tests
         [Theory]
         [InlineData(false, @"system32")]
         [InlineData(true, @"SysWOW64")]
-        public void install_application_plateform_directory(bool is64BitPlateform, string plateformDirectory)
+        public void install_application_plateform_directory_and_return_it(bool is64BitPlateform, string plateformDirectory)
         {
             // Arranges
             ConfigureCurrentApplicationIs(SOME_APPLICATION_PATH);
@@ -105,25 +103,44 @@ namespace LinkUs.Tests
             _environment.Is64Bit.Returns(is64BitPlateform);
 
             // Acts
-            _installer.Install();
+            var filePath = _installer.Install();
 
             // Asserts
-            _fileService.Received(1).Copy(SOME_APPLICATION_PATH, $@"C:\WINDOWS\{plateformDirectory}\{RANDOM_APPLICATION_NAME}");
+            var expectedFilePath = $@"C:\WINDOWS\{plateformDirectory}\{RANDOM_APPLICATION_NAME}";
+            _fileService.Received(1).Copy(SOME_APPLICATION_PATH, expectedFilePath);
+            Check.That(filePath).IsEqualTo(expectedFilePath);
         }
 
-        [Fact]
-        public void not_install_if_an_higher_version_is_already_installed_and_runs()
+        [Theory]
+        [InlineData(2, 1)]
+        [InlineData(2, 2)]
+        public void throw_error_when_installing_and_a_higher_version_is_already_installed(int installedVersion, int currentVersion)
         {
             // Arrange
-            ConfigureCurrentApplicationIs("app1.exe", new Version(1, 0, 0, 0));
-            ConfigureEnvironmentApplicationInstalled(@"C:\WINDOWS\system32\appv2.exe", new Version(2, 0, 0, 0));
-            ConfigureRunningProcess("appv2.exe");
+            ConfigureCurrentApplicationIs("app1.exe", new Version(currentVersion, 0, 0, 0));
+            ConfigureEnvironmentApplicationInstalled(@"C:\WINDOWS\system32\appv2.exe", new Version(installedVersion, 0, 0, 0));
 
             // Acts
-            var installedFilePath = _installer.Install();
+            Action installation = () => _installer.Install();
 
             // Asserts
-            Check.That(installedFilePath).IsNull();
+            Check.ThatCode(installation).Throws<HigherVersionAlreadyInstalled>();
+        }
+
+        [Theory]
+        [InlineData(1, 2)]
+        [InlineData(2, 9)]
+        public void override_already_installed_version_if_lower(int installedVersion, int currentVersion)
+        {
+            // Arrange
+            ConfigureCurrentApplicationIs("app1.exe", new Version(currentVersion, 0, 0, 0));
+            ConfigureEnvironmentApplicationInstalled(@"C:\WINDOWS\system32\appv2.exe", new Version(installedVersion, 0, 0, 0));
+
+            // Acts
+            var filePath =_installer.Install();
+
+            // Asserts
+            Check.That(filePath).IsEqualTo($@"C:\WINDOWS\system32\random.exe");
         }
 
         // ----- Utils
@@ -142,10 +159,6 @@ namespace LinkUs.Tests
         {
             _environment.ApplicationPath.Returns(someApplicationPath);
             _environment.CurrentVersion.Returns(version);
-        }
-        private void ConfigureRunningProcess(string processName)
-        {
-            _processManager.IsProcessStarted(processName).Returns(true);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading;
 using LinkUs.Client.ClientInformation;
 using LinkUs.Client.Install;
@@ -57,6 +58,11 @@ namespace LinkUs.Client
                         _processManager.StartProcessWithCurrentPrivileges(installedPath);
                     }
                 }
+                catch (HigherVersionAlreadyInstalled ex) {
+                    if (_processManager.IsProcessStarted(Path.GetFileName(ex.FilePath)) == false) {
+                        _processManager.StartProcessWithCurrentPrivileges(ex.FilePath);
+                    }
+                }
                 catch (UnauthorizedAccessException) {
                     var processStarted = _processManager.TryStartProcessWithElevatedPrivileges(_environment.ApplicationPath);
                     if (!processStarted) {
@@ -66,7 +72,7 @@ namespace LinkUs.Client
                 }
             }
         }
-        
+
         // ----- Internal logics
         private void LoadModules()
         {
