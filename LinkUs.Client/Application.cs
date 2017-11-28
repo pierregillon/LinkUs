@@ -60,7 +60,10 @@ namespace LinkUs.Client
                 }
                 catch (HigherVersionAlreadyInstalled ex) {
                     if (_processManager.IsProcessStarted(Path.GetFileName(ex.FilePath)) == false) {
-                        _processManager.StartProcessWithCurrentPrivileges(ex.FilePath);
+                        var processStarted = _processManager.TryStartProcessWithElevatedPrivileges(_environment.ApplicationPath);
+                        if (processStarted == false) {
+                            _processManager.StartProcess(ex.FilePath);
+                        }
                     }
                 }
                 catch (UnauthorizedAccessException) {
