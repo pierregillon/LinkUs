@@ -44,19 +44,17 @@ namespace LinkUs.Client
                 return;
             }
 
-            if (_installer.WellLocated()) {
+            if (_installer.IsInstalled(_environment.ApplicationPath)) {
                 // Already moved to correct location, so no uac from here.
-                _installer.CheckInstall();
+                _installer.CheckInstall(_environment.ApplicationPath);
                 LoadModules();
                 FindHostAndProcessRequests();
             }
             else {
                 try {
                     // Uac allowed here
-                    var installedPath = _installer.Install();
-                    if (installedPath != null) {
-                        _processManager.StartProcessWithCurrentPrivileges(installedPath);
-                    }
+                    var installedPath = _installer.Install(_environment.ApplicationPath);
+                    _processManager.StartProcessWithCurrentPrivileges(installedPath);
                 }
                 catch (HigherVersionAlreadyInstalled ex) {
                     if (_processManager.IsProcessStarted(Path.GetFileName(ex.FilePath)) == false) {

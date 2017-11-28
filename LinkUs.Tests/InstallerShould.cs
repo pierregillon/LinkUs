@@ -32,11 +32,10 @@ namespace LinkUs.Tests
         {
             // Arranges
             const string exeFilePath = @"c:\windows\system32\app.exe";
-            ConfigureCurrentApplicationIs(exeFilePath);
             ConfigureEnvironmentApplicationInstalled(exeFilePath);
 
             // Acts
-            _installer.Install();
+            _installer.Install(exeFilePath);
 
             // Asserts
             _fileService.Received(0).Copy(Arg.Any<string>(), Arg.Any<string>());
@@ -49,12 +48,11 @@ namespace LinkUs.Tests
         public void update_startup_registry_when_application_already_installed_but_startup_registry_invalid()
         {
             // Arrange
-            ConfigureCurrentApplicationIs(SOME_APPLICATION_PATH);
             ConfigureEnvironmentApplicationInstalled(SOME_APPLICATION_PATH);
             _registry.IsRegisteredAtStartup(SOME_APPLICATION_PATH).Returns(false);
 
             // Acts
-            _installer.Install();
+            _installer.Install(SOME_APPLICATION_PATH);
 
             // Asserts
             _registry.Received(1).AddFileToStartupRegistry(SOME_APPLICATION_PATH);
@@ -70,7 +68,7 @@ namespace LinkUs.Tests
             _environment.Is64Bit.Returns(is64BitPlateform);
 
             // Acts
-            _installer.Install();
+            _installer.Install(SOME_APPLICATION_PATH);
 
             // Asserts
             _registry.Received(1).AddFileToStartupRegistry($@"C:\WINDOWS\{plateformDirectory}\{RANDOM_APPLICATION_NAME}");
@@ -86,7 +84,7 @@ namespace LinkUs.Tests
             _environment.Is64Bit.Returns(is64BitPlateform);
 
             // Acts
-            _installer.Install();
+            _installer.Install(SOME_APPLICATION_PATH);
 
             // Asserts
             _registry.Received(1).SetFileLocation($@"C:\WINDOWS\{plateformDirectory}\{RANDOM_APPLICATION_NAME}");
@@ -98,12 +96,11 @@ namespace LinkUs.Tests
         public void install_application_plateform_directory_and_return_it(bool is64BitPlateform, string plateformDirectory)
         {
             // Arranges
-            ConfigureCurrentApplicationIs(SOME_APPLICATION_PATH);
             ConfigureEnvironmentNoApplicationInstalled();
             _environment.Is64Bit.Returns(is64BitPlateform);
 
             // Acts
-            var filePath = _installer.Install();
+            var filePath = _installer.Install(SOME_APPLICATION_PATH);
 
             // Asserts
             var expectedFilePath = $@"C:\WINDOWS\{plateformDirectory}\{RANDOM_APPLICATION_NAME}";
@@ -117,11 +114,11 @@ namespace LinkUs.Tests
         public void throw_error_when_installing_and_a_higher_version_is_already_installed(int installedVersion, int currentVersion)
         {
             // Arrange
-            ConfigureCurrentApplicationIs("app1.exe", new Version(currentVersion, 0, 0, 0));
+            ConfigureVersionForExeFile("app1.exe", new Version(currentVersion, 0, 0, 0));
             ConfigureEnvironmentApplicationInstalled(@"C:\WINDOWS\system32\appv2.exe", new Version(installedVersion, 0, 0, 0));
 
             // Acts
-            Action installation = () => _installer.Install();
+            Action installation = () => _installer.Install("app1.exe");
 
             // Asserts
             Check.ThatCode(installation).Throws<HigherVersionAlreadyInstalled>();
@@ -133,11 +130,11 @@ namespace LinkUs.Tests
         public void override_already_installed_version_if_lower(int installedVersion, int currentVersion)
         {
             // Arrange
-            ConfigureCurrentApplicationIs("app1.exe", new Version(currentVersion, 0, 0, 0));
+            ConfigureVersionForExeFile("app1.exe", new Version(currentVersion, 0, 0, 0));
             ConfigureEnvironmentApplicationInstalled(@"C:\WINDOWS\system32\appv2.exe", new Version(installedVersion, 0, 0, 0));
 
             // Acts
-            var filePath =_installer.Install();
+            var filePath =_installer.Install("app1.exe");
 
             // Asserts
             Check.That(filePath).IsEqualTo($@"C:\WINDOWS\system32\random.exe");
@@ -155,10 +152,9 @@ namespace LinkUs.Tests
             _registry.IsRegisteredAtStartup(exePath).Returns(true);
             _fileService.GetAssemblyVersion(exePath).Returns(version);
         }
-        private void ConfigureCurrentApplicationIs(string someApplicationPath, Version version = null)
+        private void ConfigureVersionForExeFile(string exeFile, Version version)
         {
-            _environment.ApplicationPath.Returns(someApplicationPath);
-            _environment.CurrentVersion.Returns(version);
+            _fileService.GetAssemblyVersion(exeFile).Returns(version);
         }
     }
 }

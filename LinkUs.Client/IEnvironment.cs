@@ -6,6 +6,5 @@ namespace LinkUs.Client
     {
         string ApplicationPath { get; }
         bool Is64Bit { get; }
-        Version CurrentVersion { get; }
     }
 }

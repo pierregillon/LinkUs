@@ -25,7 +25,7 @@ namespace LinkUs.Client.Install
 
         public bool Handle(UninstallClient command)
         {
-            _installer.Uninstall();
+            _installer.Uninstall(_environment.ApplicationPath);
 
             DeleteModules();
             StartDeleteProcess();

