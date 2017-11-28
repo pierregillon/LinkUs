@@ -15,33 +15,58 @@ namespace LinkUs.Client
         private readonly ModuleManager _moduleManager;
         private readonly Installer _installer;
         private readonly ServerBrowser _serverBrowser;
+        private readonly IEnvironment _environment;
+        private readonly IProcessManager _processManager;
 
         public Application(
             Ioc ioc,
             ModuleManager moduleManager,
             Installer installer,
-            ServerBrowser serverBrowser)
+            ServerBrowser serverBrowser,
+            IEnvironment environment,
+            IProcessManager processManager)
         {
             _ioc = ioc;
             _moduleManager = moduleManager;
             _installer = installer;
             _serverBrowser = serverBrowser;
+            _environment = environment;
+            _processManager = processManager;
         }
 
         // ----- Public methods
         public void Run(bool debug)
         {
-            if (!debug) {
-                var status = _installer.Install();
-                if (status == InstallationStatus.Aborted) {
-                    return;
-                }
+            if (debug) {
+                LoadModules();
+                FindHostAndProcessRequests();
+                return;
             }
 
-            LoadModules();
-            FindHostAndProcessRequests();
+            if (_installer.WellLocated()) {
+                // Already moved to correct location, so no uac from here.
+                _installer.CheckInstall();
+                LoadModules();
+                FindHostAndProcessRequests();
+            }
+            else {
+                try {
+                    // Uac allowed here
+                    var installedPath = _installer.Install();
+                    if (installedPath != null) {
+                        _processManager.StartProcessWithCurrentPrivileges(installedPath);
+                    }
+                }
+                catch (UnauthorizedAccessException) {
+                    var processStarted = _processManager.TryStartProcessWithElevatedPrivileges(_environment.ApplicationPath);
+                    if (!processStarted) {
+                        LoadModules();
+                        FindHostAndProcessRequests();
+                    }
+                }
+            }
         }
-
+        
         // ----- Internal logics
         private void LoadModules()
         {

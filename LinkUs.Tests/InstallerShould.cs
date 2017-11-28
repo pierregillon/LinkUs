@@ -3,7 +3,6 @@ using LinkUs.Client;
 using LinkUs.Client.Install;
 using NFluent;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace LinkUs.Tests
@@ -34,7 +33,9 @@ namespace LinkUs.Tests
         public void do_nothing_when_application_already_installed()
         {
             // Arranges
-            ConfigureEnvironmentApplicationInstalled(@"c:\windows\system32\app.exe");
+            const string exeFilePath = @"c:\windows\system32\app.exe";
+            ConfigureCurrentApplicationIs(exeFilePath);
+            ConfigureEnvironmentApplicationInstalled(exeFilePath);
 
             // Acts
             _installer.Install();
@@ -50,6 +51,7 @@ namespace LinkUs.Tests
         public void update_startup_registry_when_application_already_installed_but_startup_registry_invalid()
         {
             // Arrange
+            ConfigureCurrentApplicationIs(SOME_APPLICATION_PATH);
             ConfigureEnvironmentApplicationInstalled(SOME_APPLICATION_PATH);
             _registry.IsRegisteredAtStartup(SOME_APPLICATION_PATH).Returns(false);
 
@@ -110,55 +112,18 @@ namespace LinkUs.Tests
         }
 
         [Fact]
-        public void start_new_process_in_administrator_mode_when_unauthorized_access()
+        public void not_install_if_an_higher_version_is_already_installed_and_runs()
         {
             // Arrange
-            ConfigureCurrentApplicationIs(SOME_APPLICATION_PATH);
-            ConfigureEnvironmentNoApplicationInstalled();
-            ConfigureProcessHasNoAdministratorPrivileges();
+            ConfigureCurrentApplicationIs("app1.exe", new Version(1, 0, 0, 0));
+            ConfigureEnvironmentApplicationInstalled(@"C:\WINDOWS\system32\appv2.exe", new Version(2, 0, 0, 0));
+            ConfigureRunningProcess("appv2.exe");
 
             // Acts
-            _installer.Install();
+            var installedFilePath = _installer.Install();
 
-            // Arranges
-            _processManager.Received(1).StartProcessWithElevatedPrivileges(SOME_APPLICATION_PATH);
-        }
-
-        [Fact]
-        public void abort_installation_if_new_process_with_elevated_privilege_was_started()
-        {
-            // Arrange
-            ConfigureCurrentApplicationIs(SOME_APPLICATION_PATH);
-            ConfigureEnvironmentNoApplicationInstalled();
-            ConfigureProcessHasNoAdministratorPrivileges();
-
-            _processManager
-                .StartProcessWithElevatedPrivileges(SOME_APPLICATION_PATH)
-                .Returns(true);
-
-            // Acts
-            var status = _installer.Install();
-
-            // Arranges
-            Check.That(status).IsEqualTo(InstallationStatus.Aborted);
-        }
-
-        [Fact]
-        public void fail_installation_if_new_process_with_elevated_privilege_could_not_started()
-        {
-            // Arrange
-            ConfigureEnvironmentNoApplicationInstalled();
-            ConfigureProcessHasNoAdministratorPrivileges();
-
-            _processManager
-                .StartProcessWithElevatedPrivileges(SOME_APPLICATION_PATH)
-                .Returns(false);
-
-            // Acts
-            var status = _installer.Install();
-
-            // Arranges
-            Check.That(status).IsEqualTo(InstallationStatus.Failed);
+            // Asserts
+            Check.That(installedFilePath).IsNull();
         }
 
         // ----- Utils
@@ -167,23 +132,20 @@ namespace LinkUs.Tests
             _registry.GetFileLocation().Returns((string) null);
             _registry.IsRegisteredAtStartup(SOME_APPLICATION_PATH).Returns(false);
         }
-        private void ConfigureEnvironmentApplicationInstalled(string exePath)
+        private void ConfigureEnvironmentApplicationInstalled(string exePath, Version version = null)
         {
-            _environment.ApplicationPath.Returns(exePath);
             _registry.GetFileLocation().Returns(exePath);
             _registry.IsRegisteredAtStartup(exePath).Returns(true);
+            _fileService.GetAssemblyVersion(exePath).Returns(version);
         }
-        private void ConfigureProcessHasNoAdministratorPrivileges()
-        {
-            _fileService
-                .When(x => x.Copy(Arg.Any<string>(), Arg.Any<string>()))
-                .Do(x => {
-                    throw new UnauthorizedAccessException();
-                });
-        }
-        private void ConfigureCurrentApplicationIs(string someApplicationPath)
+        private void ConfigureCurrentApplicationIs(string someApplicationPath, Version version = null)
         {
             _environment.ApplicationPath.Returns(someApplicationPath);
+            _environment.CurrentVersion.Returns(version);
+        }
+        private void ConfigureRunningProcess(string processName)
+        {
+            _processManager.IsProcessStarted(processName).Returns(true);
         }
     }
 }

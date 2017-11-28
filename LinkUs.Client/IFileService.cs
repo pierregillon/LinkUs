@@ -1,4 +1,6 @@
-﻿namespace LinkUs.Client
+﻿using System;
+
+namespace LinkUs.Client
 {
     public interface IFileService
     {
@@ -6,5 +8,6 @@
         string GetRandomFileName();
         string GetFileNameCopiedFromExisting(string directoryPath);
         void Copy(string source, string target);
+        Version GetAssemblyVersion(string fileName);
     }
 }

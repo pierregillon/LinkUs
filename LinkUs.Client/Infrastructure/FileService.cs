@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace LinkUs.Client.Infrastructure
 {
@@ -11,6 +12,10 @@ namespace LinkUs.Client.Infrastructure
             if (File.Exists(destinationFileName) == false) {
                 File.Copy(sourceFileName, destinationFileName);
             }
+        }
+        public Version GetAssemblyVersion(string fileName)
+        {
+            return AssemblyName.GetAssemblyName(fileName).Version;
         }
         public bool Exists(string filePath)
         {

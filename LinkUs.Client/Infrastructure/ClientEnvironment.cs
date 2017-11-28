@@ -12,5 +12,6 @@ namespace LinkUs.Client.Infrastructure
 
         public string ApplicationPath { get; }
         public bool Is64Bit => Environment.Is64BitOperatingSystem;
+        public Version CurrentVersion => Assembly.GetEntryAssembly().GetName().Version;
     }
 }
