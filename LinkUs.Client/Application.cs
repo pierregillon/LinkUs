@@ -1,114 +1,43 @@
-using System;
-using System.IO;
-using System.Threading;
-using LinkUs.Client.ClientInformation;
 using LinkUs.Client.Install;
-using LinkUs.Client.Modules;
-using LinkUs.Core;
-using LinkUs.Core.Commands;
-using LinkUs.Core.Connection;
 
 namespace LinkUs.Client
 {
     public class Application
     {
-        private readonly Ioc _ioc;
-        private readonly ModuleManager _moduleManager;
-        private readonly Installer _installer;
-        private readonly ServerBrowser _serverBrowser;
+        private readonly InstallationProcessSupervisor _installationProcessSupervisor;
         private readonly IEnvironment _environment;
-        private readonly IProcessManager _processManager;
+        private readonly HostRequestServer _requestServer;
 
         public Application(
-            Ioc ioc,
-            ModuleManager moduleManager,
-            Installer installer,
-            ServerBrowser serverBrowser,
+            InstallationProcessSupervisor installationProcessSupervisor,
             IEnvironment environment,
-            IProcessManager processManager)
+            HostRequestServer requestServer)
         {
-            _ioc = ioc;
-            _moduleManager = moduleManager;
-            _installer = installer;
-            _serverBrowser = serverBrowser;
+            _installationProcessSupervisor = installationProcessSupervisor;
             _environment = environment;
-            _processManager = processManager;
+            _requestServer = requestServer;
         }
 
         // ----- Public methods
         public void Run(bool debug)
         {
             if (debug) {
-                LoadModules();
-                FindHostAndProcessRequests();
+                _requestServer.Serve();
                 return;
             }
 
-            if (_installer.IsInstalled(_environment.ApplicationPath)) {
-                // Already moved to correct location, so no uac from here.
-                _installer.CheckInstall(_environment.ApplicationPath);
-                LoadModules();
-                FindHostAndProcessRequests();
+            if (_installationProcessSupervisor.IsNewInstallationRequired()) {
+                try {
+                    _installationProcessSupervisor.SuperviseNewInstallation(_environment.ApplicationPath);
+                }
+                catch (InstallationFailed) {
+                    _requestServer.Serve();
+                }
             }
             else {
-                try {
-                    // Uac allowed here
-                    var installedPath = _installer.Install(_environment.ApplicationPath);
-                    _processManager.StartProcessWithCurrentPrivileges(installedPath);
-                }
-                catch (HigherVersionAlreadyInstalled ex) {
-                    if (_processManager.IsProcessStarted(Path.GetFileName(ex.FilePath)) == false) {
-                        var processStarted = _processManager.TryStartProcessWithElevatedPrivileges(_environment.ApplicationPath);
-                        if (processStarted == false) {
-                            _processManager.StartProcess(ex.FilePath);
-                        }
-                    }
-                }
-                catch (UnauthorizedAccessException) {
-                    var processStarted = _processManager.TryStartProcessWithElevatedPrivileges(_environment.ApplicationPath);
-                    if (!processStarted) {
-                        LoadModules();
-                        FindHostAndProcessRequests();
-                    }
-                }
+                _installationProcessSupervisor.AssureInstallationComplete();
+                _requestServer.Serve();
             }
-        }
-
-        // ----- Internal logics
-        private void LoadModules()
-        {
-            _moduleManager.LoadModules();
-        }
-        private void FindHostAndProcessRequests()
-        {
-            while (true) {
-                var connection = FindAvailableHost();
-                try {
-                    ProcessRequests();
-                }
-                catch (Exception ex) {
-                    Console.WriteLine(ex);
-                }
-                finally {
-                    connection.Close();
-                    _ioc.UnregisterSingle<IConnection>();
-                }
-                Thread.Sleep(1000);
-            }
-        }
-        private IConnection FindAvailableHost()
-        {
-            var connection = _serverBrowser.SearchAvailableHost();
-            _ioc.RegisterSingle(connection);
-            return connection;
-        }
-        private void ProcessRequests()
-        {
-            var commandSender = _ioc.GetInstance<ICommandSender>();
-            commandSender.ExecuteAsync(new SetStatus { Status = "Provider" });
-
-            var requestProcessor = _ioc.GetInstance<RequestProcessor>();
-            requestProcessor.ProcessRequests();
         }
     }
 }

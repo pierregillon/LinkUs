@@ -3,7 +3,7 @@ using System.IO;
 
 namespace LinkUs.Client.Install
 {
-    public class Installer
+    public class Installer : IInstaller
     {
         private readonly IEnvironment _environment;
         private readonly IFileService _fileService;

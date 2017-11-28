@@ -39,7 +39,8 @@ Client
 	* delete modules
 	* reset registry
 * get the module directory from the client
-* Fusionner la dll Modules.Default avec le Client et faire pointer les application dessus.
+* tests for Installer::Uninstall
+* tests for InstallationProcessSupervisor
 
 RemoteShell
 * Cancel the Console.ReadLine() with win32 call.

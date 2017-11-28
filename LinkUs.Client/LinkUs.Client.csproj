@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Application.cs" />
+    <Compile Include="HostRequestServer.cs" />
     <Compile Include="Infrastructure\ClientEnvironment.cs" />
     <Compile Include="ClientInformation\ClientBasicInformation.cs" />
     <Compile Include="ClientInformation\GetBasicInformation.cs" />
@@ -79,7 +80,10 @@
     <Compile Include="FileTransfert\UploadFileCommandHandler.cs" />
     <Compile Include="IEnvironment.cs" />
     <Compile Include="IFileService.cs" />
+    <Compile Include="Install\InstallationFailed.cs" />
+    <Compile Include="Install\InstallationProcessSupervisor.cs" />
     <Compile Include="Install\HigherVersionAlreadyInstalled.cs" />
+    <Compile Include="Install\IInstaller.cs" />
     <Compile Include="Install\Installer.cs" />
     <Compile Include="IProcessManager.cs" />
     <Compile Include="IRegistry.cs" />
