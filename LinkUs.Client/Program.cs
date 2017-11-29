@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Runtime.InteropServices;
 using LinkUs.Client.Infrastructure;
+using LinkUs.Client.Install;
 using LinkUs.Client.Modules;
 using LinkUs.Core;
 using LinkUs.Core.Commands;
@@ -49,6 +50,8 @@ namespace LinkUs.Client
             ioc.RegisterSingle<IRegistry, WindowsRegistry>();
             ioc.RegisterSingle<IFileService, FileService>();
             ioc.RegisterSingle<IEnvironment, ClientEnvironment>();
+            ioc.RegisterSingle<IProcessManager, WindowsProcessManager>();
+            ioc.RegisterSingle<IInstaller, Installer>();
             return ioc;
         }
 
