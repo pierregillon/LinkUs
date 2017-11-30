@@ -5,16 +5,13 @@ namespace LinkUs.Client
     public class Application
     {
         private readonly InstallationProcessSupervisor _installationProcessSupervisor;
-        private readonly IEnvironment _environment;
         private readonly HostRequestServer _requestServer;
 
         public Application(
             InstallationProcessSupervisor installationProcessSupervisor,
-            IEnvironment environment,
             HostRequestServer requestServer)
         {
             _installationProcessSupervisor = installationProcessSupervisor;
-            _environment = environment;
             _requestServer = requestServer;
         }
 
@@ -28,7 +25,7 @@ namespace LinkUs.Client
 
             if (_installationProcessSupervisor.IsNewInstallationRequired()) {
                 try {
-                    _installationProcessSupervisor.SuperviseNewInstallation(_environment.ApplicationPath);
+                    _installationProcessSupervisor.SuperviseNewInstallation();
                 }
                 catch (InstallationFailed) {
                     _requestServer.Serve();

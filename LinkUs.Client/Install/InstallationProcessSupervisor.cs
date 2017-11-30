@@ -32,22 +32,22 @@ namespace LinkUs.Client.Install
             }
             catch (UnauthorizedAccessException) { }
         }
-        public void SuperviseNewInstallation(string fileToInstall)
+        public void SuperviseNewInstallation()
         {
             try {
-                var installedPath = _installer.Install(fileToInstall);
+                var installedPath = _installer.Install(_environment.ApplicationPath);
                 _processManager.StartProcessWithCurrentPrivileges(installedPath);
             }
             catch (HigherVersionAlreadyInstalled ex) {
                 if (_processManager.IsProcessStarted(Path.GetFileName(ex.FilePath)) == false) {
-                    var processStarted = _processManager.TryStartProcessWithElevatedPrivileges(fileToInstall);
+                    var processStarted = _processManager.TryStartProcessWithElevatedPrivileges(ex.FilePath);
                     if (processStarted == false) {
                         _processManager.StartProcess(ex.FilePath);
                     }
                 }
             }
             catch (UnauthorizedAccessException) {
-                var processStarted = _processManager.TryStartProcessWithElevatedPrivileges(fileToInstall);
+                var processStarted = _processManager.TryStartProcessWithElevatedPrivileges(_environment.ApplicationPath);
                 if (!processStarted) {
                     throw new InstallationFailed(new Exception("Cannot start process in administrator mode."));
                 }
