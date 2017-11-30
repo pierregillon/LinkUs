@@ -140,6 +140,17 @@ namespace LinkUs.Tests
             Check.That(filePath).IsEqualTo($@"C:\WINDOWS\system32\random.exe");
         }
 
+        [Fact]
+        public void remove_registries_when_uninstalling()
+        {
+            // Acts
+            _installer.Uninstall(SOME_APPLICATION_PATH);
+
+            // Asserts
+            _registry.Received(1).ClearFileLocation();
+            _registry.Received(1).RemoveFileFromStartupRegistry(SOME_APPLICATION_PATH);
+        }
+
         // ----- Utils
         private void ConfigureEnvironmentNoApplicationInstalled()
         {
