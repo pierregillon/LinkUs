@@ -38,14 +38,7 @@ namespace LinkUs.Client.Infrastructure
         public string Get(string subKey, string key)
         {
             using (var registryKey = Registry.LocalMachine.OpenSubKey(subKey, true)) {
-                if (registryKey == null) {
-                    throw new Exception("error");
-                }
-                var value = registryKey.GetValue(key);
-                if (value == null) {
-                    return null;
-                }
-                return value.ToString();
+                return registryKey?.GetValue(key)?.ToString();
             }
         }
         public void Set(string subkey, string name, string value)

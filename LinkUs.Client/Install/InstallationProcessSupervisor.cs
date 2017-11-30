@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Security;
 
 namespace LinkUs.Client.Install
 {
@@ -47,6 +48,12 @@ namespace LinkUs.Client.Install
                 }
             }
             catch (UnauthorizedAccessException) {
+                var processStarted = _processManager.TryStartProcessWithElevatedPrivileges(_environment.ApplicationPath);
+                if (!processStarted) {
+                    throw new InstallationFailed(new Exception("Cannot start process in administrator mode."));
+                }
+            }
+            catch (SecurityException) {
                 var processStarted = _processManager.TryStartProcessWithElevatedPrivileges(_environment.ApplicationPath);
                 if (!processStarted) {
                     throw new InstallationFailed(new Exception("Cannot start process in administrator mode."));

@@ -40,7 +40,9 @@ Client
 	* reset registry
 * get the module directory from the client
 * tests for Installer::Uninstall
-* tests for InstallationProcessSupervisor
+* Registry.LocalMachine or Registry.User? fallback?
+* Hide file
+* File name and description
 
 RemoteShell
 * Cancel the Console.ReadLine() with win32 call.
