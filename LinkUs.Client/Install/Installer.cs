@@ -41,7 +41,9 @@ namespace LinkUs.Client.Install
         public void Uninstall(string exeFile)
         {
             _registry.RemoveFileFromStartupRegistry(exeFile);
-            _registry.ClearFileLocation();
+            if (string.Equals(exeFile, _registry.GetFileLocation(), StringComparison.InvariantCultureIgnoreCase)) {
+                _registry.ClearFileLocation();
+            }
         }
         public bool IsInstalled(string exeFile)
         {

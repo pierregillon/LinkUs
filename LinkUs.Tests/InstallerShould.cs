@@ -11,6 +11,7 @@ namespace LinkUs.Tests
     {
         private const string RANDOM_APPLICATION_NAME = "random.exe";
         private const string SOME_APPLICATION_PATH = @"c:\app.exe";
+        private const string OTHER_APPLICATION_PATH = @"c:\app2.exe";
 
         private readonly Installer _installer;
         private readonly IRegistry _registry;
@@ -129,14 +130,42 @@ namespace LinkUs.Tests
         }
 
         [Fact]
-        public void remove_registries_when_uninstalling()
+        public void remove_startup_registry_when_uninstalling()
         {
             // Acts
             _installer.Uninstall(SOME_APPLICATION_PATH);
 
             // Asserts
-            _registry.Received(1).ClearFileLocation();
             _registry.Received(1).RemoveFileFromStartupRegistry(SOME_APPLICATION_PATH);
+        }
+
+        [Theory]
+        [InlineData(@"c:\app.exe", @"c:\app.exe")]
+        [InlineData(@"C:\APP.EXE", @"c:\app.exe")]
+        [InlineData(@"c:\app.exe", @"C:\APP.EXE")]
+        public void remove_location_if_file_installed_is_file_uninstalled(string installedFile, string fileToUninstall)
+        {
+            // Arranges
+            _registry.GetFileLocation().Returns(installedFile);
+
+            // Acts
+            _installer.Uninstall(fileToUninstall);
+
+            // Asserts
+            _registry.Received(1).ClearFileLocation();
+        }
+
+        [Fact]
+        public void do_not_remove_location_if_file_installed_is_not_file_uninstalled()
+        {
+            // Arranges
+            _registry.GetFileLocation().Returns(OTHER_APPLICATION_PATH);
+
+            // Acts
+            _installer.Uninstall(SOME_APPLICATION_PATH);
+
+            // Asserts
+            _registry.Received(0).ClearFileLocation();
         }
 
         // ----- Utils
