@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 
 namespace LinkUs.Client.Infrastructure
@@ -17,37 +17,18 @@ namespace LinkUs.Client.Infrastructure
         {
             return AssemblyName.GetAssemblyName(fileName).Version;
         }
+        public IEnumerable<string> GetFiles(string folder, string extension)
+        {
+            return Directory.EnumerateFiles(folder, extension, SearchOption.AllDirectories);
+        }
         public bool Exists(string filePath)
         {
             return File.Exists(filePath);
         }
-        public string GetRandomFileName()
+        public string GetRandomFileName(string extension)
         {
-            return Path.GetRandomFileName().Replace(".", "").Substring(0, 10) + ".exe";
-        }
-        public string GetFileNameCopiedFromExisting(string directoryPath)
-        {
-            try {
-                var files = Directory.GetFiles(directoryPath);
-                var random = new Random((int) DateTime.Now.Ticks);
-                var index = random.Next(files.Length);
-
-                for (var i = 0; i < 5; i++) {
-                    var fileName = Path.GetFileName(files[index]);
-                    var extension = Path.GetExtension(fileName);
-                    if (string.IsNullOrEmpty(extension) == false) {
-                        fileName = fileName.Replace(extension, string.Empty);
-                    }
-                    fileName += random.Next(10, 30) + ".exe";
-                    if (files.All(x => Path.GetFileName(x) != fileName)) {
-                        return fileName;
-                    }
-                }
-                return null;
-            }
-            catch (Exception) {
-                return null;
-            }
+            var fileName = Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
+            return fileName + extension;
         }
     }
 }

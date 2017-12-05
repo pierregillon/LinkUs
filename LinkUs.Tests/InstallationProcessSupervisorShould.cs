@@ -71,35 +71,6 @@ namespace LinkUs.Tests
         }
 
         [Fact]
-        public void start_current_process_in_admin_mode_when_unauthorized_exception_occured()
-        {
-            // Arranges
-            UserHasNotEnoughRightToInstall();
-            UserAcceptToStartApplicationWithElevatedPrivileges(_environment.ApplicationPath);
-
-            // Acts
-            _installationProcessSupervisor.SuperviseNewInstallation();
-
-            // Asserts
-            _processManager.Received(1)
-                           .TryStartProcessWithElevatedPrivileges(_environment.ApplicationPath);
-        }
-
-        [Fact]
-        public void throw_installation_failed_when_user_refused_to_restart_process_in_admin_mode()
-        {
-            // Arranges
-            UserHasNotEnoughRightToInstall();
-            UserRefuseToStartApplicationWithElevatedPrivileges(_environment.ApplicationPath);
-
-            // Acts
-            Action action = () => _installationProcessSupervisor.SuperviseNewInstallation();
-
-            // Asserts
-            Check.ThatCode(action).Throws<InstallationFailed>();
-        }
-
-        [Fact]
         public void do_nothing_if_a_higher_version_is_installed_and_runs()
         {
             // Arranges
@@ -110,32 +81,15 @@ namespace LinkUs.Tests
             _installationProcessSupervisor.SuperviseNewInstallation();
 
             // Asserts
-            _processManager.Received(0).TryStartProcessWithElevatedPrivileges(higherVersionExe);
             _processManager.Received(0).StartProcess(higherVersionExe);
         }
 
         [Fact]
-        public void try_to_start_installed_higher_version_in_admin_mode_if_not_running()
+        public void start_installed_higher_version_if_not_running()
         {
             // Arranges
             const string higherVersionExe = @"c:\higherversion.exe";
             AHigherVersionIsInstalledButDoesNotRun(higherVersionExe);
-            UserAcceptToStartApplicationWithElevatedPrivileges(higherVersionExe);
-
-            // Acts
-            _installationProcessSupervisor.SuperviseNewInstallation();
-
-            // Asserts
-            _processManager.Received(1).TryStartProcessWithElevatedPrivileges(higherVersionExe);
-        }
-
-        [Fact]
-        public void start_installed_higher_version_in_normal_mode_if_not_running_and_user_refused_admin_mode()
-        {
-            // Arranges
-            const string higherVersionExe = @"c:\higherversion.exe";
-            AHigherVersionIsInstalledButDoesNotRun(higherVersionExe);
-            UserRefuseToStartApplicationWithElevatedPrivileges(higherVersionExe);
 
             // Acts
             _installationProcessSupervisor.SuperviseNewInstallation();
@@ -160,16 +114,6 @@ namespace LinkUs.Tests
                           throw new HigherVersionAlreadyInstalled(higherVersionExe);
                       });
             _processManager.IsProcessStarted(Path.GetFileName(higherVersionExe)).Returns(true);
-        }
-        private void UserRefuseToStartApplicationWithElevatedPrivileges(string exeFile)
-        {
-            _processManager.TryStartProcessWithElevatedPrivileges(exeFile)
-                           .Returns(false);
-        }
-        private void UserAcceptToStartApplicationWithElevatedPrivileges(string exeFile)
-        {
-            _processManager.TryStartProcessWithElevatedPrivileges(exeFile)
-                           .Returns(true);
         }
         private void UserHasNotEnoughRightToInstall()
         {

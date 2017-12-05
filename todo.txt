@@ -43,6 +43,7 @@ Client
 * Registry.LocalMachine or Registry.User? fallback?
 * Hide file
 * File name and description
+* if process cannot write on module directory, allow bypass with loadmodule (taking full file path)
 
 RemoteShell
 * Cancel the Console.ReadLine() with win32 call.

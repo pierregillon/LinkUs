@@ -37,24 +37,25 @@ namespace LinkUs.Client.Infrastructure
 
         public string Get(string subKey, string key)
         {
-            using (var registryKey = Registry.LocalMachine.OpenSubKey(subKey, true)) {
+            using (var registryKey = GetRegistry().OpenSubKey(subKey, true)) {
                 return registryKey?.GetValue(key)?.ToString();
             }
         }
         public void Set(string subkey, string name, string value)
         {
-            using (var registryKey = Registry.LocalMachine.OpenSubKey(subkey, true)) {
+            using (var registryKey = GetRegistry().OpenSubKey(subkey, true)) {
                 if (registryKey == null) {
-                    throw new Exception("error");
+                    var subKey = GetRegistry().CreateSubKey(subkey);
+                    subKey.SetValue(name, value);
                 }
-                if (registryKey.GetValue(name) == null) {
+                else if(registryKey.GetValue(name) == null) {
                     registryKey.SetValue(name, value);
                 }
             }
         }
         public void Remove(string subkey, string name)
         {
-            using (var registryKey = Registry.LocalMachine.OpenSubKey(subkey, true)) {
+            using (var registryKey = GetRegistry().OpenSubKey(subkey, true)) {
                 if (registryKey == null) {
                     throw new Exception(string.Format("The registry '{0}' was not found.", subkey));
                 }
@@ -62,6 +63,10 @@ namespace LinkUs.Client.Infrastructure
                     registryKey.DeleteValue(name);
                 }
             }
+        }
+        private static RegistryKey GetRegistry()
+        {
+            return Registry.CurrentUser;
         }
         public void SetFileLocation(string filePath)
         {

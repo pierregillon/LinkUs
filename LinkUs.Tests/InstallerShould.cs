@@ -13,18 +13,15 @@ namespace LinkUs.Tests
         private const string SOME_APPLICATION_PATH = @"c:\app.exe";
 
         private readonly Installer _installer;
-        private readonly IEnvironment _environment;
         private readonly IRegistry _registry;
         private readonly IFileService _fileService;
 
         public InstallerShould()
         {
-            _environment = Substitute.For<IEnvironment>();
             _registry = Substitute.For<IRegistry>();
             _fileService = Substitute.For<IFileService>();
-            _fileService.GetFileNameCopiedFromExisting(Arg.Any<string>()).Returns(RANDOM_APPLICATION_NAME);
-
-            _installer = new Installer(_environment, _fileService, _registry);
+            _fileService.GetRandomFileName(".exe").Returns(RANDOM_APPLICATION_NAME);
+            _installer = new Installer(_fileService, _registry);
         }
 
         [Fact]
@@ -58,52 +55,43 @@ namespace LinkUs.Tests
             _registry.Received(1).AddFileToStartupRegistry(SOME_APPLICATION_PATH);
         }
 
-        [Theory]
-        [InlineData(false, @"system32")]
-        [InlineData(true, @"SysWOW64")]
-        public void install_application_in_startup_registry(bool is64BitPlateform, string plateformDirectory)
+        [Fact]
+        public void install_application_in_startup_registry()
         {
             // Arranges
             ConfigureEnvironmentNoApplicationInstalled();
-            _environment.Is64Bit.Returns(is64BitPlateform);
 
             // Acts
             _installer.Install(SOME_APPLICATION_PATH);
 
             // Asserts
-            _registry.Received(1).AddFileToStartupRegistry($@"C:\WINDOWS\{plateformDirectory}\{RANDOM_APPLICATION_NAME}");
+            _registry.Received(1).AddFileToStartupRegistry($@"C:\Users\gillo\AppData\Local\{RANDOM_APPLICATION_NAME}");
         }
 
-        [Theory]
-        [InlineData(false, @"system32")]
-        [InlineData(true, @"SysWOW64")]
-        public void install_application_location_in_registry(bool is64BitPlateform, string plateformDirectory)
+        [Fact]
+        public void install_application_location_in_registry()
         {
             // Arranges
             ConfigureEnvironmentNoApplicationInstalled();
-            _environment.Is64Bit.Returns(is64BitPlateform);
 
             // Acts
             _installer.Install(SOME_APPLICATION_PATH);
 
             // Asserts
-            _registry.Received(1).SetFileLocation($@"C:\WINDOWS\{plateformDirectory}\{RANDOM_APPLICATION_NAME}");
+            _registry.Received(1).SetFileLocation($@"C:\Users\gillo\AppData\Local\{RANDOM_APPLICATION_NAME}");
         }
 
-        [Theory]
-        [InlineData(false, @"system32")]
-        [InlineData(true, @"SysWOW64")]
-        public void install_application_plateform_directory_and_return_it(bool is64BitPlateform, string plateformDirectory)
+        [Fact]
+        public void install_application_plateform_directory_and_return_it()
         {
             // Arranges
             ConfigureEnvironmentNoApplicationInstalled();
-            _environment.Is64Bit.Returns(is64BitPlateform);
 
             // Acts
             var filePath = _installer.Install(SOME_APPLICATION_PATH);
 
             // Asserts
-            var expectedFilePath = $@"C:\WINDOWS\{plateformDirectory}\{RANDOM_APPLICATION_NAME}";
+            var expectedFilePath = $@"C:\Users\gillo\AppData\Local\{RANDOM_APPLICATION_NAME}";
             _fileService.Received(1).Copy(SOME_APPLICATION_PATH, expectedFilePath);
             Check.That(filePath).IsEqualTo(expectedFilePath);
         }
@@ -131,13 +119,13 @@ namespace LinkUs.Tests
         {
             // Arrange
             ConfigureVersionForExeFile("app1.exe", new Version(currentVersion, 0, 0, 0));
-            ConfigureEnvironmentApplicationInstalled(@"C:\WINDOWS\system32\appv2.exe", new Version(installedVersion, 0, 0, 0));
+            ConfigureEnvironmentApplicationInstalled(@"C:\Users\gillo\AppData\Local\appv2.exe", new Version(installedVersion, 0, 0, 0));
 
             // Acts
             var filePath =_installer.Install("app1.exe");
 
             // Asserts
-            Check.That(filePath).IsEqualTo($@"C:\WINDOWS\system32\random.exe");
+            Check.That(filePath).IsEqualTo($@"C:\Users\gillo\AppData\Local\random.exe");
         }
 
         [Fact]
