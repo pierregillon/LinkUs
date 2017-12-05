@@ -113,7 +113,7 @@ namespace LinkUs.Tests
                       .Do(x => {
                           throw new HigherVersionAlreadyInstalled(higherVersionExe);
                       });
-            _processManager.IsProcessStarted(Path.GetFileName(higherVersionExe)).Returns(true);
+            _processManager.IsProcessStarted(Path.GetFileNameWithoutExtension(higherVersionExe)).Returns(true);
         }
         private void UserHasNotEnoughRightToInstall()
         {

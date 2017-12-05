@@ -40,7 +40,7 @@ namespace LinkUs.Client.Install
                 _processManager.StartProcess(installedPath);
             }
             catch (HigherVersionAlreadyInstalled ex) {
-                if (_processManager.IsProcessStarted(Path.GetFileName(ex.FilePath)) == false) {
+                if (_processManager.IsProcessStarted(Path.GetFileNameWithoutExtension(ex.FilePath)) == false) {
                     _processManager.StartProcess(ex.FilePath);
                 }
             }
