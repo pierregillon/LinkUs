@@ -37,5 +37,8 @@ namespace LinkUs.CommandLine
 
         [VerbOption("uninstall", HelpText = "Completely uninstall a remote client.")]
         public UninstallCommandLine UninstallCommandLine { get; set; }
+
+        [VerbOption("status", HelpText = "Get the remote client status.")]
+        public StatusCommandLine StatusCommandLine { get; set; }
     }
 }
