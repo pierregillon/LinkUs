@@ -28,13 +28,21 @@ CommandLine
 	2. Bad state : not installed properly
 
 Client
-* admin mode for app, need to write to c:\
-* verify that the admin mode is useful. if yes, disable uac
-* get the module directory from the client
-* Registry.LocalMachine or Registry.User? fallback?
-* Hide file
-* File name and description
+* installation with admin mode?
+	* Install to c:\
+	* Use registry of LocalMachine
+	* quid of uninstalling? should the process always execute with full admin right? uac?
+	* use of TaskScheduler vs Registry?
+	* Registry.LocalMachine or Registry.User? fallback?
+* installation and process properties
+	* File name and description
+	* Hide file + file system?
+* get the module directory installation from the client
 * if process cannot write on module directory, allow bypass with loadmodule (taking full file path)
+* Servers scan
+	* ServerScanner that uses a LocalNetworkScanner
+	* Multi connections to different servers
+	* save potential servers in file to persist research
 
 RemoteShell
 * Cancel the Console.ReadLine() with win32 call.
